@@ -87,28 +87,37 @@
           z-index: 2;
         }
 
-        /* INK name plate — front layer (3), slides up over his lower third */
+        /* Off-white name plate — matches Frame 5's card exactly (user request) */
         [id="06-andre-pierre-plate"] {
           position: absolute;
           left: 90px;
-          top: 1380px;
+          top: 1372px;
           width: 900px;
-          height: 180px;
-          background: #1a1a1a;
+          height: 220px;
+          background: #fcfbf8;
+          border: 2px solid #1a1a1a;
           display: flex;
           align-items: center;
           justify-content: center;
           z-index: 3;
         }
         [id="06-andre-pierre-plate"] .plate-name {
-          font-size: 62px;
-          font-weight: 500;
+          font-size: 68px;
+          font-weight: 400;
           line-height: 1;
-          letter-spacing: 0.01em;
-          color: #f7f6f2;
+          letter-spacing: -0.01em;
+          color: #1a1a1a;
           white-space: nowrap;
           /* League Spartan sits high on its em box — nudge for optical centering */
           padding-top: 8px;
+        }
+        [id="06-andre-pierre-plate"] .plate-dot {
+          display: inline-block;
+          width: 15px;
+          height: 15px;
+          margin-left: 14px;
+          background: #f03028;
+          border-radius: 50%;
         }
       </style>
 
@@ -159,6 +168,7 @@
           <!-- Scene 3 (2.4s): INK plate, off-white display type — then long held read -->
           <div id="06-andre-pierre-plate">
             <div class="plate-name">André-Pierre du Plessis</div>
+            <div class="plate-dot"></div>
           </div>
         </div>
       </div>
