@@ -3,6 +3,7 @@ import {
   AbsoluteFill,
   Easing,
   interpolate,
+  random,
   spring,
   useCurrentFrame,
   useVideoConfig,
@@ -29,23 +30,30 @@ export const Scene6Resolve: React.FC = () => {
   const rotation = interpolate(spin, [0, 1], [-900, -3]);
   const pageScale = Math.max(0.001, spin);
 
-  // Logo builds itself, then the REC light comes on: we're filming now.
-  const boxDraw = interpolate(frame, [34, 66], [0, 1], {
+  // Logo builds itself: border draws wide, box grows tall into the square
+  // mark, and only then does the REC light come on — we're filming now.
+  const boxDraw = interpolate(frame, [34, 62], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE,
   });
-  const textIn = interpolate(frame, [60, 76], [0, 1], {
+  const textIn = interpolate(frame, [54, 70], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
   });
+  const grow = spring({
+    frame: frame - 74,
+    fps,
+    config: { damping: 15, mass: 0.9, stiffness: 90 },
+  });
   const dotPop = spring({
-    frame: frame - 84,
+    frame: frame - 104,
     fps,
     config: { damping: 10, mass: 0.6, stiffness: 200 },
   });
-  // Steady REC blink once it has landed: ~20 frames on, 8 off.
-  const dotBlink = frame < 100 ? 1 : frame % 28 < 20 ? 1 : 0.3;
+  // Flickering REC light: seeded per 3-frame bucket, mostly on.
+  const dotBlink =
+    frame < 112 ? 1 : random(`rec-${Math.floor(frame / 3)}`) > 0.28 ? 1 : 0.35;
 
   // Slow push-in keeps the long hold alive.
   const zoom = interpolate(frame, [0, SCENES.resolve.duration], [1, 1.05]);
@@ -65,15 +73,17 @@ export const Scene6Resolve: React.FC = () => {
       >
         <FrontPage width={700} />
       </div>
+      {/* bottom-anchored so the box grows upward into the square */}
       <div
         style={{
           position: "absolute",
-          left: 1120,
-          top: 460,
+          left: 1150,
+          bottom: 270,
         }}
       >
         <LogoBox
-          width={560}
+          width={520}
+          grow={grow}
           boxDraw={boxDraw}
           textIn={textIn}
           dotScale={dotPop}
