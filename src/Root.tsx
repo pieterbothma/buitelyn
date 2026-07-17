@@ -12,7 +12,7 @@ export const RemotionRoot: React.FC = () => {
       fps={VIDEO.fps}
       width={VIDEO.width}
       height={VIDEO.height}
-      defaultProps={{ audioFile: null }}
+      defaultProps={{ audioFile: "intro-track.mp3" }}
     />
   );
 };

@@ -7,16 +7,16 @@ const EASE = Easing.bezier(0.16, 1, 0.3, 1);
 
 export const Scene1Tease: React.FC = () => {
   const frame = useCurrentFrame();
-  const reveal = interpolate(frame, [0, 18], [0, 100], {
+  const reveal = interpolate(frame, [0, 26], [0, 100], {
     extrapolateRight: "clamp",
     easing: EASE,
   });
-  const cursorDown = interpolate(frame, [6, 16], [0, 1], {
+  const cursorDown = interpolate(frame, [10, 24], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE,
   });
-  const lip = interpolate(frame, [16, 26], [0, 1], {
+  const lip = interpolate(frame, [24, 38], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE,

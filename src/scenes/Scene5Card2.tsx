@@ -8,9 +8,14 @@ import {
 } from "remotion";
 import { COLORS, PRESENTERS } from "../config";
 import { PaperGrid } from "../components/PaperGrid";
+import { PrintMarks } from "../components/PrintMarks";
 import { TypeTexture } from "../components/TypeTexture";
+import { TickerStrip } from "../components/TickerStrip";
 import { Sparkle } from "../components/Sparkle";
 import { NameCard } from "./NameCard";
+
+// Continue the ticker scroll seamlessly from where Scene 4 leaves off.
+const SCENE5_TICKER_PHASE = 58;
 
 export const Scene5Card2: React.FC = () => {
   const frame = useCurrentFrame();
@@ -23,7 +28,15 @@ export const Scene5Card2: React.FC = () => {
   return (
     <AbsoluteFill>
       <PaperGrid />
-      <TypeTexture seed="scene5" count={44} drift={frame * 0.8} opacity={0.16} />
+      <TypeTexture
+        seed="scene5"
+        mode="tickers"
+        count={34}
+        drift={frame * 0.8}
+        opacity={0.16}
+      />
+      <PrintMarks />
+      <TickerStrip offset={(frame + SCENE5_TICKER_PHASE) * 2.2} />
       <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
         <div
           style={{

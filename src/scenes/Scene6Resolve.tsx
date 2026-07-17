@@ -7,9 +7,10 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { COLORS } from "../config";
+import { beatPulse, COLORS, SCENES } from "../config";
 import { fontFamily } from "../fonts";
 import { PaperGrid } from "../components/PaperGrid";
+import { PrintMarks } from "../components/PrintMarks";
 import { TypeTexture } from "../components/TypeTexture";
 import { LogoBox } from "../components/LogoBox";
 
@@ -18,19 +19,23 @@ const EASE = Easing.bezier(0.16, 1, 0.3, 1);
 export const Scene6Resolve: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const guides = interpolate(frame, [0, 32], [0, 1], {
+  const guides = interpolate(frame, [0, 40], [0, 1], {
     extrapolateRight: "clamp",
     easing: EASE,
   });
   const pop = spring({
-    frame: frame - 16,
+    frame: frame - 20,
     fps,
     config: { damping: 12, mass: 0.9, stiffness: 120 },
   });
+  // Slow push-in over the long hold keeps the final scene alive.
+  const zoom = interpolate(frame, [0, SCENES.resolve.duration], [1, 1.05]);
+  const dotScale = beatPulse(frame + SCENES.resolve.from, 0.35);
   return (
-    <AbsoluteFill>
+    <AbsoluteFill style={{ transform: `scale(${zoom})` }}>
       <PaperGrid />
-      <TypeTexture seed="scene6" count={54} opacity={0.16} />
+      <TypeTexture seed="scene6" mode="wall" count={54} opacity={0.16} />
+      <PrintMarks />
       <div
         style={{
           position: "absolute",
@@ -87,7 +92,7 @@ export const Scene6Resolve: React.FC = () => {
       </svg>
       <AbsoluteFill style={{ alignItems: "center", justifyContent: "center" }}>
         <div style={{ transform: `scale(${pop})` }}>
-          <LogoBox width={460} />
+          <LogoBox width={460} dotScale={dotScale} />
         </div>
       </AbsoluteFill>
     </AbsoluteFill>

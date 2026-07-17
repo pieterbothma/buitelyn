@@ -7,8 +7,10 @@ import {
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
-import { COLORS } from "../config";
+import { beatPulse, COLORS, SCENES } from "../config";
 import { PaperGrid } from "../components/PaperGrid";
+import { PrintMarks } from "../components/PrintMarks";
+import { TypeTexture } from "../components/TypeTexture";
 import { Wordmark } from "../components/Wordmark";
 
 const EASE = Easing.bezier(0.16, 1, 0.3, 1);
@@ -19,12 +21,14 @@ const seg = (p: number, a: number, b: number) =>
 export const Scene3BrandHit: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const circle = spring({
-    frame: frame - 4,
-    fps,
-    config: { damping: 14, mass: 0.8 },
-  });
-  const boxDraw = interpolate(frame, [16, 36], [0, 1], {
+  // The drop lands on this scene's first frame — pop hard, then thump on beats.
+  const circle =
+    spring({
+      frame,
+      fps,
+      config: { damping: 12, mass: 0.7, stiffness: 180 },
+    }) * beatPulse(frame + SCENES.brandHit.from, 0.05);
+  const boxDraw = interpolate(frame, [6, 26], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE,
@@ -32,6 +36,14 @@ export const Scene3BrandHit: React.FC = () => {
   return (
     <AbsoluteFill>
       <PaperGrid />
+      <TypeTexture
+        seed="scene3"
+        mode="numbers"
+        count={20}
+        drift={frame * 0.8}
+        opacity={0.11}
+      />
+      <PrintMarks />
       <div
         style={{
           position: "absolute",
