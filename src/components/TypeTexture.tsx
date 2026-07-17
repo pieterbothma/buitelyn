@@ -6,8 +6,8 @@ import { Arrow } from "./Arrow";
 
 export type TextureMode = "sections" | "numbers" | "tickers" | "wall";
 
-const LETTERS = ["B", "S", "ET", "P", "Q", "W", "V", "M", "Z", "N"];
-const SECTIONS = [
+// Every background word is news vocabulary — no abstract filler letters.
+const WORDS = [
   "POLITIEK",
   "MARKTE",
   "SPORT",
@@ -18,6 +18,20 @@ const SECTIONS = [
   "RAND",
   "JSE",
   "GOUD",
+  "RENTEKOERS",
+  "INFLASIE",
+  "BEGROTING",
+  "VERKIESING",
+  "WISSELKOERS",
+  "EKONOMIE",
+  "AANDELE",
+  "SAKENUUS",
+];
+const HEADLINES = [
+  "RAND STERKER",
+  "JSE OP REKORDVLAK",
+  "MARKTE OPEN GROEN",
+  "VANDAG OP DIE BUITELYN",
 ];
 const NUMBERS = [
   "+1,2%",
@@ -41,31 +55,31 @@ export const TICKERS = [
 ];
 const NAMES = ["Buitelyn", ...PRESENTERS.map((p) => p.lines.join(" "))];
 
-type Kind = "letter" | "section" | "number" | "ticker" | "name";
+type Kind = "word" | "headline" | "number" | "ticker" | "name";
 
 // Per-mode weighted pools — the background story arc:
 // sections (newspaper) → numbers (data creeps in) → tickers (markets live) → wall (everything).
 const MODE_KINDS: Record<TextureMode, [Kind, number][]> = {
   sections: [
-    ["section", 0.6],
-    ["letter", 0.25],
+    ["word", 0.65],
+    ["headline", 0.2],
     ["name", 0.15],
   ],
   numbers: [
-    ["number", 0.55],
-    ["letter", 0.25],
-    ["section", 0.2],
+    ["number", 0.5],
+    ["word", 0.35],
+    ["headline", 0.15],
   ],
   tickers: [
     ["ticker", 0.45],
-    ["section", 0.3],
+    ["word", 0.3],
     ["number", 0.25],
   ],
   wall: [
-    ["letter", 0.3],
-    ["section", 0.25],
+    ["word", 0.3],
     ["number", 0.2],
-    ["ticker", 0.15],
+    ["ticker", 0.2],
+    ["headline", 0.2],
     ["name", 0.1],
   ],
 };
@@ -89,22 +103,28 @@ const Item: React.FC<{ kind: Kind; rGlyph: number; rSize: number }> = ({
   rSize,
 }) => {
   switch (kind) {
-    case "letter":
-      return (
-        <span style={{ fontWeight: 700, fontSize: 90 + rSize * 320 }}>
-          {pick(LETTERS, rGlyph)}
-        </span>
-      );
-    case "section":
+    case "word":
       return (
         <span
           style={{
             fontWeight: 700,
-            fontSize: 36 + rSize * 84,
+            fontSize: 36 + rSize * 116,
             letterSpacing: "0.08em",
           }}
         >
-          {pick(SECTIONS, rGlyph)}
+          {pick(WORDS, rGlyph)}
+        </span>
+      );
+    case "headline":
+      return (
+        <span
+          style={{
+            fontWeight: 600,
+            fontSize: 24 + rSize * 22,
+            letterSpacing: "0.12em",
+          }}
+        >
+          {pick(HEADLINES, rGlyph)}
         </span>
       );
     case "number":

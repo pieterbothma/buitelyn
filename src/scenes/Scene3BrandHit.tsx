@@ -21,13 +21,14 @@ const seg = (p: number, a: number, b: number) =>
 export const Scene3BrandHit: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  // The drop lands on this scene's first frame — pop hard, then thump on beats.
-  const circle =
-    spring({
-      frame,
-      fps,
-      config: { damping: 12, mass: 0.7, stiffness: 180 },
-    }) * beatPulse(frame + SCENES.brandHit.from, 0.05);
+  // The drop lands on this scene's first frame — the red circle detonates
+  // over the spot where Scene 1's globe was turning, then thumps on beats.
+  const pop = spring({
+    frame,
+    fps,
+    config: { damping: 12, mass: 0.7, stiffness: 180 },
+  });
+  const circle = pop * beatPulse(frame + SCENES.brandHit.from, 0.05);
   const boxDraw = interpolate(frame, [6, 26], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",

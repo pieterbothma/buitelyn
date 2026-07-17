@@ -1,7 +1,6 @@
 import React from "react";
 import {
   AbsoluteFill,
-  interpolate,
   spring,
   useCurrentFrame,
   useVideoConfig,
@@ -11,7 +10,6 @@ import { PaperGrid } from "../components/PaperGrid";
 import { PrintMarks } from "../components/PrintMarks";
 import { TypeTexture } from "../components/TypeTexture";
 import { TickerStrip } from "../components/TickerStrip";
-import { Sparkle } from "../components/Sparkle";
 import { NameCard } from "./NameCard";
 
 // Continue the ticker scroll seamlessly from where Scene 4 leaves off.
@@ -21,10 +19,6 @@ export const Scene5Card2: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   const enter = spring({ frame, fps, config: { damping: 16, mass: 0.9 } });
-  const glint = interpolate(frame, [10, 20, 32], [0, 1, 0.6], {
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
-  });
   return (
     <AbsoluteFill>
       <PaperGrid />
@@ -54,16 +48,6 @@ export const Scene5Card2: React.FC = () => {
           }}
         >
           <NameCard lines={PRESENTERS[1].lines} dark fontSize={76} />
-          <div
-            style={{
-              position: "absolute",
-              top: 18,
-              right: 26,
-              transform: `scale(${glint})`,
-            }}
-          >
-            <Sparkle size={44} />
-          </div>
         </div>
       </AbsoluteFill>
     </AbsoluteFill>

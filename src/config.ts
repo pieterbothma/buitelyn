@@ -21,8 +21,7 @@ export const PRESENTERS: { lines: string[] }[] = [
 // Timed to ANW4207_016 "In Sync": quiet build 0–3.6s, bass drop ~3.7s,
 // groove hits every ~0.47s until ~12.3s, decay tail to 15s.
 export const SCENES = {
-  tease: { from: 0, duration: 45 },
-  spirograph: { from: 45, duration: 66 },
+  type: { from: 0, duration: 111 },
   brandHit: { from: 111, duration: 59 },
   card1: { from: 170, duration: 58 },
   card2: { from: 228, duration: 58 },

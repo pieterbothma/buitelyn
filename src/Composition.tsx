@@ -8,8 +8,7 @@ import {
 } from "remotion";
 import { Audio } from "@remotion/media";
 import { COLORS, SCENES } from "./config";
-import { Scene1Tease } from "./scenes/Scene1Tease";
-import { Scene2Spirograph } from "./scenes/Scene2Spirograph";
+import { Scene1Type } from "./scenes/Scene1Type";
 import { Scene3BrandHit } from "./scenes/Scene3BrandHit";
 import { Scene4Card1 } from "./scenes/Scene4Card1";
 import { Scene5Card2 } from "./scenes/Scene5Card2";
@@ -35,14 +34,8 @@ export const BuitelynIntro: React.FC<{ audioFile: string | null }> = ({
   return (
     <AbsoluteFill style={{ backgroundColor: COLORS.paper }}>
       {audioFile ? <Audio src={staticFile(audioFile)} /> : null}
-      <Sequence from={SCENES.tease.from} durationInFrames={SCENES.tease.duration}>
-        <Scene1Tease />
-      </Sequence>
-      <Sequence
-        from={SCENES.spirograph.from}
-        durationInFrames={SCENES.spirograph.duration}
-      >
-        <Scene2Spirograph />
+      <Sequence from={SCENES.type.from} durationInFrames={SCENES.type.duration}>
+        <Scene1Type />
       </Sequence>
       <Sequence
         from={SCENES.brandHit.from}
