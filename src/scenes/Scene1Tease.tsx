@@ -11,7 +11,12 @@ export const Scene1Tease: React.FC = () => {
     extrapolateRight: "clamp",
     easing: EASE,
   });
-  const draw = interpolate(frame, [6, 26], [0, 1], {
+  const cursorDown = interpolate(frame, [6, 16], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+    easing: EASE,
+  });
+  const lip = interpolate(frame, [16, 26], [0, 1], {
     extrapolateLeft: "clamp",
     extrapolateRight: "clamp",
     easing: EASE,
@@ -28,24 +33,26 @@ export const Scene1Tease: React.FC = () => {
         <div style={{ clipPath: `inset(0 ${100 - reveal}% 0 0)` }}>
           <Wordmark fontSize={200} />
         </div>
-        <svg
-          width="100%"
-          height="100%"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          style={{ position: "absolute", inset: 0, overflow: "visible" }}
-        >
-          <path
-            d="M 103 -4 L 103 112 L 55 112"
-            fill="none"
-            stroke={COLORS.ink}
-            strokeWidth={7}
-            vectorEffect="non-scaling-stroke"
-            pathLength={1}
-            strokeDasharray={1}
-            strokeDashoffset={1 - draw}
-          />
-        </svg>
+        <div
+          style={{
+            position: "absolute",
+            right: -44,
+            top: -10,
+            width: 7,
+            height: `${cursorDown * 115}%`,
+            backgroundColor: COLORS.ink,
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            right: -44,
+            bottom: -26,
+            height: 7,
+            width: `${lip * 48}%`,
+            backgroundColor: COLORS.ink,
+          }}
+        />
       </div>
     </AbsoluteFill>
   );
