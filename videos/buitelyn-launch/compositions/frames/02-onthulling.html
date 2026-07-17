@@ -1,0 +1,316 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Frame 2 — Die onthulling</title>
+    <!-- head is source-file metadata only; the runtime clones ONLY <template> contents -->
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: "League Spartan";
+          src: url("assets/fonts/league-spartan.woff2") format("woff2");
+          font-weight: 100 900;
+          font-style: normal;
+        }
+
+        /* Root styled via #root — never a class on the data-composition-id element */
+        #root {
+          position: absolute;
+          inset: 0;
+          width: 1080px;
+          height: 1920px;
+          overflow: hidden;
+          container-type: size;
+          font-family: "League Spartan", sans-serif;
+        }
+
+        /* ---- Full-bleed ground: paper + faint hairline grid (its own clip, never on #root) ---- */
+        .onthulling-bg {
+          position: absolute;
+          inset: 0;
+          background-color: #f7f6f2;
+          background-image:
+            linear-gradient(to right, rgba(26, 26, 26, 0.05) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(26, 26, 26, 0.05) 1px, transparent 1px);
+          background-size: 8.333cqw 8.333cqw;
+        }
+
+        /* ---- Stage ---- */
+        .onthulling-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        /* The mark: square box, ~55% of canvas width, upper-half placement */
+        .onthulling-mark {
+          position: absolute;
+          left: 22.5cqw;
+          top: 300px;
+          width: 55cqw;
+          height: 55cqw;
+        }
+        .onthulling-mark svg {
+          position: absolute;
+          inset: 0;
+          width: 100%;
+          height: 100%;
+          overflow: visible;
+        }
+        .onthulling-mark path {
+          fill: none;
+          stroke: #1a1a1a;
+          stroke-width: 15;
+          stroke-linecap: butt; /* square, crisp — the brand is flat + square */
+          stroke-linejoin: miter;
+        }
+
+        /* Wordmark sits ON the bottom border — baseline on the stroke, y-descender crossing it */
+        .onthulling-wordmark {
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: -1.3cqw;
+          display: flex;
+          justify-content: center;
+          align-items: baseline;
+          line-height: 1;
+          font-weight: 700;
+          font-size: 13.2cqw;
+          letter-spacing: -0.01em;
+          color: #1a1a1a;
+        }
+        .onthulling-letter {
+          display: inline-block; /* transforms need block-level */
+          will-change: transform;
+        }
+
+        /* Red dot — inside the square, top-right (matches assets/logo-square.png geometry) */
+        .onthulling-dot {
+          position: absolute;
+          left: 80%;
+          top: 6.4%;
+          width: 13.5%;
+          height: 13.5%;
+          border-radius: 50%;
+          background: #f03028;
+          transform-origin: 50% 50%;
+          will-change: transform;
+        }
+
+        /* ---- Tagline: types on behind a blinking caret ---- */
+        .onthulling-tagline {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 1108px;
+          display: flex;
+          justify-content: center;
+        }
+        .onthulling-tagbox {
+          position: relative;
+          white-space: pre;
+          font-weight: 500;
+          font-size: 2.2cqw;
+          letter-spacing: 0.32em;
+          color: #1a1a1a;
+          text-transform: uppercase;
+          line-height: 1.4;
+        }
+        /* invisible sizer holds the FINAL width so typing never re-centers (no right-edge jitter) */
+        .onthulling-tagsizer {
+          opacity: 0;
+        }
+        .onthulling-tagabs {
+          position: absolute;
+          left: 0;
+          top: 0;
+          white-space: pre;
+        }
+        .onthulling-caret {
+          display: inline-block;
+          width: 0.25cqw;
+          height: 1.05em;
+          margin-left: -0.2em;
+          vertical-align: -0.18em;
+          background: #1a1a1a;
+          opacity: 0; /* driven per-frame by the deterministic blink driver */
+        }
+      </style>
+
+      <div id="root" data-composition-id="02-onthulling" data-duration="6.5" data-width="1080" data-height="1920">
+        <!-- Ground -->
+        <div
+          class="clip onthulling-bg"
+          data-start="0"
+          data-duration="6.5"
+          data-track-index="0"
+        ></div>
+
+        <!-- Stage -->
+        <div class="clip onthulling-stage" data-start="0" data-duration="6.5" data-track-index="1">
+          <div class="onthulling-mark">
+            <svg viewBox="0 0 594 594" xmlns="http://www.w3.org/2000/svg">
+              <!-- face fill arrives as the letters land -->
+              <rect
+                id="02-onthulling-fill"
+                x="15"
+                y="15"
+                width="564"
+                height="564"
+                fill="#ffffff"
+              />
+              <!-- box outline: two symmetric strokes, top-centre -> down each side -> meet bottom-centre -->
+              <path id="02-onthulling-path-left" d="M 297 7.5 L 7.5 7.5 L 7.5 586.5 L 297 586.5" />
+              <path
+                id="02-onthulling-path-right"
+                d="M 297 7.5 L 586.5 7.5 L 586.5 586.5 L 297 586.5"
+              />
+            </svg>
+
+            <div class="onthulling-wordmark" aria-label="Buitelyn">
+              <span class="onthulling-letter">B</span
+              ><span class="onthulling-letter">u</span
+              ><span class="onthulling-letter">i</span
+              ><span class="onthulling-letter">t</span
+              ><span class="onthulling-letter">e</span
+              ><span class="onthulling-letter">l</span
+              ><span class="onthulling-letter">y</span
+              ><span class="onthulling-letter">n</span>
+            </div>
+
+            <div class="onthulling-dot" id="02-onthulling-dot"></div>
+          </div>
+
+          <div class="onthulling-tagline">
+            <div class="onthulling-tagbox">
+              <span class="onthulling-tagsizer">SPLINTERNUWE AFRIKAANSE NUUSPROGRAM</span>
+              <span class="onthulling-tagabs"
+                ><span id="02-onthulling-tagtext"></span
+                ><span class="onthulling-caret" id="02-onthulling-caret"></span
+              ></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+      <script>
+        window.__timelines = window.__timelines || {};
+
+        const byId = (id) => document.getElementById(id);
+        const pathLeft = byId("02-onthulling-path-left");
+        const pathRight = byId("02-onthulling-path-right");
+        const fillEl = byId("02-onthulling-fill");
+        const dotEl = byId("02-onthulling-dot");
+        const tagTextEl = byId("02-onthulling-tagtext");
+        const caretEl = byId("02-onthulling-caret");
+        const letters = document.querySelectorAll(".onthulling-letter");
+
+        // svg-path-draw: dasharray/dashoffset = measured length (real DOM geometry, not a guess)
+        [pathLeft, pathRight].forEach((p) => {
+          const len = p.getTotalLength();
+          p.style.strokeDasharray = `${len}`;
+          p.style.strokeDashoffset = `${len}`;
+        });
+
+        const tl = gsap.timeline({ paused: true });
+
+        /* ---- Scene 1 (0.0–1.6s): the square draws itself, stroke by stroke ----
+           Two symmetric strokes leave top-centre and close at bottom-centre —
+           exactly where the wordmark will land. power2.out (pens don't bounce). */
+        tl.to(
+          pathLeft,
+          { strokeDashoffset: 0, duration: 1.25, ease: "power2.out" },
+          0.15,
+        );
+        tl.to(
+          pathRight,
+          { strokeDashoffset: 0, duration: 1.25, ease: "power2.out" },
+          0.27,
+        );
+
+        /* ---- Scene 2 (1.6–3.2s): "Buitelyn" cascades letter-by-letter onto the
+           bottom edge (index-derived stagger, long-tail power3 settles, fromTo so
+           t=0 seeks land the collapsed state); the face fills off-white as they land. */
+        tl.fromTo(
+          fillEl,
+          { opacity: 0 },
+          { opacity: 0.55, duration: 1.1, ease: "power1.out" },
+          1.75,
+        );
+        letters.forEach((el, i) => {
+          tl.fromTo(
+            el,
+            { y: -70, opacity: 0 },
+            { y: 0, opacity: 1, duration: 0.6, ease: "power3.out" },
+            1.62 + i * 0.13,
+          );
+        });
+
+        /* ---- Scene 3 (3.2–4.2s): the red dot pops top-right — smooth settle,
+           no overshoot (spring-pop-entrance, house-style power3.out). Lockup complete. */
+        tl.fromTo(
+          dotEl,
+          { scale: 0, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.55, ease: "power3.out" },
+          3.3,
+        );
+
+        /* ---- Scene 4 (4.2–6.0s): tagline types on behind a blinking caret, then a held read ---- */
+        const TAG = "SPLINTERNUWE AFRIKAANSE NUUSPROGRAM";
+        const TYPE_START = 4.2;
+        const TYPE_DUR = 1.25; // ends 5.45; hold to 6.0
+        const typeDriver = { v: 0 };
+        let lastLen = -1;
+        tl.to(
+          typeDriver,
+          {
+            v: TAG.length,
+            duration: TYPE_DUR,
+            ease: "power1.inOut",
+            onUpdate: () => {
+              const n = Math.floor(typeDriver.v);
+              if (n !== lastLen) {
+                tagTextEl.textContent = TAG.substring(0, n);
+                lastLen = n;
+              }
+            },
+          },
+          TYPE_START,
+        );
+
+        // Context-sensitive caret — deterministic pure function of the driver time:
+        // hidden before typing; solid ink while typing; dims + sin-blinks on the held read.
+        const TYPE_END = TYPE_START + TYPE_DUR + 0.05;
+        const BLINK_PERIOD = 0.6;
+        const blinkDriver = { t: 0 };
+        tl.to(
+          blinkDriver,
+          {
+            t: 6,
+            duration: 6,
+            ease: "none",
+            onUpdate: () => {
+              const t = blinkDriver.t;
+              if (t < TYPE_START - 0.05) {
+                caretEl.style.opacity = "0";
+              } else if (t < TYPE_END) {
+                caretEl.style.background = "#1a1a1a";
+                caretEl.style.opacity = "1";
+              } else {
+                caretEl.style.background = "#5a5a5a";
+                caretEl.style.opacity =
+                  Math.sin(((t - TYPE_END) / BLINK_PERIOD) * Math.PI * 2) >= 0 ? "1" : "0";
+              }
+            },
+          },
+          0,
+        );
+
+        window.__timelines["02-onthulling"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

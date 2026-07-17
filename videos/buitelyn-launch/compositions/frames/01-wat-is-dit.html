@@ -1,0 +1,273 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Frame 1 — Wat is dit?</title>
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: "League Spartan";
+          src: url("assets/fonts/league-spartan.woff2") format("woff2");
+          font-weight: 100 900;
+          font-display: block;
+        }
+
+        /* Root: styled via #root only (never a class on the composition root). */
+        #root {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          container-type: size;
+          font-family: "League Spartan", sans-serif;
+        }
+
+        /* Full-bleed ground — paper + faint hairline drafting grid.
+           Lives on a dedicated clip, never on #root. */
+        .f01-bg {
+          position: absolute;
+          inset: 0;
+          background-color: #f7f6f2;
+          background-image:
+            linear-gradient(rgba(26, 26, 26, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(26, 26, 26, 0.05) 1px, transparent 1px);
+          background-size: 12cqw 12cqw;
+          background-position: 2cqw 2cqw;
+        }
+
+        /* Content stage — overflow hidden so the streak / off-stage travel
+           never bleeds outside the frame. */
+        .f01-stage {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+        }
+
+        /* ---- Victim group (lead-in + cycling slot word) ---- */
+        .f01-victim {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 28.5cqh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 6.5cqh;
+          will-change: transform, opacity;
+        }
+        .f01-lead {
+          display: flex;
+          gap: 1.2cqw;
+          justify-content: center;
+        }
+        .f01-lead-word {
+          display: inline-block;
+          font-size: 3.1cqw;
+          font-weight: 500;
+          letter-spacing: 0.32em;
+          text-transform: uppercase;
+          color: #1a1a1a;
+          will-change: transform, opacity;
+        }
+        .f01-slot {
+          font-size: 9.3cqw;
+          font-weight: 600;
+          letter-spacing: 0.05em;
+          line-height: 1.1;
+          height: 1.1em;
+          white-space: nowrap;
+          text-transform: uppercase;
+          color: #1a1a1a;
+          text-align: center;
+        }
+
+        /* ---- Intruder (the crashing BUITELYN wordmark) ---- */
+        .f01-intruder-lane {
+          position: absolute;
+          inset: 0;
+          display: grid;
+          place-items: center;
+          pointer-events: none;
+        }
+        .f01-wordmark {
+          display: inline-flex;
+          align-items: baseline;
+          gap: 1.5cqw;
+          white-space: nowrap;
+          font-size: 13.5cqw;
+          font-weight: 700;
+          letter-spacing: 0.015em;
+          line-height: 1;
+          text-transform: uppercase;
+          color: #1a1a1a;
+          filter: url(#f01-streak);
+          will-change: transform, opacity, filter;
+          /* Seed state = collision driver at p:0 (off-stage right, slight
+             momentum tilt, invisible). The driver's onUpdate owns this
+             element's transform; GSAP transform props never touch it. */
+          transform: translateX(1250px) rotate(-2.5deg);
+          opacity: 0;
+        }
+        .f01-dot {
+          display: inline-block;
+          width: 2.2cqw;
+          height: 2.2cqw;
+          border-radius: 50%;
+          background: #f03028; /* the only red on screen */
+          transform-origin: 50% 50%;
+          will-change: transform, opacity;
+        }
+      </style>
+
+      <div id="root" data-composition-id="01-wat-is-dit" data-duration="5.4" data-width="1080" data-height="1920">
+        <!-- Track 0: full-bleed paper ground -->
+        <div class="clip f01-bg" data-start="0" data-duration="5.4" data-track-index="0"></div>
+
+        <!-- Track 1: content stage -->
+        <div class="clip f01-stage" data-start="0" data-duration="5.4" data-track-index="1">
+          <!-- Directional motion-blur filter (X axis only) for the crash-in -->
+          <svg width="0" height="0" aria-hidden="true" style="position: absolute">
+            <defs>
+              <filter id="f01-streak" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur id="f01-streak-blur" in="SourceGraphic" stdDeviation="26 0" />
+              </filter>
+            </defs>
+          </svg>
+
+          <!-- Victim: lead-in line + cycling slot word (gets shoved off-left) -->
+          <div class="f01-victim" id="f01-victim">
+            <div class="f01-lead">
+              <span class="f01-lead-word">WAT</span>
+              <span class="f01-lead-word">KYK</span>
+              <span class="f01-lead-word">JY</span>
+              <span class="f01-lead-word">VANAAND?</span>
+            </div>
+            <div class="f01-slot" id="f01-slot"></div>
+          </div>
+
+          <!-- Intruder: BUITELYN wordmark, above the victim during overlap -->
+          <div class="f01-intruder-lane">
+            <div class="f01-wordmark" id="f01-wordmark">
+              <span>BUITELYN</span><span class="f01-dot" id="f01-dot"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+      <script>
+        window.__timelines = window.__timelines || {};
+        const tl = gsap.timeline({ paused: true });
+
+        /* ============================================================
+           Scene 1 (0.0–1.2s) — lead-in "WAT KYK JY VANAAND?"
+           per-word staggered reveal, smooth long-tail settle (power3).
+           ============================================================ */
+        tl.fromTo(
+          ".f01-lead-word",
+          { y: 44, opacity: 0 },
+          { y: 0, opacity: 1, duration: 0.75, ease: "power3.out", stagger: 0.12 },
+          0.15
+        );
+
+        /* ============================================================
+           Scene 2 (1.2–3.4s) — in-place token cycle, hard cuts on the
+           internal beat (discrete-text-sequence). 5 words / ~0.44s each.
+           ============================================================ */
+        const SLOT_SEQ = [
+          { t: 1.2, text: "MARKTE" },
+          { t: 1.64, text: "POLITIEK" },
+          { t: 2.08, text: "SPORT" },
+          { t: 2.52, text: "TEGNOLOGIE" },
+          { t: 2.96, text: "EIENDOM" },
+        ];
+        function slotAt(time) {
+          for (let i = SLOT_SEQ.length - 1; i >= 0; i--) {
+            if (time >= SLOT_SEQ[i].t) return SLOT_SEQ[i].text;
+          }
+          return "";
+        }
+        const slotEl = document.getElementById("f01-slot");
+        const slotDriver = { t: 0 };
+        let lastSlot = null;
+        tl.fromTo(
+          slotDriver,
+          { t: 0 },
+          {
+            t: 5,
+            duration: 5,
+            ease: "none",
+            onUpdate: () => {
+              const s = slotAt(slotDriver.t);
+              if (s !== lastSlot) {
+                slotEl.textContent = s;
+                lastSlot = s;
+              }
+            },
+          },
+          0
+        );
+
+        /* ============================================================
+           Scene 3 (3.4–4.3s) — the signature collision.
+           ONE driver (reactive-displacement): the intruder's entry
+           spring computes BOTH the intruder crash-in AND the victim's
+           shove-off, plus the velocity-coupled blur envelope
+           (motion-blur-streak, Path A — blur peaks at peak speed,
+           resolves to 0 at the settle; same ease, same window).
+           Heavy long-tail landing: power3.out, no bounce.
+           ============================================================ */
+        const intruderEl = document.getElementById("f01-wordmark");
+        const victimEl = document.getElementById("f01-victim");
+        const blurNode = document.getElementById("f01-streak-blur");
+
+        const INTRUDER_START_X = 1250; // off-stage right (fully outside 1080)
+        const VICTIM_END_X = -1250; // off-stage left, same axis, opposite way
+        const INTRUDER_TILT = 2.5; // slight momentum tilt, settles flat
+        const PEAK_BLUR = 26;
+        const VICTIM_FRACTION = 0.5; // victim's exit completes at half the driver
+        const FADE_IN_SHARPNESS = 6;
+
+        const collide = { p: 0 };
+        const applyCollision = () => {
+          const p = collide.p;
+          const ip = 1 - p;
+          // Intruder: off-stage right -> dead-center, tilt settles to 0
+          intruderEl.style.transform =
+            "translateX(" + (INTRUDER_START_X * ip).toFixed(2) + "px) " +
+            "rotate(" + (-INTRUDER_TILT * ip).toFixed(3) + "deg)";
+          intruderEl.style.opacity = String(Math.min(1, p * FADE_IN_SHARPNESS));
+          // Blur envelope rides the same eased progress: peak at max velocity, 0 at rest
+          blurNode.setAttribute("stdDeviation", (PEAK_BLUR * ip).toFixed(2) + " 0");
+          // Victim: shoved off-left, gone before the intruder centers
+          const vp = Math.min(1, p / VICTIM_FRACTION);
+          victimEl.style.transform = "translateX(" + (VICTIM_END_X * vp).toFixed(2) + "px)";
+          victimEl.style.opacity = String(1 - vp);
+        };
+        applyCollision(); // seed frame-0 state (matches the CSS seed exactly)
+
+        tl.fromTo(
+          collide,
+          { p: 0 },
+          { p: 1, duration: 0.85, ease: "power3.out", onUpdate: applyCollision },
+          3.4
+        );
+
+        /* ============================================================
+           Scene 4 (4.3–5.0s) — held read; the red dot pops in after
+           the final N (spring-pop-entrance, smooth power3 settle).
+           Then completely still.
+           ============================================================ */
+        tl.fromTo(
+          "#f01-dot",
+          { scale: 0, opacity: 0 },
+          { scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" },
+          4.35
+        );
+
+        window.__timelines["01-wat-is-dit"] = tl;
+      </script>
+    </template>
+  </body>
+</html>

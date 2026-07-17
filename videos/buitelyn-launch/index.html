@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js" integrity="sha384-sG0Hv1tP1lZCk9KQmrIbY/XNwi+OY84GQqhMscbnsoBFqAz8KNCil1kvfL3Hbbk2" crossorigin="anonymous"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #000;
+      }
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #F7F6F2;
+      }
+      .scene {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="main"
+      data-start="0"
+      data-duration="40"
+      data-width="1080"
+      data-height="1920"
+    >
+      <div
+        id="el-01-wat-is-dit"
+        class="scene"
+        data-composition-id="01-wat-is-dit"
+        data-composition-src="compositions/frames/01-wat-is-dit.html"
+        data-start="0"
+        data-duration="5.4"
+        data-track-index="0"
+      ></div>
+
+      <div
+        id="el-02-onthulling"
+        class="scene"
+        data-composition-id="02-onthulling"
+        data-composition-src="compositions/frames/02-onthulling.html"
+        data-start="5"
+        data-duration="6.5"
+        data-track-index="1"
+      ></div>
+
+      <div
+        id="el-03-als-tussenin"
+        class="scene"
+        data-composition-id="03-als-tussenin"
+        data-composition-src="compositions/frames/03-als-tussenin.html"
+        data-start="11"
+        data-duration="6.5"
+        data-track-index="0"
+      ></div>
+
+      <div
+        id="el-04-sake-ernstig"
+        class="scene"
+        data-composition-id="04-sake-ernstig"
+        data-composition-src="compositions/frames/04-sake-ernstig.html"
+        data-start="17"
+        data-duration="5.5"
+        data-track-index="1"
+      ></div>
+
+      <div
+        id="el-05-suzaan"
+        class="scene"
+        data-composition-id="05-suzaan"
+        data-composition-src="compositions/frames/05-suzaan.html"
+        data-start="22"
+        data-duration="5.5"
+        data-track-index="0"
+      ></div>
+
+      <div
+        id="el-06-andre-pierre"
+        class="scene"
+        data-composition-id="06-andre-pierre"
+        data-composition-src="compositions/frames/06-andre-pierre.html"
+        data-start="27"
+        data-duration="5.4"
+        data-track-index="1"
+      ></div>
+
+      <div
+        id="el-07-kyk-nou"
+        class="scene"
+        data-composition-id="07-kyk-nou"
+        data-composition-src="compositions/frames/07-kyk-nou.html"
+        data-start="32"
+        data-duration="8"
+        data-track-index="0"
+      ></div>
+
+    </div>
+
+    <script>
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = gsap.timeline({ paused: true });
+      // ── frame transitions (injected by transitions.mjs) ──
+      (function () { var tl = window.__timelines["main"];
+        tl.to("#el-01-wat-is-dit", { scale: 2.5, opacity: 0, filter: "blur(8px)", duration: 0.4, ease: "power3.in" }, 5);
+        tl.fromTo("#el-02-onthulling", { scale: 0.5, opacity: 0, filter: "blur(8px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.4, ease: "power3.out" }, 5);
+        tl.to("#el-02-onthulling", { y: -1920, duration: 0.5, ease: "power3.inOut" }, 11);
+        tl.fromTo("#el-03-als-tussenin", { y: 1920, opacity: 1 }, { y: 0, duration: 0.5, ease: "power3.inOut" }, 11);
+        tl.to("#el-03-als-tussenin", { opacity: 0, duration: 0.5, ease: "power2.inOut" }, 17);
+        tl.fromTo("#el-04-sake-ernstig", { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.inOut" }, 17);
+        tl.to("#el-04-sake-ernstig", { x: -1080, duration: 0.5, ease: "power3.inOut" }, 22);
+        tl.fromTo("#el-05-suzaan", { x: 1080, opacity: 1 }, { x: 0, duration: 0.5, ease: "power3.inOut" }, 22);
+        tl.to("#el-05-suzaan", { x: -1080, duration: 0.5, ease: "power3.inOut" }, 27);
+        tl.fromTo("#el-06-andre-pierre", { x: 1080, opacity: 1 }, { x: 0, duration: 0.5, ease: "power3.inOut" }, 27);
+        tl.to("#el-06-andre-pierre", { scale: 2.5, opacity: 0, filter: "blur(8px)", duration: 0.4, ease: "power3.in" }, 32);
+        tl.fromTo("#el-07-kyk-nou", { scale: 0.5, opacity: 0, filter: "blur(8px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.4, ease: "power3.out" }, 32);
+        tl.to({}, { duration: 40 }, 0); // full-span anchor — main.duration() == composition total (Studio master duration)
+      })();
+    </script>
+  </body>
+</html>

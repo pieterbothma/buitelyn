@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="af">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Frame 4 — Sake, ernstig · sub-composition. Everything the runtime needs lives inside <template>. -->
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: "League Spartan";
+          src: url("assets/fonts/league-spartan.woff2") format("woff2");
+          font-weight: 100 900;
+          font-style: normal;
+        }
+
+        /* Root styled via #root — never a class on the data-composition-id element. */
+        #root {
+          position: absolute;
+          inset: 0;
+          width: 1080px;
+          height: 1920px;
+          overflow: hidden; /* required: camera zoom scales content past the frame */
+          font-family: "League Spartan", sans-serif;
+          color: #1a1a1a;
+        }
+
+        /* Full-bleed ground on a clip layer (never on #root): warm paper + faint hairline grid. */
+        .se4-bg {
+          position: absolute;
+          inset: 0;
+          background-color: #f7f6f2;
+          background-image:
+            linear-gradient(to right, rgba(26, 26, 26, 0.045) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(26, 26, 26, 0.045) 1px, transparent 1px);
+          background-size: 108px 108px;
+          background-position: 54px 54px;
+        }
+
+        .se4-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        /* Camera: outer scales, inner counter-translates (coordinate-target-zoom). */
+        .se4-cam-outer {
+          position: absolute;
+          inset: 0;
+          transform-origin: 50% 50%;
+          will-change: transform;
+        }
+        .se4-cam-inner {
+          position: absolute;
+          inset: 0;
+          will-change: transform;
+        }
+
+        /* Scene 1 — headline, upper third */
+        .se4-headline {
+          position: absolute;
+          top: 300px;
+          left: 0;
+          right: 0;
+          text-align: center;
+          font-weight: 700;
+          font-size: 88px;
+          line-height: 1.12;
+          letter-spacing: 1px;
+          color: #1a1a1a;
+        }
+        .se4-line {
+          display: flex;
+          justify-content: center;
+          gap: 26px;
+        }
+        .se4-word {
+          display: inline-block;
+        }
+
+        /* Ink hairline under the headline (scaleX reveal) */
+        .se4-rule {
+          position: absolute;
+          top: 560px;
+          left: 50%;
+          margin-left: -110px;
+          width: 220px;
+          height: 2px;
+          background: #1a1a1a;
+          transform-origin: 50% 50%;
+        }
+
+        /* Scene 2 — ticker card stack, centered, ~70% width */
+        .se4-cards {
+          position: absolute;
+          top: 660px;
+          left: 162px;
+          width: 756px;
+        }
+        .se4-card {
+          height: 270px;
+          margin-bottom: 40px;
+          background: #fefdfb;
+          border: 2px solid #1a1a1a;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0 56px;
+        }
+        .se4-card:last-child {
+          margin-bottom: 0;
+        }
+        .se4-sym {
+          font-weight: 700;
+          font-size: 66px;
+          letter-spacing: 2px;
+          color: #1a1a1a;
+        }
+        .se4-quote {
+          display: flex;
+          align-items: center;
+          gap: 28px;
+        }
+        .se4-arrow {
+          width: 54px;
+          height: 47px;
+          display: block;
+        }
+        .se4-arrow path {
+          stroke-width: 5;
+          stroke-linejoin: miter;
+          fill-opacity: 0; /* fill fades in after the stroke draw */
+        }
+        .se4-arrow .se4-tri-up {
+          stroke: #0e8345;
+          fill: #0e8345;
+        }
+        .se4-arrow .se4-tri-down {
+          stroke: #f03028;
+          fill: #f03028;
+        }
+        .se4-val {
+          display: inline-block;
+          width: 300px;
+          text-align: right;
+          font-weight: 600;
+          font-size: 74px;
+          font-variant-numeric: tabular-nums;
+          transform-origin: right center;
+          line-height: 1;
+        }
+        .se4-val-up {
+          color: #0e8345;
+        }
+        .se4-val-down {
+          color: #f03028;
+        }
+      </style>
+
+      <div
+        id="root"
+        data-composition-id="04-sake-ernstig" data-duration="5.5"
+        data-width="1080"
+        data-height="1920"
+      >
+        <!-- full-bleed paper ground (lowest track) -->
+        <div class="clip se4-bg" data-start="0" data-duration="5.5" data-track-index="0"></div>
+
+        <!-- stage: everything rides the camera -->
+        <div class="clip se4-stage" data-start="0" data-duration="5.5" data-track-index="1">
+          <div class="se4-cam-outer" id="04-sake-ernstig-cam-outer">
+            <div class="se4-cam-inner" id="04-sake-ernstig-cam-inner">
+              <!-- Scene 1: headline, per-word staggered reveal -->
+              <div class="se4-headline" id="04-sake-ernstig-headline">
+                <div class="se4-line">
+                  <span class="se4-word">MAAR</span>
+                  <span class="se4-word">SAKE</span>
+                  <span class="se4-word">VAT</span>
+                </div>
+                <div class="se4-line">
+                  <span class="se4-word">ONS</span>
+                  <span class="se4-word">ERNSTIG.</span>
+                </div>
+              </div>
+              <div class="se4-rule" id="04-sake-ernstig-rule"></div>
+
+              <!-- Scene 2: three market ticker cards -->
+              <div class="se4-cards">
+                <div class="se4-card" id="04-sake-ernstig-card-jse">
+                  <div class="se4-sym">JSE</div>
+                  <div class="se4-quote">
+                    <svg class="se4-arrow" viewBox="0 0 60 52" aria-hidden="true">
+                      <path
+                        class="se4-tri-up"
+                        id="04-sake-ernstig-arrow-jse"
+                        d="M 30 6 L 56 46 L 4 46 Z"
+                      />
+                    </svg>
+                    <span class="se4-val se4-val-up" id="04-sake-ernstig-val-jse">+0,0%</span>
+                  </div>
+                </div>
+
+                <div class="se4-card" id="04-sake-ernstig-card-rand">
+                  <div class="se4-sym">R/$</div>
+                  <div class="se4-quote">
+                    <svg class="se4-arrow" viewBox="0 0 60 52" aria-hidden="true">
+                      <path
+                        class="se4-tri-down"
+                        id="04-sake-ernstig-arrow-rand"
+                        d="M 4 6 L 56 6 L 30 46 Z"
+                      />
+                    </svg>
+                    <span class="se4-val se4-val-down" id="04-sake-ernstig-val-rand">17,80</span>
+                  </div>
+                </div>
+
+                <div class="se4-card" id="04-sake-ernstig-card-goud">
+                  <div class="se4-sym">GOUD</div>
+                  <div class="se4-quote">
+                    <svg class="se4-arrow" viewBox="0 0 60 52" aria-hidden="true">
+                      <path
+                        class="se4-tri-up"
+                        id="04-sake-ernstig-arrow-goud"
+                        d="M 30 6 L 56 46 L 4 46 Z"
+                      />
+                    </svg>
+                    <span class="se4-val se4-val-up" id="04-sake-ernstig-val-goud">+0,0%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+      <script>
+        (function () {
+          var ID = "04-sake-ernstig";
+          window.__timelines = window.__timelines || {};
+          var tl = gsap.timeline({ paused: true });
+
+          var $ = function (suffix) {
+            return document.getElementById(ID + "-" + suffix);
+          };
+
+          /* ---------- svg-path-draw setup: measure real geometry, bake dash pattern ---------- */
+          var arrows = [$("arrow-jse"), $("arrow-rand"), $("arrow-goud")];
+          arrows.forEach(function (p) {
+            var len = p.getTotalLength();
+            p.style.strokeDasharray = String(len);
+            p.style.strokeDashoffset = String(len);
+          });
+
+          /* ---------- Afrikaans decimal-comma formatters ---------- */
+          function fmtPct(v) {
+            return "+" + v.toFixed(1).replace(".", ",") + "%";
+          }
+          function fmtRand(v) {
+            return v.toFixed(2).replace(".", ",");
+          }
+
+          /* =========================================================
+             Scene 1 (0.0–1.0s) — headline lands upper-third,
+             per-word staggered reveal (dynamic-content-sequencing),
+             long-tail power3 settles. Hairline rule follows.
+             ========================================================= */
+          tl.fromTo(
+            "#" + CSS.escape(ID + "-headline") + " .se4-word",
+            { y: 46, autoAlpha: 0 },
+            { y: 0, autoAlpha: 1, duration: 0.6, ease: "power3.out", stagger: 0.1 },
+            0.05
+          );
+          tl.fromTo(
+            $("rule"),
+            { scaleX: 0 },
+            { scaleX: 1, duration: 0.5, ease: "power3.out" },
+            0.8
+          );
+
+          /* =========================================================
+             Scene 2 (1.0–3.4s) — three ticker cards reveal sequentially
+             on the internal beat grid (one card per beat, back-half
+             paced): card lands (fromTo rise + fade), its value counts
+             up with restrained scale (counting-dynamic-scale), its
+             arrow strokes draw in then fill (svg-path-draw).
+             ========================================================= */
+          var CARD_DUR = 0.7;
+          var COUNT_DUR = 0.85;
+
+          function tickerCard(cardEl, valEl, arrowEl, startVal, endVal, fmt, at) {
+            // card entrance — smooth long-tail settle, no bounce
+            tl.fromTo(
+              cardEl,
+              { y: 70, autoAlpha: 0 },
+              { y: 0, autoAlpha: 1, duration: CARD_DUR, ease: "power3.out" },
+              at
+            );
+            // count-up value + synchronized restrained transform scale
+            var state = { v: startVal };
+            tl.fromTo(
+              state,
+              { v: startVal },
+              {
+                v: endVal,
+                duration: COUNT_DUR,
+                ease: "power3.out",
+                immediateRender: false,
+                onUpdate: function () {
+                  valEl.textContent = fmt(state.v);
+                },
+              },
+              at + 0.1
+            );
+            tl.fromTo(
+              valEl,
+              { scale: 0.86 },
+              { scale: 1, duration: COUNT_DUR, ease: "power3.out" },
+              at + 0.1
+            );
+            // arrow draws in (stroke), then its flat fill arrives — explicit
+            // fromTo endpoints so re-seeks replay cleanly
+            var arrowLen = parseFloat(arrowEl.style.strokeDasharray);
+            tl.fromTo(
+              arrowEl,
+              { strokeDashoffset: arrowLen },
+              { strokeDashoffset: 0, duration: 0.42, ease: "power2.out" },
+              at + 0.18
+            );
+            tl.fromTo(
+              arrowEl,
+              { fillOpacity: 0 },
+              { fillOpacity: 1, duration: 0.3, ease: "power1.out" },
+              at + 0.58
+            );
+          }
+
+          // Beat grid: 1.05 → 1.80 → 2.55
+          tickerCard($("card-jse"), $("val-jse"), $("arrow-jse"), 0.0, 1.1, fmtPct, 1.05);
+          tickerCard($("card-rand"), $("val-rand"), $("arrow-rand"), 17.8, 18.42, fmtRand, 1.8);
+          tickerCard($("card-goud"), $("val-goud"), $("arrow-goud"), 0.0, 0.4, fmtPct, 2.55);
+
+          /* =========================================================
+             Scene 3 (3.4–5.0s) — the frame's ONE named camera move:
+             gentle coordinate-target-zoom onto the JSE card while its
+             value ticks to final (+1,1% → +1,2%); move completes at
+             4.65s, then still through the hold.
+
+             Fixed-pixel layout → offset is deterministic geometry:
+             JSE card center y = 660 + 270/2 = 795; canvas center 960.
+             offsetY = 795 − 960 = −165 → counter-translate = +165.
+             offsetX = 0 (stack is horizontally centered).
+             Headroom: 756px × 1.22 = 922px ≤ 0.88 × 1080 (950). ✓
+             ========================================================= */
+          var ZOOM_START = 3.45;
+          var ZOOM_DUR = 1.2;
+          var ZOOM_SCALE = 1.22;
+          var COUNTER_Y = 165;
+
+          tl.fromTo(
+            $("cam-outer"),
+            { scale: 1 },
+            { scale: ZOOM_SCALE, duration: ZOOM_DUR, ease: "power3.inOut" },
+            ZOOM_START
+          );
+          tl.fromTo(
+            $("cam-inner"),
+            { y: 0 },
+            { y: COUNTER_Y, duration: ZOOM_DUR, ease: "power3.inOut" },
+            ZOOM_START
+          );
+
+          // JSE value ticks to its final figure mid-zoom
+          var jseTick = { v: 1.1 };
+          tl.fromTo(
+            jseTick,
+            { v: 1.1 },
+            {
+              v: 1.2,
+              duration: 0.4,
+              ease: "power2.out",
+              immediateRender: false,
+              onUpdate: function () {
+                document.getElementById(ID + "-val-jse").textContent = fmtPct(jseTick.v);
+              },
+            },
+            3.95
+          );
+
+          // 4.65–5.0: held read — completely still. No exit (root transition owns it).
+
+          window.__timelines[ID] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

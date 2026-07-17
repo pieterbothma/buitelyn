@@ -1,0 +1,243 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Frame 3 — Als tussenin</title>
+    <!-- head is metadata only; the runtime clones <template> contents -->
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: "League Spartan";
+          src: url("assets/fonts/league-spartan.woff2") format("woff2");
+          font-weight: 100 900;
+          font-style: normal;
+        }
+
+        /* Root styled via #root (never a class on the composition-id element) */
+        #root {
+          position: absolute;
+          inset: 0;
+          width: 1080px;
+          height: 1920px;
+          overflow: hidden;
+          container-type: size;
+          font-family: "League Spartan", sans-serif;
+        }
+
+        /* Full-bleed ground on a dedicated clip layer — never on #root */
+        .als-tussenin-bg {
+          position: absolute;
+          inset: 0;
+          background-color: #f7f6f2;
+          background-image:
+            linear-gradient(rgba(26, 26, 26, 0.05) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(26, 26, 26, 0.05) 1px, transparent 1px);
+          background-size: 120px 120px;
+        }
+
+        .als-tussenin-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        /* The section-tile board: 2-column grid, ~76% width, anchored high */
+        .als-tussenin-board {
+          position: absolute;
+          left: 130px;
+          top: 340px;
+          width: 820px;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          grid-template-rows: 170px 170px 170px 170px 260px;
+          gap: 26px;
+        }
+
+        .als-tussenin-tile {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: rgba(255, 255, 255, 0.6);
+          border: 2px solid #1a1a1a;
+          color: #1a1a1a;
+          font-size: 40px;
+          font-weight: 600;
+          letter-spacing: 6px;
+          text-transform: uppercase;
+          text-indent: 6px; /* optical centering against letter-spacing tail */
+          will-change: transform;
+        }
+
+        .als-tussenin-tile-wide {
+          grid-column: 1 / -1;
+        }
+
+        /* Payoff cell: static grid slot; the pop wrapper inside carries the entrance */
+        .als-tussenin-payoff {
+          grid-column: 1 / -1;
+          position: relative;
+        }
+
+        .als-tussenin-payoff-pop {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #1a1a1a;
+          border: 2px solid #1a1a1a;
+          transform-origin: 50% 50%;
+          will-change: transform;
+        }
+
+        /* Separate inner wrapper for the held-read jitter (never fights the pop tween) */
+        .als-tussenin-payoff-jitter {
+          display: flex;
+          align-items: baseline;
+          will-change: transform;
+        }
+
+        .als-tussenin-payoff-text {
+          color: #f7f6f2;
+          font-size: 62px;
+          font-weight: 700;
+          letter-spacing: 2px;
+          text-transform: uppercase;
+          line-height: 1;
+        }
+
+        /* The single red element on this frame — the brand dot as the full stop */
+        .als-tussenin-dot {
+          display: inline-block;
+          width: 17px;
+          height: 17px;
+          margin-left: 10px;
+          border-radius: 50%;
+          background: #f03028;
+          transform-origin: 50% 50%;
+          will-change: transform;
+        }
+      </style>
+
+      <div
+        id="root"
+        data-composition-id="03-als-tussenin" data-duration="6.5"
+        data-width="1080"
+        data-height="1920"
+      >
+        <!-- Track 0: paper ground + faint hairline grid, full duration -->
+        <div
+          class="clip als-tussenin-bg"
+          data-start="0"
+          data-duration="6.5"
+          data-track-index="0"
+        ></div>
+
+        <!-- Track 1: the tile board -->
+        <div
+          class="clip als-tussenin-stage"
+          data-start="0"
+          data-duration="6.5"
+          data-track-index="1"
+        >
+          <div class="als-tussenin-board">
+            <div class="als-tussenin-tile">Markte</div>
+            <div class="als-tussenin-tile">Politiek</div>
+            <div class="als-tussenin-tile">Sport</div>
+            <div class="als-tussenin-tile">Tegnologie</div>
+            <div class="als-tussenin-tile">Eiendom</div>
+            <div class="als-tussenin-tile">Buiteland</div>
+            <div class="als-tussenin-tile als-tussenin-tile-wide">Menings</div>
+
+            <div class="als-tussenin-payoff">
+              <div id="als-tussenin-payoff-pop" class="als-tussenin-payoff-pop">
+                <div id="als-tussenin-payoff-jitter" class="als-tussenin-payoff-jitter">
+                  <span class="als-tussenin-payoff-text">En als tussenin</span
+                  ><span id="als-tussenin-dot" class="als-tussenin-dot"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+      <script>
+        window.__timelines = window.__timelines || {};
+        (function () {
+          const tl = gsap.timeline({ paused: true });
+
+          // ---- Scenes 1 + 2 — staggered cascade of the seven section tiles ----
+          // Scene 1 (0.0–1.4s): MARKTE, POLITIEK. Scene 2 (1.4–3.6s): the
+          // remaining five, one per ~0.45s on the internal beat — never
+          // simultaneous, back-half paced. Each is a fade + short slide into
+          // its slot on a long-tail settle (power3, no bounce).
+          const tiles = gsap.utils.toArray(
+            '[data-composition-id="03-als-tussenin"] .als-tussenin-tile'
+          );
+          const TILE_TIMES = [0.1, 0.62, 1.45, 1.9, 2.35, 2.8, 3.25];
+          tiles.forEach(function (el, i) {
+            tl.fromTo(
+              el,
+              { opacity: 0, y: 44, scale: 0.985 },
+              {
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                duration: 0.85,
+                ease: "power3.out",
+              },
+              TILE_TIMES[i]
+            );
+          });
+
+          // ---- Scene 3 (3.6–4.8s) — the payoff tile lands ----
+          // spring-pop-entrance, smooth house default: scale 0 -> 1 on
+          // power3.out, fromTo so t=0 seeks are exact. No overshoot.
+          tl.fromTo(
+            "#als-tussenin-payoff-pop",
+            { scale: 0, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.6, ease: "power3.out" },
+            3.8
+          );
+
+          // The single red element: the brand dot pops as the full stop,
+          // a beat after the tile settles (echoes frames 1–2).
+          tl.fromTo(
+            "#als-tussenin-dot",
+            { scale: 0, opacity: 0 },
+            { scale: 1, opacity: 1, duration: 0.4, ease: "power3.out" },
+            4.45
+          );
+
+          // ---- Scene 4 (4.8–6.0s) — held read; subtle jitter only ----
+          // sine-wave-loop at the LOW end: half a cycle (sin 0 -> pi) so the
+          // offset starts AND ends at exactly 0 — the frame settles before
+          // the outgoing transition. Applied to the inner jitter wrapper so
+          // it composes with (never overwrites) the pop tween's transform.
+          const jitterEl = document.getElementById("als-tussenin-payoff-jitter");
+          const phase = { p: 0 };
+          tl.to(
+            phase,
+            {
+              p: Math.PI,
+              duration: 1.15,
+              ease: "none",
+              onUpdate: function () {
+                const s = Math.sin(phase.p);
+                const y = (s * 2.5).toFixed(3);
+                const sc = (1 + s * 0.006).toFixed(5);
+                jitterEl.style.transform =
+                  "translateY(" + y + "px) scale(" + sc + ")";
+              },
+            },
+            4.85
+          );
+
+          window.__timelines["03-als-tussenin"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

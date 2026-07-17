@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="af">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Frame 6 — Aanbieder twee: André-Pierre du Plessis (titlecard-reveal, calm held beat) -->
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: "League Spartan";
+          src: url("assets/fonts/league-spartan.woff2") format("woff2");
+          font-weight: 100 900;
+          font-style: normal;
+        }
+
+        #root {
+          position: relative;
+          width: 1080px;
+          height: 1920px;
+          overflow: hidden;
+          font-family: "League Spartan", sans-serif;
+        }
+
+        /* Full-bleed paper ground — dedicated clip, never on #root */
+        [id="06-andre-pierre-bg"] {
+          position: absolute;
+          inset: 0;
+          background: #f7f6f2;
+        }
+
+        [id="06-andre-pierre-stage"] {
+          position: absolute;
+          inset: 0;
+        }
+
+        /* Kicker — persists from Frame 5 in position: static from t=0, no re-reveal */
+        [id="06-andre-pierre-kicker"] {
+          position: absolute;
+          left: 0;
+          top: 218px;
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 26px;
+          z-index: 4;
+        }
+        [id="06-andre-pierre-kicker"] .kicker-rule {
+          width: 460px;
+          height: 1px;
+          background: #1a1a1a;
+        }
+        [id="06-andre-pierre-kicker"] .kicker-text {
+          font-size: 30px;
+          font-weight: 500;
+          letter-spacing: 0.45em;
+          text-indent: 0.45em;
+          text-transform: uppercase;
+          color: #1a1a1a;
+          line-height: 1;
+        }
+
+        /* Ink hairline frame — draws in BEHIND the cutout (layer 1) */
+        [id="06-andre-pierre-frame"] {
+          position: absolute;
+          left: 140px;
+          top: 580px;
+          width: 800px;
+          height: 1080px;
+          z-index: 1;
+        }
+        [id="06-andre-pierre-frame-path"] {
+          fill: none;
+          stroke: #1a1a1a;
+          stroke-width: 2;
+        }
+
+        /* Cutout — foreground subject, mid layer (2), rises from the bottom edge */
+        [id="06-andre-pierre-cutout"] {
+          position: absolute;
+          display: block;
+          left: 40px;
+          top: 670px;
+          width: 1000px;
+          height: 1250px;
+          z-index: 2;
+        }
+
+        /* INK name plate — front layer (3), slides up over his lower third */
+        [id="06-andre-pierre-plate"] {
+          position: absolute;
+          left: 90px;
+          top: 1380px;
+          width: 900px;
+          height: 180px;
+          background: #1a1a1a;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 3;
+        }
+        [id="06-andre-pierre-plate"] .plate-name {
+          font-size: 62px;
+          font-weight: 500;
+          line-height: 1;
+          letter-spacing: 0.01em;
+          color: #f7f6f2;
+          white-space: nowrap;
+          /* League Spartan sits high on its em box — nudge for optical centering */
+          padding-top: 8px;
+        }
+      </style>
+
+      <div
+        id="root"
+        data-composition-id="06-andre-pierre" data-duration="5.4"
+        data-width="1080"
+        data-height="1920"
+      >
+        <div
+          id="06-andre-pierre-bg"
+          class="clip"
+          data-start="0"
+          data-duration="5.4"
+          data-track-index="0"
+        ></div>
+
+        <div
+          id="06-andre-pierre-stage"
+          class="clip"
+          data-start="0"
+          data-duration="5.4"
+          data-track-index="1"
+        >
+          <!-- Scene 1 (0.0–0.8s): kicker rules persist from Frame 5 — static, no reveal -->
+          <div id="06-andre-pierre-kicker">
+            <div class="kicker-rule"></div>
+            <div class="kicker-text">Jou aanbieders</div>
+            <div class="kicker-rule"></div>
+          </div>
+
+          <!-- Scene 2: ink hairline frame draws behind him (svg-path-draw) -->
+          <svg
+            id="06-andre-pierre-frame"
+            viewBox="0 0 800 1080"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path id="06-andre-pierre-frame-path" d="M 1 1 H 799 V 1079 H 1 Z" />
+          </svg>
+
+          <!-- Scene 2: the cutout rises from the bottom edge — the frame's ONE move -->
+          <img
+            id="06-andre-pierre-cutout"
+            src="assets/presenter-andre-pierre.png"
+            alt=""
+          />
+
+          <!-- Scene 3 (2.4s): INK plate, off-white display type — then long held read -->
+          <div id="06-andre-pierre-plate">
+            <div class="plate-name">André-Pierre du Plessis</div>
+          </div>
+        </div>
+      </div>
+
+      <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+      <script>
+        window.__timelines = window.__timelines || {};
+
+        (function () {
+          // frame_id starts with a digit, so hand GSAP element references
+          // (a "#06-…" selector is an invalid querySelector token).
+          var cutout = document.getElementById("06-andre-pierre-cutout");
+          var plate = document.getElementById("06-andre-pierre-plate");
+          var framePath = document.getElementById("06-andre-pierre-frame-path");
+
+          // svg-path-draw: dash pattern = measured path length (rect perimeter)
+          var len = 3752; // static fallback for the 798x1078 perimeter
+          try {
+            len = framePath.getTotalLength();
+          } catch (e) {}
+          framePath.style.strokeDasharray = String(len);
+          framePath.style.strokeDashoffset = String(len);
+
+          var tl = gsap.timeline({ paused: true });
+
+          // ── Scene 1 (0.0–0.8s) ─────────────────────────────────────────────
+          // Kicker + rules persist from Frame 5 in position: intentionally static,
+          // no re-reveal. The push-slide-in owns the opening beat.
+
+          // ── Scene 2 (0.8–2.4s): the ONE restrained move ────────────────────
+          // André-Pierre rises from the bottom edge — slide-up with crossfade.
+          // (Fade leads slightly so the subject is visible early.)
+          tl.fromTo(
+            cutout,
+            { y: 340 },
+            { y: 0, duration: 1.75, ease: "power3.out", immediateRender: true },
+            0.45
+          );
+          tl.fromTo(
+            cutout,
+            { autoAlpha: 0 },
+            { autoAlpha: 1, duration: 0.7, ease: "power1.out", immediateRender: true },
+            0.45
+          );
+
+          // Ink hairline frame draws in behind him (svg-path-draw; pens don't bounce)
+          tl.fromTo(
+            framePath,
+            { strokeDashoffset: len },
+            { strokeDashoffset: 0, duration: 1.35, ease: "power2.out", immediateRender: true },
+            0.85
+          );
+
+          // ── Scene 3 (2.4–5.0s): INK name plate slides up, then long held read ─
+          tl.fromTo(
+            plate,
+            { y: 110 },
+            { y: 0, duration: 0.9, ease: "power3.out", immediateRender: true },
+            2.4
+          );
+          tl.fromTo(
+            plate,
+            { autoAlpha: 0 },
+            { autoAlpha: 1, duration: 0.45, ease: "power1.out", immediateRender: true },
+            2.4
+          );
+          // 3.3s → 5.0s: completely still — the hold IS the deliverable
+          // (titlecard-reveal allocated stillness; no exit — the root transition owns it).
+
+          window.__timelines["06-andre-pierre"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

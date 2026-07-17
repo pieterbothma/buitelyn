@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="af">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- Frame 5 — Aanbieder een (Suzaan Steyn) · titlecard-reveal (Adapt) · 1080x1920 · 5s -->
+  </head>
+  <body>
+    <template>
+      <style>
+        @font-face {
+          font-family: "League Spartan";
+          font-weight: 100 900;
+          font-style: normal;
+          src: url("assets/fonts/league-spartan.woff2") format("woff2");
+        }
+
+        /* Root: styled via #root only (scoper drops root-class rules) */
+        #root {
+          position: absolute;
+          inset: 0;
+          width: 1080px;
+          height: 1920px;
+          overflow: hidden;
+          font-family: "League Spartan", sans-serif;
+        }
+
+        /* Full-bleed paper ground — its own clip, never on #root */
+        .f05s-bg {
+          position: absolute;
+          inset: 0;
+          background: #f7f6f2;
+        }
+
+        .f05s-stage {
+          position: absolute;
+          inset: 0;
+        }
+
+        /* Kicker: small caps between two ink hairline rules, upper third */
+        .f05s-rule {
+          position: absolute;
+          left: 260px;
+          top: 205px;
+          width: 560px;
+          height: 2px;
+          background: #1a1a1a;
+          transform-origin: 50% 50%;
+        }
+        .f05s-rule-bot {
+          top: 292px;
+        }
+        .f05s-kicker {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 226px;
+          height: 48px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 20px;
+        }
+        .f05s-word {
+          display: inline-block;
+          font-size: 32px;
+          font-weight: 500;
+          letter-spacing: 10px;
+          margin-right: -10px; /* balance trailing letter-space */
+          text-transform: uppercase;
+          color: #1a1a1a;
+          line-height: 1;
+        }
+
+        /* Thin ink hairline frame — sits BEHIND the cutout */
+        .f05s-frame {
+          position: absolute;
+          left: 180px;
+          top: 560px;
+          width: 720px;
+          height: 1020px;
+          z-index: 1;
+          overflow: visible;
+        }
+        .f05s-frame rect {
+          fill: none;
+          stroke: #1a1a1a;
+          stroke-width: 2;
+        }
+
+        /* Cutout: foreground subject, bottom-anchored so the crop bleeds off-canvas */
+        .f05s-cutout {
+          position: absolute;
+          left: 40px;
+          top: 671px;
+          width: 1000px;
+          height: auto;
+          z-index: 2;
+        }
+
+        /* Off-white name plate — in FRONT of the cutout, over her lower third */
+        .f05s-plate {
+          position: absolute;
+          left: 140px;
+          top: 1372px;
+          width: 800px;
+          height: 220px;
+          z-index: 3;
+          background: #fcfbf8;
+          border: 2px solid #1a1a1a;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .f05s-name {
+          font-size: 92px;
+          font-weight: 400;
+          letter-spacing: -0.01em;
+          color: #1a1a1a;
+          line-height: 1;
+          padding-top: 8px; /* optical centre for League Spartan cap height */
+        }
+        .f05s-dot {
+          display: inline-block;
+          width: 15px;
+          height: 15px;
+          margin-left: 14px;
+          background: #f03028;
+          border-radius: 50%;
+        }
+      </style>
+
+      <div
+        id="root"
+        data-composition-id="05-suzaan" data-duration="5.5"
+        data-start="0"
+        data-width="1080"
+        data-height="1920"
+      >
+        <!-- Track 0: paper ground -->
+        <div class="clip f05s-bg" data-start="0" data-duration="5.5" data-track-index="0"></div>
+
+        <!-- Track 1: the whole shot (all reveals are GSAP-paced) -->
+        <div class="clip f05s-stage" data-start="0" data-duration="5.5" data-track-index="1">
+          <!-- Scene 1 · kicker between hairline rules -->
+          <div class="f05s-rule" id="05-suzaan-rule-top"></div>
+          <div class="f05s-kicker" id="05-suzaan-kicker">
+            <span class="f05s-word" id="05-suzaan-w1">Jou</span>
+            <span class="f05s-word" id="05-suzaan-w2">Aanbieders</span>
+          </div>
+          <div class="f05s-rule f05s-rule-bot" id="05-suzaan-rule-bot"></div>
+
+          <!-- Scene 2 · hairline frame (behind) + cutout rise (the ONE move) -->
+          <svg
+            class="f05s-frame"
+            id="05-suzaan-frame"
+            viewBox="0 0 720 1020"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <rect id="05-suzaan-frame-path" x="1" y="1" width="718" height="1018" />
+          </svg>
+          <img
+            class="f05s-cutout"
+            id="05-suzaan-cutout"
+            src="assets/presenter-suzaan.png"
+            alt="Suzaan Steyn"
+          />
+
+          <!-- Scene 3 · name plate in front, then the long held read -->
+          <div class="f05s-plate" id="05-suzaan-plate">
+            <span class="f05s-name">Suzaan Steyn</span><span class="f05s-dot" id="05-suzaan-dot"></span>
+          </div>
+        </div>
+      </div>
+
+      <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+      <script>
+        window.__timelines = window.__timelines || {};
+
+        (function () {
+          var byId = function (id) {
+            return document.getElementById(id);
+          };
+
+          var ruleTop = byId("05-suzaan-rule-top");
+          var ruleBot = byId("05-suzaan-rule-bot");
+          var w1 = byId("05-suzaan-w1");
+          var w2 = byId("05-suzaan-w2");
+          var framePath = byId("05-suzaan-frame-path");
+          var cutout = byId("05-suzaan-cutout");
+          var plate = byId("05-suzaan-plate");
+          var dot = byId("05-suzaan-dot");
+
+          /* svg-path-draw: dash pattern = measured path length */
+          var frameLen = framePath.getTotalLength();
+          framePath.style.strokeDasharray = String(frameLen);
+
+          var tl = gsap.timeline({ paused: true });
+
+          /* ---- Scene 1 (0.0–1.0s): kicker lands between two hairline rules ---- */
+          tl.fromTo(
+            ruleTop,
+            { scaleX: 0 },
+            { scaleX: 1, duration: 0.6, ease: "power3.out" },
+            0.15
+          );
+          tl.fromTo(
+            ruleBot,
+            { scaleX: 0 },
+            { scaleX: 1, duration: 0.6, ease: "power3.out" },
+            0.25
+          );
+          /* per-word staggered reveal (dynamic-content-sequencing) */
+          tl.fromTo(
+            w1,
+            { autoAlpha: 0, y: 26 },
+            { autoAlpha: 1, y: 0, duration: 0.65, ease: "power3.out" },
+            0.3
+          );
+          tl.fromTo(
+            w2,
+            { autoAlpha: 0, y: 26 },
+            { autoAlpha: 1, y: 0, duration: 0.65, ease: "power3.out" },
+            0.5
+          );
+
+          /* ---- Scene 2 (1.0–2.6s): hairline frame draws behind her (svg-path-draw)
+                 + the frame's ONE move — the cutout's slide-up rise with crossfade ---- */
+          tl.fromTo(
+            framePath,
+            { strokeDashoffset: frameLen },
+            { strokeDashoffset: 0, duration: 1.2, ease: "power2.out" },
+            1.05
+          );
+          tl.fromTo(
+            cutout,
+            { y: 460, autoAlpha: 0 },
+            { y: 0, autoAlpha: 1, duration: 1.3, ease: "power3.out" },
+            1.25
+          );
+
+          /* ---- Scene 3 (2.6–5.0s): name plate slides up over her lower third,
+                 the red dot lands last, then a long held read — completely still ---- */
+          tl.fromTo(
+            plate,
+            { y: 180, autoAlpha: 0 },
+            { y: 0, autoAlpha: 1, duration: 0.8, ease: "power3.out" },
+            2.75
+          );
+          tl.fromTo(
+            dot,
+            { autoAlpha: 0 },
+            { autoAlpha: 1, duration: 0.35, ease: "power2.out" },
+            3.6
+          );
+          /* motion ends ~3.95s; 3.95–5.0s is the deliberate held read */
+
+          window.__timelines["05-suzaan"] = tl;
+        })();
+      </script>
+    </template>
+  </body>
+</html>

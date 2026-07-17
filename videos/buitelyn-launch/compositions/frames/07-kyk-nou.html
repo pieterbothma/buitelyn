@@ -1,0 +1,287 @@
+<template>
+  <div id="root" data-composition-id="07-kyk-nou" data-duration="8" data-width="1080" data-height="1920">
+    <style>
+      @font-face {
+        font-family: "League Spartan";
+        font-weight: 100 900;
+        font-style: normal;
+        src: url("assets/fonts/league-spartan.woff2") format("woff2");
+      }
+
+      #root {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        font-family: "League Spartan", sans-serif;
+      }
+
+      /* ---- full-bleed paper ground (its own clip, never on #root) ---- */
+      .kn07-bg {
+        position: absolute;
+        inset: 0;
+        background: #f7f6f2;
+      }
+
+      /* ---- Scene 1-2: the type-slam barrage ---- */
+      .kn07-slams {
+        position: absolute;
+        inset: 0;
+      }
+      .kn07-slam {
+        position: absolute;
+        inset: 0 0 340px 0; /* optical center ~y790, well above keep-out */
+        display: grid;
+        place-items: center;
+        color: #1a1a1a;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 0.95;
+        text-align: center;
+        white-space: nowrap;
+        will-change: transform, filter, opacity;
+      }
+      .kn07-slam-sake {
+        font-size: 230px;
+      }
+      .kn07-slam-politiek {
+        font-size: 148px;
+      }
+      .kn07-slam-als {
+        font-size: 142px;
+        white-space: normal;
+      }
+      .kn07-slam-als .kn07-line {
+        display: block;
+      }
+
+      /* ---- Scene 3-5: the lockup (logo + hairline + presenters + plate) ---- */
+      .kn07-lockup {
+        position: absolute;
+        inset: 0;
+      }
+
+      /* procedural rebuild of assets/logo-square.png:
+         ink square outline, wordmark on the bottom border, red dot top-right */
+      .kn07-logo {
+        position: absolute;
+        left: 325px;
+        top: 175px;
+        width: 430px;
+        height: 430px;
+        border: 12px solid #1a1a1a;
+        box-sizing: border-box;
+        z-index: 3;
+        transform-origin: 50% 50%;
+        will-change: transform, filter, opacity;
+      }
+      .kn07-wordmark {
+        position: absolute;
+        left: 26px;
+        bottom: -17px;
+        font-size: 88px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1;
+        color: #1a1a1a;
+      }
+      .kn07-dot {
+        position: absolute;
+        top: 29px;
+        right: 29px;
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background: #f03028;
+        will-change: opacity;
+      }
+
+      /* drafting hairline the presenters stand against (the mark's lower hairline) */
+      .kn07-hairline {
+        position: absolute;
+        left: 120px;
+        top: 900px;
+        width: 840px;
+        height: 2px;
+        background: #1a1a1a;
+        z-index: 1;
+        transform-origin: 50% 50%;
+        will-change: transform;
+      }
+
+      .kn07-duo {
+        position: absolute;
+        left: 238px;
+        top: 840px;
+        width: 604px;
+        height: 755px;
+        z-index: 2;
+        will-change: transform, opacity;
+      }
+      .kn07-duo img {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* KYK NOU plate — off-white, ink display type, flat + square */
+      .kn07-plate {
+        position: absolute;
+        left: 230px;
+        top: 650px;
+        width: 620px;
+        height: 158px;
+        background: #ffffff;
+        border: 3px solid #1a1a1a;
+        box-sizing: border-box;
+        display: grid;
+        place-items: center;
+        z-index: 4;
+        transform-origin: 50% 50%;
+        will-change: transform, opacity;
+      }
+      .kn07-plate-text {
+        font-size: 96px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        line-height: 1;
+        color: #1a1a1a;
+        padding-top: 8px; /* League Spartan optical vertical centering */
+      }
+    </style>
+
+    <!-- track 0: paper ground, full duration -->
+    <div class="clip kn07-bg" data-start="0" data-duration="8" data-track-index="0"></div>
+
+    <!-- track 1: Scenes 1-2 — three beat-slams, then zoom-through clear -->
+    <div class="clip kn07-slams" data-start="0" data-duration="3" data-track-index="1">
+      <div class="kn07-slam kn07-slam-sake" id="kn07-slam1">SAKE.</div>
+      <div class="kn07-slam kn07-slam-politiek" id="kn07-slam2">POLITIEK.</div>
+      <div class="kn07-slam kn07-slam-als" id="kn07-slam3">
+        <span class="kn07-line">ALS</span>
+        <span class="kn07-line">TUSSENIN.</span>
+      </div>
+    </div>
+
+    <!-- track 2: Scenes 3-5 — logo lockup, presenters, KYK NOU plate, REC dot -->
+    <div class="clip kn07-lockup" data-start="2.8" data-duration="5.2" data-track-index="2">
+      <div class="kn07-hairline" id="kn07-hairline"></div>
+      <div class="kn07-duo" id="kn07-duo">
+        <img src="assets/presenters-duo.png" alt="" />
+      </div>
+      <div class="kn07-logo" id="kn07-logo">
+        <div class="kn07-dot" id="kn07-dot"></div>
+        <div class="kn07-wordmark">Buitelyn</div>
+      </div>
+      <div class="kn07-plate" id="kn07-plate">
+        <div class="kn07-plate-text">KYK NOU</div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script>
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Internal beat grid (silent video): one slam per 0.8s beat.
+      const BEAT = 0.8;
+      const BEATS = [0, BEAT, BEAT * 2]; // 0.0 / 0.8 / 1.6
+      const CLEAR_AT = 2.4; // Scene 2 zoom-through seam
+      const LOGO_AT = 3.0; // Scene 3
+      const HAIR_AT = 3.35;
+      const DUO_AT = 3.6;
+      const PLATE_AT = 4.6; // Scene 4
+
+      // Later slams pre-set hidden at build time so a seek to t<cut never shows them
+      // (their entrance fromTo uses immediateRender:false).
+      gsap.set("#kn07-slam2", { x: 260, opacity: 0 });
+      gsap.set("#kn07-slam3", { y: 260, opacity: 0 });
+
+      /* ---- Scene 1 (0.0-2.4s): three beat-slams, distinct entrances ---- */
+      // Slam 1 — SAKE. — scale+blur slam (kinetic-beat-slam), visible from t=0.
+      tl.fromTo(
+        "#kn07-slam1",
+        { scale: 1.6, opacity: 0, filter: "blur(14px)" },
+        { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.45, ease: "power4.out" },
+        BEATS[0],
+      );
+
+      // Seam A (leftward cut-the-curve): slam1 rips left, fade dies at the cut...
+      tl.to("#kn07-slam1", { x: -260, duration: 0.3, ease: "power4.in" }, BEATS[1] - 0.28);
+      tl.to("#kn07-slam1", { opacity: 0, duration: 0.2, ease: "power1.in" }, BEATS[1] - 0.22);
+      // ...slam 2 — POLITIEK. — snaps in from the right, continuing leftward.
+      tl.fromTo(
+        "#kn07-slam2",
+        { x: 260, opacity: 0.35 },
+        { x: 0, opacity: 1, duration: 0.34, ease: "expo.out", immediateRender: false },
+        BEATS[1],
+      );
+
+      // Seam B (upward cut-the-curve): slam2 rips up and dies at the cut...
+      tl.to("#kn07-slam2", { y: -260, duration: 0.3, ease: "power4.in" }, BEATS[2] - 0.28);
+      tl.to("#kn07-slam2", { opacity: 0, duration: 0.2, ease: "power1.in" }, BEATS[2] - 0.22);
+      // ...slam 3 — ALS TUSSENIN. — rises from below with momentum, same direction.
+      tl.fromTo(
+        "#kn07-slam3",
+        { y: 260, opacity: 0.35 },
+        { y: 0, opacity: 1, duration: 0.4, ease: "circ.out", immediateRender: false },
+        BEATS[2],
+      );
+
+      /* ---- Scene 2 (2.4-3.0s): zoom-through seam to clean paper ---- */
+      // Text-scale subject: 10px peak blur; opacity on its own linear tween.
+      tl.to(
+        "#kn07-slam3",
+        { scale: 1.22, filter: "blur(10px)", duration: 0.25, ease: "power3.in" },
+        CLEAR_AT,
+      );
+      tl.to("#kn07-slam3", { opacity: 0, duration: 0.25, ease: "none" }, CLEAR_AT);
+
+      /* ---- Scene 3 (3.0-4.6s): lockup lands ---- */
+      // Logo arrives on the incoming half of the scale-swap — smooth long-tail,
+      // no overshoot (house style), continuing the forward Z motion of the seam.
+      tl.fromTo(
+        "#kn07-logo",
+        { scale: 0.76, opacity: 0, filter: "blur(6px)" },
+        { scale: 1, opacity: 1, filter: "blur(0px)", duration: 0.65, ease: "expo.out" },
+        LOGO_AT,
+      );
+
+      // The mark's lower hairline draws in from center.
+      tl.fromTo(
+        "#kn07-hairline",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.55, ease: "power3.inOut" },
+        HAIR_AT,
+      );
+
+      // Presenters rise from the bottom edge — slide-up with crossfade, long-tail
+      // settle; heads land just across the hairline (layered depth).
+      tl.fromTo(
+        "#kn07-duo",
+        { y: 360, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.95, ease: "power3.out" },
+        DUO_AT,
+      );
+
+      /* ---- Scene 4 (4.6-6.0s): KYK NOU plate pops between logo and presenters ---- */
+      tl.fromTo(
+        "#kn07-plate",
+        { scale: 0, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.6, ease: "power3.out" },
+        PLATE_AT,
+      );
+
+      /* ---- Scene 5 (6.0-8.0s): held read; REC-light flicker on the red dot ----
+         Finite deterministic sequence of discrete opacity steps — no repeat/yoyo. */
+      tl.set("#kn07-dot", { opacity: 0.15 }, 6.15);
+      tl.set("#kn07-dot", { opacity: 1 }, 6.4);
+      tl.set("#kn07-dot", { opacity: 0.15 }, 6.95);
+      tl.set("#kn07-dot", { opacity: 1 }, 7.2);
+      tl.set("#kn07-dot", { opacity: 0.15 }, 7.65);
+      tl.set("#kn07-dot", { opacity: 1 }, 7.9);
+
+      window.__timelines["07-kyk-nou"] = tl;
+    </script>
+  </div>
+</template>
