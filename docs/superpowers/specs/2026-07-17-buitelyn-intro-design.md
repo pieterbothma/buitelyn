@@ -57,3 +57,9 @@ A ~10-second, 1920×1080 @ 30fps intro for *Buitelyn*, a semi-business Afrikaans
 ## Out of scope
 
 Sponsor cards, outro/lower-thirds, 4K master (re-render later), music syncing (re-choreograph when track arrives).
+
+## v2 addendum (2026-07-17, approved)
+
+Track supplied: ANW4207_016 "In Sync" (15s) at `public/intro-track.mp3`, default-on via `audioFile` prop. Composition now 450 frames: quiet build (tease + spirograph), bass drop at frame 111 = brand-hit red-circle pop, groove cards, long resolve with slow push-in, fade-out on the decay tail. Beat grid: `DROP_FRAME=111`, `BEAT_FRAMES=14`, `beatPulse()` thumps the red dot/circle on hits.
+
+Background story arc replaces random letters — TypeTexture modes per scene: `sections` (POLITIEK/MARKTE/SPORT/TEGNOLOGIE/EIENDOM/BUITELAND/MENINGS/RAND/JSE/GOUD) → `numbers` → `tickers` → `wall`. New colour `green #0E8345` for market up-arrows only (red = down), used in TickerStrip (bottom strip during name cards) and background ticker chips. PrintMarks adds masthead double rules + "EERSTE UITGAWE"/"BL. 3" folio corners. Paper-flash (5-frame) on each card cut.
