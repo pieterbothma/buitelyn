@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+:root {
+  /* Buitelyn brand */
+  --paper: #ebeae6;
+  --offwhite: #f7f6f2;
+  --ink: #1a1a1a;
+  --brand-red: #f03028;
+  --brand-green: #0e8345;
+
+  /* shadcn semantic tokens mapped onto the brand */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--offwhite);
+  --card-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--offwhite);
+  --secondary: var(--offwhite);
+  --secondary-foreground: var(--ink);
+  --muted: var(--offwhite);
+  --muted-foreground: color-mix(in srgb, var(--ink) 65%, transparent);
+  --accent: var(--brand-red);
+  --accent-foreground: var(--offwhite);
+  --border: color-mix(in srgb, var(--ink) 15%, transparent);
+  --ring: var(--ink);
+  --radius: 0rem; /* the brand is square */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-paper: var(--paper);
+  --color-offwhite: var(--offwhite);
+  --color-ink: var(--ink);
+  --color-red: var(--brand-red);
+  --color-green: var(--brand-green);
+  --color-border: var(--border);
+  --font-spartan: var(--font-spartan);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-spartan), sans-serif;
+}
+
+/* Headline ticker — seamless loop over a duplicated list */
+@keyframes ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.animate-ticker {
+  animation: ticker 40s linear infinite;
+}
+.animate-ticker:hover {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-ticker {
+    animation: none;
+  }
+}
