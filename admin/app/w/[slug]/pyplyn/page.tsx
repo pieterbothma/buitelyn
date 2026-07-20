@@ -31,7 +31,7 @@ export default async function Pyplyn({ params }: { params: Promise<{ slug: strin
     .neq("status", "gemis")
     .order("due_at");
 
-  const datumFmt = new Intl.DateTimeFormat("af-ZA", {
+  const datumFmt = new Intl.DateTimeFormat("af-ZA", { timeZone: "Africa/Johannesburg",
     weekday: "short",
     day: "numeric",
     month: "short",

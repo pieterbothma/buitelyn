@@ -52,7 +52,7 @@ export default async function Oudio({ params }: { params: Promise<{ slug: string
               <li key={e.id} className="px-3 py-2">
                 {e.titel}
                 <span className="ml-2 text-xs text-ink/50">
-                  {new Intl.DateTimeFormat("af-ZA", { day: "numeric", month: "short" }).format(
+                  {new Intl.DateTimeFormat("af-ZA", { timeZone: "Africa/Johannesburg", day: "numeric", month: "short" }).format(
                     new Date(e.geskep_at)
                   )}
                 </span>

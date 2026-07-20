@@ -41,13 +41,13 @@ export default async function Vandag() {
         .is("workspace_id", null),
     ]);
 
-  const tydFmt = new Intl.DateTimeFormat("af-ZA", { hour: "2-digit", minute: "2-digit" });
+  const tydFmt = new Intl.DateTimeFormat("af-ZA", { timeZone: "Africa/Johannesburg", hour: "2-digit", minute: "2-digit" });
 
   return (
     <Shell workspaces={(workspaces ?? []) as Workspace[]}>
       <h1 className="text-3xl font-extrabold tracking-tight">Vandag</h1>
       <p className="mt-1 text-sm text-ink/60">
-        {new Intl.DateTimeFormat("af-ZA", {
+        {new Intl.DateTimeFormat("af-ZA", { timeZone: "Africa/Johannesburg",
           weekday: "long",
           day: "numeric",
           month: "long",

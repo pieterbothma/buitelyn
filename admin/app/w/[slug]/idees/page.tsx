@@ -21,7 +21,7 @@ export default async function Idees({ params }: { params: Promise<{ slug: string
     .eq("workspace_id", active.id)
     .order("geskep_at", { ascending: false });
 
-  const fmt = new Intl.DateTimeFormat("af-ZA", { day: "numeric", month: "short" });
+  const fmt = new Intl.DateTimeFormat("af-ZA", { timeZone: "Africa/Johannesburg", day: "numeric", month: "short" });
   const môre = new Date(Date.now() + 86_400_000);
   môre.setHours(9, 0, 0, 0);
 
