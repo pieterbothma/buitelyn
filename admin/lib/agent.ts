@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { supabaseService } from "@/lib/supabase/service";
 import { formatRand, invoiceTotalSent, nextInvoiceNumber } from "@/lib/invoices";
 import type { InlineKnop } from "@/lib/telegram";
@@ -16,7 +16,13 @@ Reëls:
 - Antwoord kort en saaklik in Afrikaans. Bedrae in rand.
 - As 'n versoek buite jou vermoëns val, sê so eerlik.`;
 
-const TOOLS: Anthropic.Tool[] = [
+type ToolSkema = {
+  name: string;
+  description: string;
+  input_schema: Record<string, unknown>;
+};
+
+const TOOLS: ToolSkema[] = [
   {
     name: "stoor_idee",
     description:
@@ -247,49 +253,70 @@ async function voerToolUit(
   return { resultaat: "Onbekende aksie." };
 }
 
+const MODEL = process.env.OPENAI_MODEL || "gpt-5.4";
+const MAX_STAPPE = 8;
+
+/* GPT-5.4 on the Responses API — same pattern as onemanband/PietHQ: reasoning
+   persists across tool rounds via encrypted content, nothing stored
+   server-side (store:false). Gemini owns Afrikaans prose elsewhere. */
 export async function loopAgent(
   boodskap: string,
   bron: "telegram_teks" | "telegram_stem",
   voicenotePath: string | null
 ): Promise<AgentUitkoms> {
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  const gesprek: Anthropic.MessageParam[] = [{ role: "user", content: boodskap }];
+  const client = new OpenAI();
   let knoppies: InlineKnop[][] | undefined;
 
-  for (let beurt = 0; beurt < 4; beurt++) {
-    const res = await anthropic.messages.create({
-      model: "claude-sonnet-5",
-      max_tokens: 1024,
-      system: STELSEL,
-      tools: TOOLS,
-      messages: gesprek,
+  const tools: OpenAI.Responses.FunctionTool[] = TOOLS.map((t) => ({
+    type: "function",
+    name: t.name,
+    description: t.description,
+    parameters: t.input_schema,
+    strict: false,
+  }));
+
+  let input: OpenAI.Responses.ResponseInputItem[] = [
+    { role: "user", content: boodskap },
+  ];
+
+  for (let stap = 0; stap < MAX_STAPPE; stap++) {
+    const res = await client.responses.create({
+      model: MODEL,
+      instructions: STELSEL,
+      input,
+      tools,
+      reasoning: { effort: "medium" },
+      store: false,
+      include: ["reasoning.encrypted_content"],
+      tool_choice: stap === MAX_STAPPE - 1 ? "none" : "auto",
     });
 
-    const toolBlokke = res.content.filter(
-      (b): b is Anthropic.ToolUseBlock => b.type === "tool_use"
+    const uitset = res.output ?? [];
+    const oproepe = uitset.filter(
+      (i): i is OpenAI.Responses.ResponseFunctionToolCall => i.type === "function_call"
     );
-    if (toolBlokke.length === 0 || res.stop_reason !== "tool_use") {
-      const teks = res.content
-        .filter((b): b is Anthropic.TextBlock => b.type === "text")
-        .map((b) => b.text)
-        .join("\n")
-        .trim();
-      return { antwoord: teks || "✓", knoppies };
+
+    if (oproepe.length === 0) {
+      return { antwoord: (res.output_text ?? "").trim() || "✓", knoppies };
     }
 
-    gesprek.push({ role: "assistant", content: res.content });
-    const uitsette: Anthropic.ToolResultBlockParam[] = [];
-    for (const blok of toolBlokke) {
-      const uit = await voerToolUit(
-        blok.name,
-        blok.input as Record<string, unknown>,
-        bron,
-        voicenotePath
-      );
+    // Thread the model's own output (reasoning + calls) back, then results.
+    input = input.concat(uitset as OpenAI.Responses.ResponseInputItem[]);
+    for (const oproep of oproepe) {
+      let invoer: Record<string, unknown> = {};
+      try {
+        invoer = JSON.parse(oproep.arguments || "{}");
+      } catch {
+        /* leave empty */
+      }
+      const uit = await voerToolUit(oproep.name, invoer, bron, voicenotePath);
       if (uit.knoppies) knoppies = uit.knoppies;
-      uitsette.push({ type: "tool_result", tool_use_id: blok.id, content: uit.resultaat });
+      input.push({
+        type: "function_call_output",
+        call_id: oproep.call_id,
+        output: uit.resultaat,
+      });
     }
-    gesprek.push({ role: "user", content: uitsette });
   }
   return { antwoord: "Ek het te veel stappe probeer — probeer weer eenvoudiger.", knoppies };
 }
