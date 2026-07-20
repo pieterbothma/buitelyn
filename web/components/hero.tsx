@@ -85,7 +85,7 @@ export function Hero({ tagline, latestUrl }: { tagline: string; latestUrl: strin
 
           {/* Right: André-Pierre, ringed by market & news chips */}
           <div>
-            <div className="relative aspect-square bg-offwhite">
+            <div className="relative aspect-square">
               <Image
                 src="/apdup.png"
                 alt="André-Pierre du Plessis — aanbieder van Buitelyn"
