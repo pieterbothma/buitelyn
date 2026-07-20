@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+:root {
+  --paper: #ebeae6;
+  --offwhite: #f7f6f2;
+  --ink: #1a1a1a;
+  --brand-red: #f03028;
+  --brand-green: #0e8345;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-offwhite: var(--offwhite);
+  --color-ink: var(--ink);
+  --color-red: var(--brand-red);
+  --color-green: var(--brand-green);
+  --font-spartan: var(--font-spartan);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-spartan), sans-serif;
+}

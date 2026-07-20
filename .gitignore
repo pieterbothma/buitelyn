@@ -8,3 +8,4 @@ out
 videos/*/renders/
 videos/*/snapshots/
 videos/*/.media/
+admin/supabase/.temp/
