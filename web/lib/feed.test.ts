@@ -35,6 +35,15 @@ describe("parseFeed", () => {
     expect([...times].sort((a, b) => b - a)).toEqual(times);
   });
 
+  it("drops images on Substack's dead legacy CDN host", () => {
+    const { posts } = parseFeed(fixture);
+    for (const post of posts) {
+      if (post.image) {
+        expect(new URL(post.image).hostname).not.toBe("cdn.substack.com");
+      }
+    }
+  });
+
   it("normalises a single-item feed to an array", () => {
     const single = `<?xml version="1.0"?><rss version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel><title><![CDATA[X]]></title><description><![CDATA[net een buitelyne toets]]></description><item><title><![CDATA[Een]]></title><description><![CDATA[Blurb]]></description><link>https://buitelyn.substack.com/p/een</link><dc:creator><![CDATA[Appel]]></dc:creator><pubDate>Mon, 20 Jul 2026 10:00:00 GMT</pubDate><content:encoded><![CDATA[<p>een twee drie</p>]]></content:encoded></item></channel></rss>`;
     const { posts } = parseFeed(single);

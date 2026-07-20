@@ -28,6 +28,19 @@ function text(value: any): string {
   return "";
 }
 
+/* Substack's legacy image host 502s on every request (2022-era posts);
+   render those entries text-only rather than with broken image boxes. */
+const DEAD_IMAGE_HOSTS = new Set(["cdn.substack.com"]);
+
+function imageUrl(raw: unknown): string | null {
+  if (typeof raw !== "string" || raw.length === 0) return null;
+  try {
+    return DEAD_IMAGE_HOSTS.has(new URL(raw).hostname) ? null : raw;
+  } catch {
+    return null;
+  }
+}
+
 function stripTags(html: string): string {
   return html
     .replace(/<[^>]+>/g, " ")
@@ -56,7 +69,7 @@ export function parseFeed(xml: string): Channel {
       blurb: stripTags(text(item.description)),
       url: text(item.link),
       isoDate: new Date(text(item.pubDate)).toISOString(),
-      image: item.enclosure?.["@_url"] ?? null,
+      image: imageUrl(item.enclosure?.["@_url"]),
       author: text(item["dc:creator"]) || "Buitelyn",
       readMinutes: Math.max(1, Math.round(words / 220)),
     };
@@ -71,6 +84,7 @@ export async function getFeed(): Promise<Channel> {
   const res = await fetch(FEED_URL, {
     next: { revalidate: 600 },
     headers: { "user-agent": "Mozilla/5.0 (compatible; BuitelynWeb/1.0)" },
+    signal: AbortSignal.timeout(10_000),
   });
   if (!res.ok) throw new Error(`Feed fetch failed: ${res.status}`);
   return parseFeed(await res.text());
