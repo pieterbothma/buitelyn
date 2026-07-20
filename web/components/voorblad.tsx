@@ -53,22 +53,32 @@ function LeadStory({ post }: { post: Post }) {
   );
 }
 
-function ColumnStory({ post, withImage }: { post: Post; withImage: boolean }) {
+function StoryCard({ post }: { post: Post }) {
   return (
     <a
       href={post.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group mb-6 block break-inside-avoid border-b border-ink/15 pb-6"
+      className="group flex flex-col border-b border-ink/15 pb-7"
     >
-      {withImage && post.image ? (
-        <div className="relative mb-4 aspect-[4/3] border border-ink/20 bg-offwhite">
-          <Image src={post.image} alt="" fill sizes="33vw" className="object-cover" />
+      {post.image ? (
+        <div className="relative mb-4 aspect-[4/3] overflow-hidden border border-ink/20 bg-offwhite">
+          <Image
+            src={post.image}
+            alt=""
+            fill
+            sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+          />
         </div>
-      ) : null}
+      ) : (
+        <div className="mb-4 flex aspect-[4/3] items-center justify-center border border-ink/20 bg-offwhite">
+          <span aria-hidden className="size-4 rounded-full bg-red" />
+        </div>
+      )}
       <h4 className="text-xl font-bold leading-snug group-hover:underline">{post.title}</h4>
       <p className="mt-2 line-clamp-2 text-sm leading-[1.5] text-ink/65">{post.blurb}</p>
-      <div className="mt-3">
+      <div className="mt-auto pt-3">
         <Meta post={post} />
       </div>
     </a>
@@ -98,9 +108,9 @@ export function Voorblad({ posts }: { posts: Post[] }) {
       </div>
 
       {rest.length > 0 ? (
-        <div className="mt-12 border-t border-ink/20 pt-10 [column-rule:1px_solid_rgba(26,26,26,0.15)] columns-1 gap-10 md:columns-2 lg:columns-3">
-          {rest.map((post, i) => (
-            <ColumnStory key={post.url} post={post} withImage={i % 4 === 2} />
+        <div className="mt-12 grid grid-cols-1 gap-x-10 gap-y-10 border-t border-ink/20 pt-10 md:grid-cols-2 lg:grid-cols-3">
+          {rest.map((post) => (
+            <StoryCard key={post.url} post={post} />
           ))}
         </div>
       ) : null}
