@@ -7,14 +7,24 @@ export function TopBar() {
         <a href="#" className="flex items-center">
           <Image src="/logo-transparent.png" alt="Buitelyn" width={64} height={64} />
         </a>
-        <a
-          href="https://buitelyn.substack.com/subscribe"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[15px] font-semibold underline-offset-4 hover:underline"
-        >
-          Teken in &rarr;
-        </a>
+        <div className="flex items-center gap-6">
+          <a
+            href="https://buitelyn-shop.fourthwall.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[15px] font-semibold underline-offset-4 hover:underline"
+          >
+            Winkel
+          </a>
+          <a
+            href="https://buitelyn.substack.com/subscribe"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[15px] font-semibold underline-offset-4 hover:underline"
+          >
+            Teken in &rarr;
+          </a>
+        </div>
       </div>
     </header>
   );
