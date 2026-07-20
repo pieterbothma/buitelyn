@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { QuickAdd } from "@/components/quick-add";
 
 export type Workspace = {
   id: string;
@@ -102,6 +103,7 @@ export function Shell({
       </aside>
 
       <main className="min-w-0 flex-1 px-8 py-8">{children}</main>
+      <QuickAdd workspaces={workspaces} />
     </div>
   );
 }
