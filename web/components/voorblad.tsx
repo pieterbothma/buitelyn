@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { Post } from "@/lib/feed";
+import { Reveal } from "@/components/reveal";
 
 const dateFmt = new Intl.DateTimeFormat("af-ZA", {
   weekday: "long",
@@ -92,6 +93,7 @@ export function Voorblad({ posts }: { posts: Post[] }) {
   return (
     <section className="mx-auto w-full max-w-[1440px] px-6 py-14 md:px-14">
       {/* Masthead: double rules with title + dateline between them */}
+      <Reveal>
       <div className="border-y-2 border-ink">
         <div className="my-1 flex flex-wrap items-baseline justify-between gap-2 border-y border-ink py-3">
           <h2 className="text-3xl font-extrabold tracking-[-0.02em] md:text-4xl">
@@ -102,15 +104,18 @@ export function Voorblad({ posts }: { posts: Post[] }) {
           </p>
         </div>
       </div>
+      </Reveal>
 
-      <div className="mt-10">
+      <Reveal delay={0.1} className="mt-10">
         <LeadStory post={lead} />
-      </div>
+      </Reveal>
 
       {rest.length > 0 ? (
         <div className="mt-12 grid grid-cols-1 gap-x-10 gap-y-10 border-t border-ink/20 pt-10 md:grid-cols-2 lg:grid-cols-3">
-          {rest.map((post) => (
-            <StoryCard key={post.url} post={post} />
+          {rest.map((post, i) => (
+            <Reveal key={post.url} delay={(i % 3) * 0.08} amount={0.15}>
+              <StoryCard post={post} />
+            </Reveal>
           ))}
         </div>
       ) : null}

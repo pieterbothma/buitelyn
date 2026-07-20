@@ -1,4 +1,9 @@
+"use client";
+
 import Image from "next/image";
+import { motion, useReducedMotion } from "motion/react";
+
+const EASE = [0.16, 1, 0.3, 1] as const;
 
 type Chip = {
   label: string;
@@ -49,21 +54,41 @@ function ChipPlate({ chip }: { chip: Chip }) {
 }
 
 export function Hero({ tagline, latestUrl }: { tagline: string; latestUrl: string }) {
+  const reduce = useReducedMotion();
+
+  const rise = (delay: number) =>
+    reduce
+      ? {}
+      : {
+          initial: { opacity: 0, y: 28 },
+          animate: { opacity: 1, y: 0 },
+          transition: { duration: 0.7, delay, ease: EASE },
+        };
+
   return (
     <section>
       <div className="mx-auto max-w-[1440px] px-6 pb-16 pt-12 md:px-14 md:pt-16">
         <div className="grid gap-10 md:grid-cols-[1.05fr_1fr] md:items-center md:gap-14">
           {/* Left: masthead copy */}
           <div>
-            <h1 className="text-[56px] font-extrabold leading-[0.94] tracking-[-0.05em] sm:text-[76px] md:text-[92px]">
+            <motion.h1
+              {...rise(0.05)}
+              className="text-[19vw] font-extrabold leading-[0.94] tracking-[-0.05em] sm:text-[76px] md:text-[92px]"
+            >
               Lees <span className="text-red">tussen</span>
               <br />
               die Buitelyne.
-            </h1>
-            <p className="mt-7 max-w-xl text-[18px] leading-[1.55] text-ink/70 md:text-[19px]">
+            </motion.h1>
+            <motion.p
+              {...rise(0.2)}
+              className="mt-7 max-w-xl text-[18px] leading-[1.55] text-ink/70 md:text-[19px]"
+            >
               {tagline}
-            </p>
-            <div className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3">
+            </motion.p>
+            <motion.div
+              {...rise(0.32)}
+              className="mt-9 flex flex-wrap items-center gap-x-6 gap-y-3"
+            >
               <a
                 href={latestUrl}
                 target="_blank"
@@ -80,12 +105,17 @@ export function Hero({ tagline, latestUrl }: { tagline: string; latestUrl: strin
               >
                 Teken in op Substack
               </a>
-            </div>
+            </motion.div>
           </div>
 
           {/* Right: André-Pierre, ringed by market & news chips */}
           <div>
-            <div className="relative aspect-square">
+            <motion.div
+              className="relative aspect-square"
+              initial={reduce ? undefined : { opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={reduce ? undefined : { duration: 0.8, delay: 0.15, ease: EASE }}
+            >
               <Image
                 src="/apdup.png"
                 alt="André-Pierre du Plessis — aanbieder van Buitelyn"
@@ -95,28 +125,43 @@ export function Hero({ tagline, latestUrl }: { tagline: string; latestUrl: strin
                 className="object-contain"
               />
               {/* red dot — the brand's full stop, top-right like the logo */}
-              <span
+              <motion.span
                 aria-hidden
                 className="absolute right-[6%] top-[6%] size-6 rounded-full bg-red"
+                initial={reduce ? undefined : { opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={reduce ? undefined : { duration: 0.5, delay: 0.55, ease: EASE }}
               />
-              {/* Desktop: chips orbit his head */}
-              {CHIPS.map((chip) => (
-                <div
+              {/* Desktop: chips pop in one by one around his head */}
+              {CHIPS.map((chip, i) => (
+                <motion.div
                   key={chip.label}
                   aria-hidden
                   className="pointer-events-none absolute hidden drop-shadow-[0_6px_16px_rgba(26,26,26,0.15)] md:block"
-                  style={{ top: chip.top, left: chip.left, transform: `rotate(${chip.rotate}deg)` }}
+                  style={{ top: chip.top, left: chip.left, rotate: chip.rotate }}
+                  initial={reduce ? undefined : { opacity: 0, scale: 0.85, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={
+                    reduce ? undefined : { duration: 0.5, delay: 0.55 + i * 0.09, ease: EASE }
+                  }
                 >
                   <ChipPlate chip={chip} />
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
             {/* Mobile: chips in rows beneath the portrait */}
             <ul className="mt-6 flex flex-wrap items-center justify-center gap-2 md:hidden">
-              {CHIPS.map((chip) => (
-                <li key={chip.label}>
+              {CHIPS.map((chip, i) => (
+                <motion.li
+                  key={chip.label}
+                  initial={reduce ? undefined : { opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={
+                    reduce ? undefined : { duration: 0.45, delay: 0.4 + i * 0.07, ease: EASE }
+                  }
+                >
                   <ChipPlate chip={chip} />
-                </li>
+                </motion.li>
               ))}
             </ul>
           </div>
