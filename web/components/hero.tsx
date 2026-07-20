@@ -56,9 +56,9 @@ export function Hero({ tagline, latestUrl }: { tagline: string; latestUrl: strin
           {/* Left: masthead copy */}
           <div>
             <h1 className="text-[56px] font-extrabold leading-[0.94] tracking-[-0.05em] sm:text-[76px] md:text-[92px]">
-              Buitelyn.
+              Lees <span className="text-red">tussen</span>
               <br />
-              Ons trek <span className="text-red">die lyne.</span>
+              die Buitelyne.
             </h1>
             <p className="mt-7 max-w-xl text-[18px] leading-[1.55] text-ink/70 md:text-[19px]">
               {tagline}
