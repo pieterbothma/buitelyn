@@ -85,7 +85,7 @@ export function Voorblad({ posts }: { posts: Post[] }) {
       <div className="border-y-2 border-ink">
         <div className="my-1 flex flex-wrap items-baseline justify-between gap-2 border-y border-ink py-3">
           <h2 className="text-3xl font-extrabold tracking-[-0.02em] md:text-4xl">
-            Die Buitelyn
+            Buitelyn
           </h2>
           <p className="text-xs tracking-[0.2em] text-ink/60">
             {today} · BUITELYN.SUBSTACK.COM
