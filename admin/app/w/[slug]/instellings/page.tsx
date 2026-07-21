@@ -34,7 +34,12 @@ export default async function Instellings({ params }: { params: Promise<{ slug: 
           {instellings?.logo_path ? (
             <span className="ml-2 text-xs font-normal text-green">✓ opgelaai</span>
           ) : null}
-          <input type="file" name="logo" accept="image/*" className="mt-1 block w-full text-xs font-normal" />
+          <input
+            type="file"
+            name="logo"
+            accept="image/*"
+            className="mt-2 block w-full cursor-pointer border-2 border-dashed border-ink/40 bg-paper p-2 text-xs font-normal file:mr-3 file:cursor-pointer file:border-0 file:bg-ink file:px-4 file:py-2 file:text-sm file:font-semibold file:text-offwhite hover:border-ink"
+          />
         </label>
         <label className="block text-sm font-semibold">
           Bankbesonderhede

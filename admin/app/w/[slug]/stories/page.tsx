@@ -88,7 +88,7 @@ export default async function Stories({ params }: { params: Promise<{ slug: stri
                     </form>
                   ))}
                   <form action={voegLêerBy.bind(null, s.id)} className="ml-auto flex items-center gap-2">
-                    <input type="file" name="lêer" className="max-w-44 text-xs" />
+                    <input type="file" name="lêer" className="max-w-52 cursor-pointer text-xs file:mr-2 file:cursor-pointer file:border-0 file:bg-ink file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-offwhite" />
                     <button className="text-xs font-semibold underline-offset-2 hover:underline">
                       laai op
                     </button>
@@ -108,7 +108,7 @@ export default async function Stories({ params }: { params: Promise<{ slug: stri
           <input name="bron_naam" placeholder="Bron se naam" className="w-full border-2 border-ink bg-paper px-3 py-2 text-sm outline-none focus:border-red" />
           <input name="bron_kontak" placeholder="Bron se kontak" className="w-full border-2 border-ink bg-paper px-3 py-2 text-sm outline-none focus:border-red" />
           <textarea name="notas" rows={3} placeholder="Notas" className="w-full border-2 border-ink bg-paper px-3 py-2 text-sm outline-none focus:border-red" />
-          <input type="file" name="lêer" className="w-full text-xs" />
+          <input type="file" name="lêer" className="w-full cursor-pointer border-2 border-dashed border-ink/40 bg-paper p-2 text-xs file:mr-3 file:cursor-pointer file:border-0 file:bg-ink file:px-4 file:py-2 file:text-sm file:font-semibold file:text-offwhite hover:border-ink" />
           <button className="w-full bg-ink py-2.5 text-sm font-semibold text-offwhite hover:bg-ink/85">
             Stoor storie
           </button>
