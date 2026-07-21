@@ -17,7 +17,7 @@ export default async function Instellings({ params }: { params: Promise<{ slug: 
 
   const { data: instellings } = await sb
     .from("entity_settings")
-    .select("bank_besonderhede, faktuur_epos_from, logo_path")
+    .select("maatskappy, reg_nr, btw_nr, adres, terme, bank_besonderhede, faktuur_epos_from, logo_path")
     .eq("workspace_id", active.id)
     .maybeSingle();
 
@@ -39,6 +39,52 @@ export default async function Instellings({ params }: { params: Promise<{ slug: 
             name="logo"
             accept="image/*"
             className="mt-2 block w-full cursor-pointer border-2 border-dashed border-ink/40 bg-paper p-2 text-xs font-normal file:mr-3 file:cursor-pointer file:border-0 file:bg-ink file:px-4 file:py-2 file:text-sm file:font-semibold file:text-offwhite hover:border-ink"
+          />
+        </label>
+        <label className="block text-sm font-semibold">
+          Besigheidsnaam (soos op fakture)
+          <input
+            name="maatskappy"
+            defaultValue={instellings?.maatskappy ?? ""}
+            placeholder={`${active.naam} (Edms) Bpk`}
+            className="mt-1 w-full border-2 border-ink bg-paper px-3 py-2 text-sm font-normal outline-none focus:border-red"
+          />
+        </label>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block text-sm font-semibold">
+            Registrasienr.
+            <input
+              name="reg_nr"
+              defaultValue={instellings?.reg_nr ?? ""}
+              className="mt-1 w-full border-2 border-ink bg-paper px-3 py-2 text-sm font-normal outline-none focus:border-red"
+            />
+          </label>
+          <label className="block text-sm font-semibold">
+            BTW-nr. (indien geregistreer)
+            <input
+              name="btw_nr"
+              defaultValue={instellings?.btw_nr ?? ""}
+              className="mt-1 w-full border-2 border-ink bg-paper px-3 py-2 text-sm font-normal outline-none focus:border-red"
+            />
+          </label>
+        </div>
+        <label className="block text-sm font-semibold">
+          Adres
+          <textarea
+            name="adres"
+            rows={2}
+            defaultValue={instellings?.adres ?? ""}
+            className="mt-1 w-full border-2 border-ink bg-paper px-3 py-2 text-sm font-normal outline-none focus:border-red"
+          />
+        </label>
+        <label className="block text-sm font-semibold">
+          Terme (fakture & kwotasies)
+          <textarea
+            name="terme"
+            rows={3}
+            defaultValue={instellings?.terme ?? ""}
+            placeholder="Betaalbaar binne 14 dae. …"
+            className="mt-1 w-full border-2 border-ink bg-paper px-3 py-2 text-sm font-normal outline-none focus:border-red"
           />
         </label>
         <label className="block text-sm font-semibold">

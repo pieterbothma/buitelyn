@@ -15,7 +15,7 @@ export async function loadInvoiceData(
   if (!f) return null;
   const { data: settings } = await sb
     .from("entity_settings")
-    .select("bank_besonderhede, logo_path")
+    .select("maatskappy, reg_nr, btw_nr, adres, terme, bank_besonderhede, logo_path")
     .eq("workspace_id", f.workspace_id)
     .maybeSingle();
 
@@ -50,5 +50,12 @@ export async function loadInvoiceData(
     lines: (f.invoice_lines ?? []).sort((a, b) => a.posisie - b.posisie),
     bank_besonderhede: settings?.bank_besonderhede ?? null,
     logoDataUri,
+    verkoper: {
+      maatskappy: settings?.maatskappy ?? null,
+      reg_nr: settings?.reg_nr ?? null,
+      btw_nr: settings?.btw_nr ?? null,
+      adres: settings?.adres ?? null,
+    },
+    terme: settings?.terme ?? null,
   };
 }

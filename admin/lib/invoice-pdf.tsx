@@ -26,6 +26,13 @@ export type InvoiceData = {
   lines: { beskrywing: string; aantal: number; eenheidsprys_sent: number }[];
   bank_besonderhede: string | null;
   logoDataUri: string | null;
+  verkoper: {
+    maatskappy: string | null;
+    reg_nr: string | null;
+    btw_nr: string | null;
+    adres: string | null;
+  };
+  terme: string | null;
 };
 
 const s = StyleSheet.create({
@@ -72,6 +79,18 @@ export function InvoicePdf({ d }: { d: InvoiceData }) {
         </View>
         <View style={s.reël} />
 
+        {d.verkoper.maatskappy || d.verkoper.adres ? (
+          <View style={{ marginBottom: 14 }}>
+            <Text style={{ color: "#6b6a66", marginBottom: 2 }}>VAN</Text>
+            {d.verkoper.maatskappy ? (
+              <Text style={{ fontWeight: 700 }}>{d.verkoper.maatskappy}</Text>
+            ) : null}
+            {d.verkoper.reg_nr ? <Text>Reg nr: {d.verkoper.reg_nr}</Text> : null}
+            {d.verkoper.btw_nr ? <Text>BTW nr: {d.verkoper.btw_nr}</Text> : null}
+            {d.verkoper.adres ? <Text>{d.verkoper.adres}</Text> : null}
+          </View>
+        ) : null}
+
         <Text style={{ color: "#6b6a66", marginBottom: 2 }}>AAN</Text>
         <Text style={{ fontSize: 12, fontWeight: 700 }}>
           {d.client.maatskappy ?? d.client.naam}
@@ -107,6 +126,12 @@ export function InvoicePdf({ d }: { d: InvoiceData }) {
           </View>
         ) : null}
         {d.notas ? <Text style={{ marginTop: 16, color: "#6b6a66" }}>{d.notas}</Text> : null}
+        {d.terme ? (
+          <View style={{ marginTop: 20 }}>
+            <Text style={{ color: "#6b6a66", marginBottom: 2 }}>TERME</Text>
+            <Text style={{ fontSize: 9, color: "#6b6a66" }}>{d.terme}</Text>
+          </View>
+        ) : null}
       </Page>
     </Document>
   );

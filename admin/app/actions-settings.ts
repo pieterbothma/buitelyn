@@ -25,6 +25,11 @@ export async function stoorInstellings(workspaceId: string, vorm: FormData) {
 
   await sb.from("entity_settings").upsert({
     workspace_id: workspaceId,
+    maatskappy: String(vorm.get("maatskappy") ?? "").trim() || null,
+    reg_nr: String(vorm.get("reg_nr") ?? "").trim() || null,
+    btw_nr: String(vorm.get("btw_nr") ?? "").trim() || null,
+    adres: String(vorm.get("adres") ?? "").trim() || null,
+    terme: String(vorm.get("terme") ?? "").trim() || null,
     bank_besonderhede: String(vorm.get("bank_besonderhede") ?? "").trim() || null,
     faktuur_epos_from: String(vorm.get("faktuur_epos_from") ?? "").trim() || null,
     ...(logo_path ? { logo_path } : {}),
