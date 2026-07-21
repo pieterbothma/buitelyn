@@ -1,7 +1,8 @@
 /* Lean Unipile client — copied from onemanband's verified flow (2026-07-18):
    hosted auth link -> async notify -> account_id; /emails list for reading. */
 
-const apiBase = () => `https://${process.env.UNIPILE_DSN}`;
+// DSN may arrive with or without a scheme (onemanband's env includes it).
+const apiBase = () => `https://${(process.env.UNIPILE_DSN ?? "").replace(/^https?:\/\//, "")}`;
 
 async function unipileFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${apiBase()}/api/v1${path}`, {
