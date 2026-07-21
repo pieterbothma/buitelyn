@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { supabaseServer } from "@/lib/supabase/server";
 import { Shell, type Workspace } from "@/components/shell";
 import { kryEpos } from "@/lib/unipile";
-import { antwoordEpos } from "@/app/actions-epos";
+import { ReplyModal } from "@/components/reply-modal";
 
 export const dynamic = "force-dynamic";
 
@@ -54,13 +54,23 @@ export default async function EposDetail({
       </Link>
 
       <div className="mt-4 max-w-3xl border-2 border-ink bg-offwhite">
-        <div className="border-b-2 border-ink px-5 py-4">
-          <h1 className="text-xl font-extrabold">{epos.onderwerp}</h1>
-          <p className="mt-1 text-sm text-ink/60">
-            {epos.van_naam}
-            {epos.van_epos ? ` <${epos.van_epos}>` : ""}
-            {epos.datum ? ` · ${datumFmt.format(new Date(epos.datum))}` : ""}
-          </p>
+        <div className="flex items-start justify-between gap-4 border-b-2 border-ink px-5 py-4">
+          <div className="min-w-0">
+            <h1 className="text-xl font-extrabold">{epos.onderwerp}</h1>
+            <p className="mt-1 text-sm text-ink/60">
+              {epos.van_naam}
+              {epos.van_epos ? ` <${epos.van_epos}>` : ""}
+              {epos.datum ? ` · ${datumFmt.format(new Date(epos.datum))}` : ""}
+            </p>
+          </div>
+          {epos.van_epos ? (
+            <ReplyModal
+              na={epos.van_epos}
+              onderwerp={epos.onderwerp.startsWith("Re:") ? epos.onderwerp : `Re: ${epos.onderwerp}`}
+              replyTo={epos.provider_id ?? ""}
+              terug={`/epos/${encodeURIComponent(epos.id)}`}
+            />
+          ) : null}
         </div>
         <div className="whitespace-pre-wrap px-5 py-4 text-sm leading-relaxed">{epos.teks}</div>
       </div>
@@ -69,24 +79,6 @@ export default async function EposDetail({
         <p className="mt-4 max-w-3xl border-2 border-green bg-offwhite p-3 text-sm font-semibold">
           Antwoord gestuur ✓
         </p>
-      ) : epos.van_epos ? (
-        <form action={antwoordEpos} className="mt-6 max-w-3xl space-y-3 border-2 border-ink bg-offwhite p-5">
-          <h2 className="text-sm font-semibold tracking-[0.14em]">ANTWOORD AAN {epos.van_epos.toUpperCase()}</h2>
-          <input type="hidden" name="na" value={epos.van_epos} />
-          <input type="hidden" name="onderwerp" value={`Re: ${epos.onderwerp}`} />
-          <input type="hidden" name="reply_to" value={epos.provider_id ?? ""} />
-          <input type="hidden" name="terug" value={`/epos/${encodeURIComponent(epos.id)}`} />
-          <textarea
-            name="teks"
-            rows={6}
-            required
-            placeholder="Skryf jou antwoord…"
-            className="w-full border-2 border-ink bg-paper px-3 py-2 text-sm outline-none focus:border-red"
-          />
-          <button className="bg-ink px-6 py-2.5 text-sm font-semibold text-offwhite hover:bg-ink/85">
-            Stuur antwoord →
-          </button>
-        </form>
       ) : null}
     </Shell>
   );
