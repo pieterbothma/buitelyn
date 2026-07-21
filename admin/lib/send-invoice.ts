@@ -19,6 +19,30 @@ export async function sendInvoiceEmail(invoiceId: string): Promise<{ ok?: true; 
     upsert: true,
   });
 
+  // Auto-file into the workspace's Fakture folder (once per invoice).
+  const { data: faktuur } = await svc
+    .from("invoices")
+    .select("workspace_id")
+    .eq("id", invoiceId)
+    .single();
+  if (faktuur) {
+    const { data: bestaan } = await svc
+      .from("documents")
+      .select("id")
+      .eq("bucket", "invoice-pdfs")
+      .eq("path", pad)
+      .maybeSingle();
+    if (!bestaan) {
+      await svc.from("documents").insert({
+        workspace_id: faktuur.workspace_id,
+        vouer: "Fakture",
+        naam: `${data.nommer}.pdf`,
+        bucket: "invoice-pdfs",
+        path: pad,
+      });
+    }
+  }
+
   const resend = new Resend(process.env.RESEND_API_KEY);
   const from = process.env.FAKTUUR_FROM ?? "AP HQ <fakture@aitsa.tech>";
   // Gemini writes the Afrikaans note (house rule); template is the fallback.
