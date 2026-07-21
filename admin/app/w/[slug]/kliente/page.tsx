@@ -17,7 +17,7 @@ export default async function Kliente({ params }: { params: Promise<{ slug: stri
 
   const { data: kliente } = await sb
     .from("clients")
-    .select("id, naam, epos, kontak")
+    .select("id, naam, maatskappy, epos, kontak")
     .eq("workspace_id", active.id)
     .order("naam");
 
@@ -31,7 +31,10 @@ export default async function Kliente({ params }: { params: Promise<{ slug: stri
           ) : (
             (kliente ?? []).map((k) => (
               <li key={k.id} className="px-4 py-3">
-                <p className="font-semibold">{k.naam}</p>
+                <p className="font-semibold">
+                  {k.naam}
+                  {k.maatskappy ? <span className="font-normal text-ink/60"> · {k.maatskappy}</span> : null}
+                </p>
                 <p className="text-xs text-ink/60">
                   {[k.epos, k.kontak].filter(Boolean).join(" · ")}
                 </p>
@@ -45,6 +48,9 @@ export default async function Kliente({ params }: { params: Promise<{ slug: stri
         >
           <h2 className="text-sm font-semibold tracking-[0.14em]">NUWE KLIËNT</h2>
           <input name="naam" required placeholder="Naam" className="w-full border-2 border-ink bg-paper px-3 py-2 text-sm outline-none focus:border-red" />
+          <input name="maatskappy" placeholder="Maatskappynaam" className="w-full border-2 border-ink bg-paper px-3 py-2 text-sm outline-none focus:border-red" />
+          <input name="reg_nr" placeholder="Registrasienr." className="w-full border-2 border-ink bg-paper px-3 py-2 text-sm outline-none focus:border-red" />
+          <input name="btw_nr" placeholder="BTW-nr." className="w-full border-2 border-ink bg-paper px-3 py-2 text-sm outline-none focus:border-red" />
           <input name="epos" type="email" placeholder="E-pos" className="w-full border-2 border-ink bg-paper px-3 py-2 text-sm outline-none focus:border-red" />
           <input name="kontak" placeholder="Kontak" className="w-full border-2 border-ink bg-paper px-3 py-2 text-sm outline-none focus:border-red" />
           <textarea name="adres" rows={2} placeholder="Adres" className="w-full border-2 border-ink bg-paper px-3 py-2 text-sm outline-none focus:border-red" />

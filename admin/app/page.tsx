@@ -15,7 +15,7 @@ export default async function Vandag() {
   const vandagEinde = new Date(vandagBegin);
   vandagEinde.setDate(vandagEinde.getDate() + 1);
 
-  const [{ data: verval }, { data: vandag }, { data: onbetaal }, { count: inkassie }] =
+  const [{ data: verval }, { data: vandag }, { data: onbetaal }, { count: inbox }] =
     await Promise.all([
       supabase
         .from("cards")
@@ -109,13 +109,13 @@ export default async function Vandag() {
           </ul>
         </section>
 
-        <section className="border-2 border-ink bg-offwhite p-5">
-          <h2 className="text-sm font-semibold tracking-[0.14em]">INKASSIE</h2>
+        <a href="/inbox" className="block border-2 border-ink bg-offwhite p-5 hover:bg-paper">
+          <h2 className="text-sm font-semibold tracking-[0.14em]">INBOX →</h2>
           <p className="mt-3 text-sm text-ink/70">
-            <span className="text-2xl font-extrabold">{inkassie ?? 0}</span> ongesorteerde idee
-            {(inkassie ?? 0) === 1 ? "" : "s"} — tag hulle in 'n werkruimte.
+            <span className="text-2xl font-extrabold">{inbox ?? 0}</span> ongesorteerde idee
+            {(inbox ?? 0) === 1 ? "" : "s"} — tag hulle in 'n werkruimte.
           </p>
-        </section>
+        </a>
       </div>
     </Shell>
   );

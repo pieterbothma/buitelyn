@@ -16,6 +16,9 @@ export async function skepKlient(workspaceSlug: string, vorm: FormData) {
   await sb.from("clients").insert({
     workspace_id: ws.id,
     naam: String(vorm.get("naam") ?? "").trim(),
+    maatskappy: String(vorm.get("maatskappy") ?? "").trim() || null,
+    reg_nr: String(vorm.get("reg_nr") ?? "").trim() || null,
+    btw_nr: String(vorm.get("btw_nr") ?? "").trim() || null,
     epos: String(vorm.get("epos") ?? "").trim() || null,
     kontak: String(vorm.get("kontak") ?? "").trim() || null,
     adres: String(vorm.get("adres") ?? "").trim() || null,

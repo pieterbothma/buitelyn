@@ -4,7 +4,7 @@ import { skrapIdee, tagIdee } from "@/app/actions";
 
 export const dynamic = "force-dynamic";
 
-export default async function Inkassie() {
+export default async function Inbox() {
   const sb = await supabaseServer();
   const { data: workspaces } = await sb
     .from("workspaces")
@@ -19,11 +19,11 @@ export default async function Inkassie() {
 
   return (
     <Shell workspaces={(workspaces ?? []) as Workspace[]}>
-      <h1 className="text-3xl font-extrabold tracking-tight">Inkassie</h1>
+      <h1 className="text-3xl font-extrabold tracking-tight">Inbox</h1>
       <p className="mt-1 text-sm text-ink/60">Ongesorteerde idees — tag elkeen in 'n werkruimte.</p>
       <ul className="mt-6 max-w-3xl divide-y divide-ink/10 border-2 border-ink bg-offwhite">
         {(idees ?? []).length === 0 ? (
-          <li className="px-4 py-6 text-sm text-ink/50">Inkassie is leeg. 🎉</li>
+          <li className="px-4 py-6 text-sm text-ink/50">Inbox is leeg. 🎉</li>
         ) : (
           (idees ?? []).map((i) => (
             <li key={i.id} className="px-4 py-3">

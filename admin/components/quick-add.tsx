@@ -75,7 +75,7 @@ export function QuickAdd({ workspaces }: { workspaces: Workspace[] }) {
                 onChange={(e) => laaiFormats(e.target.value)}
                 className="w-full border-2 border-ink bg-paper px-3 py-2 text-sm"
               >
-                <option value="">Inkassie (tag later)</option>
+                <option value="">Inbox (tag later)</option>
                 {workspaces.map((w) => (
                   <option key={w.id} value={w.id}>
                     {w.naam}

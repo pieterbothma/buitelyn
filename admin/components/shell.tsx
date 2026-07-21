@@ -15,6 +15,7 @@ const MODULES = [
   { slug: "idees", naam: "Idees" },
   { slug: "kliente", naam: "Kliënte" },
   { slug: "fakture", naam: "Fakture" },
+  { slug: "instellings", naam: "Instellings" },
 ];
 
 export function Shell({

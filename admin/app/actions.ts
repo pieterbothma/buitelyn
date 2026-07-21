@@ -48,7 +48,7 @@ export async function skrapIdee(id: string) {
 export async function promoveerIdee(id: string, dueAt: string) {
   const sb = await supabaseServer();
   const { data: idee } = await sb.from("ideas").select("*").eq("id", id).single();
-  if (!idee?.workspace_id) return; // Inkassie-idees moet eers getag word
+  if (!idee?.workspace_id) return; // Inbox-idees moet eers getag word
   await sb.from("cards").insert({
     workspace_id: idee.workspace_id,
     format_id: idee.format_id,

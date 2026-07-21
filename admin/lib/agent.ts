@@ -26,7 +26,7 @@ const TOOLS: ToolSkema[] = [
   {
     name: "stoor_idee",
     description:
-      "Stoor 'n idee. Gebruik vir enige gedagte/voorstel/консep wat AP wil onthou. Laat workspace_slug weg as dit onduidelik is — dan gaan dit na die Inkassie.",
+      "Stoor 'n idee. Gebruik vir enige gedagte/voorstel/консep wat AP wil onthou. Laat workspace_slug weg as dit onduidelik is — dan gaan dit na die Inbox.",
     input_schema: {
       type: "object",
       properties: {
@@ -126,7 +126,7 @@ async function voerToolUit(
       const knoppies = (alleWs ?? []).map((w) => [
         { text: w.naam, callback_data: `tag:${idee.id}:${w.id}` },
       ]);
-      return { resultaat: `Idee gestoor in die Inkassie: "${invoer.titel}". Vra AP om 'n werkruimte te kies.`, knoppies };
+      return { resultaat: `Idee gestoor in die Inbox: "${invoer.titel}". Vra AP om 'n werkruimte te kies.`, knoppies };
     }
     return { resultaat: `Idee gestoor: "${invoer.titel}".` };
   }

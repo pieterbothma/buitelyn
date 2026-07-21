@@ -1,5 +1,6 @@
 import {
   Document,
+  Image,
   Page,
   Text,
   View,
@@ -14,9 +15,17 @@ export type InvoiceData = {
   status: string;
   notas: string | null;
   workspace: { naam: string; accent: string };
-  client: { naam: string; epos: string | null; adres: string | null };
+  client: {
+    naam: string;
+    maatskappy: string | null;
+    reg_nr: string | null;
+    btw_nr: string | null;
+    epos: string | null;
+    adres: string | null;
+  };
   lines: { beskrywing: string; aantal: number; eenheidsprys_sent: number }[];
   bank_besonderhede: string | null;
+  logoDataUri: string | null;
 };
 
 const s = StyleSheet.create({
@@ -39,6 +48,10 @@ export function InvoicePdf({ d }: { d: InvoiceData }) {
       <Page size="A4" style={s.page}>
         <View style={s.kop}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
+            {d.logoDataUri ? (
+              /* eslint-disable-next-line jsx-a11y/alt-text */
+              <Image src={d.logoDataUri} style={{ height: 44, marginRight: 10, objectFit: "contain" }} />
+            ) : null}
             <Text style={s.naam}>{d.workspace.naam}</Text>
             <View
               style={{
@@ -60,7 +73,12 @@ export function InvoicePdf({ d }: { d: InvoiceData }) {
         <View style={s.reël} />
 
         <Text style={{ color: "#6b6a66", marginBottom: 2 }}>AAN</Text>
-        <Text style={{ fontSize: 12, fontWeight: 700 }}>{d.client.naam}</Text>
+        <Text style={{ fontSize: 12, fontWeight: 700 }}>
+          {d.client.maatskappy ?? d.client.naam}
+        </Text>
+        {d.client.maatskappy ? <Text>t.a.v. {d.client.naam}</Text> : null}
+        {d.client.reg_nr ? <Text>Reg nr: {d.client.reg_nr}</Text> : null}
+        {d.client.btw_nr ? <Text>BTW nr: {d.client.btw_nr}</Text> : null}
         {d.client.epos ? <Text>{d.client.epos}</Text> : null}
         {d.client.adres ? <Text>{d.client.adres}</Text> : null}
 
