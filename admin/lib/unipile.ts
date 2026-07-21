@@ -88,3 +88,101 @@ export async function kryAccount(accountId: string): Promise<{ provider?: string
       undefined,
   };
 }
+
+/* ── Folders, full message, send, disconnect ─────────────────────────── */
+
+export type EposVouer = {
+  id: string;
+  name: string;
+  provider_id?: string;
+  role?: string;
+  nb_mails?: number;
+};
+
+export async function lysVouers(accountId: string): Promise<EposVouer[]> {
+  const params = new URLSearchParams({ account_id: accountId });
+  const res = await unipileFetch<{ items?: EposVouer[] }>(`/folders?${params}`);
+  return res.items ?? [];
+}
+
+/* NOTE: the /emails `folder` filter wants the PROVIDER id (e.g. Gmail's
+   "INBOX"), not Unipile's own folder id (onemanband, verified). */
+export async function lysEposseInVouer(
+  accountId: string,
+  providerFolderId: string | null,
+  limit = 25
+): Promise<Epos[]> {
+  const params = new URLSearchParams({ account_id: accountId, limit: String(limit) });
+  if (providerFolderId) params.set("folder", providerFolderId);
+  const res = await unipileFetch<{ items?: RawEmailMessage[] }>(`/emails?${params}`);
+  return (res.items ?? []).map((m) => ({
+    id: m.id,
+    van: m.from_attendee?.display_name || m.from_attendee?.identifier || "Onbekend",
+    onderwerp: m.subject || "(geen onderwerp)",
+    datum: m.date ?? null,
+    uittreksel: (m.body_plain ?? "").replace(/\s+/g, " ").slice(0, 140),
+  }));
+}
+
+export type VolleEpos = {
+  id: string;
+  provider_id: string | null;
+  van_naam: string;
+  van_epos: string | null;
+  onderwerp: string;
+  datum: string | null;
+  teks: string;
+};
+
+export async function kryEpos(accountId: string, emailId: string): Promise<VolleEpos> {
+  const q = new URLSearchParams({ account_id: accountId });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const raw = await unipileFetch<any>(`/emails/${encodeURIComponent(emailId)}?${q}`);
+  const teks =
+    raw.body_plain ||
+    String(raw.body ?? "")
+      .replace(/<(script|style)[\s\S]*?<\/\1>/gi, " ")
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/(p|div|h[1-6]|li)>/gi, "\n")
+      .replace(/<[^>]+>/g, "")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .trim();
+  return {
+    id: raw.id,
+    provider_id: raw.provider_id ?? raw.id ?? null,
+    van_naam: raw.from_attendee?.display_name || raw.from_attendee?.identifier || "Onbekend",
+    van_epos: raw.from_attendee?.identifier ?? null,
+    onderwerp: raw.subject || "(geen onderwerp)",
+    datum: raw.date ?? null,
+    teks,
+  };
+}
+
+/** Multipart send — Content-Type intentionally unset so fetch adds the
+    multipart boundary itself (setting it manually breaks Unipile's parse). */
+export async function stuurEpos(
+  accountId: string,
+  opts: { na: string; onderwerp: string; teks: string; replyTo?: string | null }
+): Promise<void> {
+  const form = new FormData();
+  form.append("account_id", accountId);
+  form.append("subject", opts.onderwerp);
+  form.append("body", opts.teks);
+  form.append("to", JSON.stringify([{ identifier: opts.na }]));
+  if (opts.replyTo) form.append("reply_to", opts.replyTo);
+  const res = await fetch(`${apiBase()}/api/v1/emails`, {
+    method: "POST",
+    headers: { "X-API-KEY": process.env.UNIPILE_API_KEY! },
+    body: form,
+    signal: AbortSignal.timeout(25_000),
+  });
+  if (!res.ok) throw new Error(`Unipile stuur ${res.status}: ${(await res.text()).slice(0, 200)}`);
+}
+
+export async function ontkoppelAccount(accountId: string): Promise<void> {
+  await fetch(`${apiBase()}/api/v1/accounts/${encodeURIComponent(accountId)}`, {
+    method: "DELETE",
+    headers: { "X-API-KEY": process.env.UNIPILE_API_KEY! },
+  });
+}
