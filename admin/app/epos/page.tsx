@@ -59,7 +59,7 @@ export default async function EposBlad({
       {!rekening ? (
         <div className="mt-6 max-w-md border-2 border-ink bg-offwhite p-6">
           <p className="text-sm text-ink/70">
-            Koppel jou Gmail (of enige e-pos) sodat AP HQ jou inboks hier kan wys.
+            Koppel jou Gmail (of enige e-pos) sodat AP HQ jou inbox hier kan wys.
           </p>
           <form action="/api/unipile/connect" method="post" className="mt-4">
             <button className="w-full bg-ink py-2.5 text-sm font-semibold text-offwhite hover:bg-ink/85">

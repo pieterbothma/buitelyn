@@ -31,7 +31,7 @@ export default function Login() {
         <p className="mt-2 text-sm text-ink/60">Teken in met jou e-pos — jy kry 'n skakel.</p>
         {status === "gestuur" ? (
           <p className="mt-6 border border-ink/20 bg-paper p-4 text-sm font-semibold">
-            Skakel gestuur — gaan kyk in jou inboks.
+            Skakel gestuur — gaan kyk in jou inbox.
           </p>
         ) : (
           <form onSubmit={stuurSkakel} className="mt-6 space-y-3">
