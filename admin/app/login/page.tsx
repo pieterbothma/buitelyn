@@ -28,7 +28,7 @@ export default function Login() {
           <h1 className="text-2xl font-extrabold tracking-tight">AP HQ</h1>
           <span aria-hidden className="size-2.5 rounded-full bg-red" />
         </div>
-        <p className="mt-2 text-sm text-ink/60">Teken in met jou e-pos — jy kry 'n magiese skakel.</p>
+        <p className="mt-2 text-sm text-ink/60">Teken in met jou e-pos — jy kry 'n skakel.</p>
         {status === "gestuur" ? (
           <p className="mt-6 border border-ink/20 bg-paper p-4 text-sm font-semibold">
             Skakel gestuur — gaan kyk in jou inboks.
