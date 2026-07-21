@@ -134,10 +134,18 @@ export type VolleEpos = {
   teks: string;
 };
 
+/* GET /emails/{id} 404s on this Unipile instance for every list id (verified
+   live 2026-07-21) — but the LIST endpoint returns complete bodies, so we
+   resolve the message from the list instead. */
 export async function kryEpos(accountId: string, emailId: string): Promise<VolleEpos> {
-  const q = new URLSearchParams({ account_id: accountId });
+  const q = new URLSearchParams({ account_id: accountId, limit: "100" });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const raw = await unipileFetch<any>(`/emails/${encodeURIComponent(emailId)}?${q}`);
+  const lys = await unipileFetch<{ items?: any[] }>(`/emails?${q}`);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const raw = (lys.items ?? []).find(
+    (m) => m.id === emailId || m.deprecated_id === emailId
+  );
+  if (!raw) throw new Error("E-pos nie gevind nie");
   const teks =
     raw.body_plain ||
     String(raw.body ?? "")
