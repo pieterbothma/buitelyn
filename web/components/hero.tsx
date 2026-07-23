@@ -117,7 +117,7 @@ export function Hero({ tagline, latestUrl }: { tagline: string; latestUrl: strin
               transition={reduce ? undefined : { duration: 0.8, delay: 0.15, ease: EASE }}
             >
               <Image
-                src="/apdup.png"
+                src="/apdup2.png"
                 alt="André-Pierre du Plessis — aanbieder van Buitelyn"
                 fill
                 priority
