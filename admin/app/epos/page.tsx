@@ -18,36 +18,37 @@ const ROL_NAAM: Record<string, string> = {
 export default async function EposBlad({
   searchParams,
 }: {
-  searchParams: Promise<{ koppel?: string; vouer?: string; gestuur?: string }>;
+  searchParams: Promise<{ koppel?: string; vouer?: string; gestuur?: string; rek?: string }>;
 }) {
-  const { koppel, vouer, gestuur } = await searchParams;
+  const { koppel, vouer, gestuur, rek } = await searchParams;
   const sb = await supabaseServer();
   const { data: workspaces } = await sb
     .from("workspaces")
     .select("id, slug, naam, accent")
     .order("posisie");
 
-  const { data: rekening } = await sb
+  const { data: rekeninge } = await sb
     .from("email_accounts")
     .select("account_id, provider, epos")
-    .order("geskep_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .order("geskep_at");
+
+  const aktieweRek =
+    (rek && (rekeninge ?? []).find((r) => r.account_id === rek)) || (rekeninge ?? [])[0] || null;
 
   let vouers: EposVouer[] = [];
   let eposse: Epos[] = [];
   let fout: string | null = null;
   let aktieweVouer: string | null = null;
 
-  if (rekening) {
+  if (aktieweRek) {
     try {
-      vouers = await lysVouers(rekening.account_id);
+      vouers = await lysVouers(aktieweRek.account_id);
       const bekend = vouers.filter((v) => v.role && ROL_NAAM[v.role]);
       const inbox = bekend.find((v) => v.role === "inbox");
       const gekies =
         (vouer && vouers.find((v) => v.provider_id === vouer || v.id === vouer)) || inbox;
       aktieweVouer = gekies?.provider_id ?? null;
-      eposse = await lysEposseInVouer(rekening.account_id, aktieweVouer);
+      eposse = await lysEposseInVouer(aktieweRek.account_id, aktieweVouer);
     } catch (e) {
       fout = e instanceof Error ? e.message : "Kon nie e-posse laai nie";
     }
@@ -64,26 +65,52 @@ export default async function EposBlad({
   const railVouers = vouers
     .filter((v) => v.role && ROL_NAAM[v.role])
     .sort(
-      (a, b) =>
-        Object.keys(ROL_NAAM).indexOf(a.role!) - Object.keys(ROL_NAAM).indexOf(b.role!)
+      (a, b) => Object.keys(ROL_NAAM).indexOf(a.role!) - Object.keys(ROL_NAAM).indexOf(b.role!)
     );
+
+  const rekParam = aktieweRek ? `&rek=${encodeURIComponent(aktieweRek.account_id)}` : "";
 
   return (
     <Shell workspaces={(workspaces ?? []) as Workspace[]}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-3xl font-extrabold tracking-tight">E-pos</h1>
-        {rekening ? (
-          <form action={ontkoppelEpos}>
-            <button className="text-sm font-semibold text-red/80 underline-offset-2 hover:text-red hover:underline">
-              Ontkoppel {rekening.epos ?? ""}
-            </button>
-          </form>
-        ) : null}
+        <form action="/api/unipile/connect" method="post">
+          <button className="text-sm font-semibold underline-offset-2 hover:underline">
+            + Koppel nog 'n rekening
+          </button>
+        </form>
       </div>
+
+      {/* Rekening-oortjies */}
+      {(rekeninge ?? []).length > 0 ? (
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          {(rekeninge ?? []).map((r) => {
+            const aktief = r.account_id === aktieweRek?.account_id;
+            return (
+              <Link
+                key={r.account_id}
+                href={`/epos?rek=${encodeURIComponent(r.account_id)}`}
+                className={`border-2 border-ink px-3 py-1.5 text-sm font-semibold ${
+                  aktief ? "bg-ink text-offwhite" : "bg-offwhite hover:bg-paper"
+                }`}
+              >
+                {r.epos ?? r.account_id.slice(0, 8)}
+              </Link>
+            );
+          })}
+          {aktieweRek ? (
+            <form action={ontkoppelEpos.bind(null, aktieweRek.account_id)}>
+              <button className="px-2 text-sm font-semibold text-red/80 underline-offset-2 hover:text-red hover:underline">
+                Ontkoppel hierdie een
+              </button>
+            </form>
+          ) : null}
+        </div>
+      ) : null}
 
       {koppel === "sukses" ? (
         <p className="mt-3 max-w-xl border-2 border-green bg-offwhite p-3 text-sm font-semibold">
-          Rekening gekoppel ✓ — as die lys leeg is, gee dit 'n minuut en herlaai.
+          Rekening gekoppel ✓ — as dit nog nie hier lys nie, gee dit 'n minuut en herlaai.
         </p>
       ) : null}
       {koppel === "fout" ? (
@@ -97,7 +124,7 @@ export default async function EposBlad({
         </p>
       ) : null}
 
-      {!rekening ? (
+      {!aktieweRek ? (
         <div className="mt-6 max-w-md border-2 border-ink bg-offwhite p-6">
           <p className="text-sm text-ink/70">
             Koppel jou Gmail (of enige e-pos) sodat AP HQ jou inbox hier kan wys.
@@ -119,7 +146,7 @@ export default async function EposBlad({
               return (
                 <li key={v.id}>
                   <Link
-                    href={`/epos?vouer=${encodeURIComponent(v.provider_id ?? v.id)}`}
+                    href={`/epos?vouer=${encodeURIComponent(v.provider_id ?? v.id)}${rekParam}`}
                     className={`flex items-center justify-between px-3 py-2 text-sm font-semibold hover:bg-paper ${
                       aktief ? "bg-paper" : ""
                     }`}
@@ -142,7 +169,7 @@ export default async function EposBlad({
               eposse.map((e) => (
                 <li key={e.id}>
                   <Link
-                    href={`/epos/${encodeURIComponent(e.id)}?vouer=${encodeURIComponent(aktieweVouer ?? "")}`}
+                    href={`/epos/${encodeURIComponent(e.id)}?vouer=${encodeURIComponent(aktieweVouer ?? "")}${rekParam}`}
                     className="block px-4 py-3 hover:bg-paper"
                   >
                     <div className="flex items-baseline justify-between gap-4">

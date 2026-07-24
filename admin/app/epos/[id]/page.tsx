@@ -12,22 +12,22 @@ export default async function EposDetail({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ vouer?: string; gestuur?: string }>;
+  searchParams: Promise<{ vouer?: string; gestuur?: string; rek?: string }>;
 }) {
   const { id } = await params;
-  const { vouer, gestuur } = await searchParams;
+  const { vouer, gestuur, rek } = await searchParams;
   const sb = await supabaseServer();
   const { data: workspaces } = await sb
     .from("workspaces")
     .select("id, slug, naam, accent")
     .order("posisie");
 
-  const { data: rekening } = await sb
+  const { data: rekeninge } = await sb
     .from("email_accounts")
     .select("account_id")
-    .order("geskep_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+    .order("geskep_at");
+  const rekening =
+    (rek && (rekeninge ?? []).find((r) => r.account_id === rek)) || (rekeninge ?? [])[0];
   if (!rekening) notFound();
 
   let epos;
@@ -45,7 +45,8 @@ export default async function EposDetail({
     hour: "2-digit",
     minute: "2-digit",
   });
-  const terug = `/epos${vouer ? `?vouer=${encodeURIComponent(vouer)}` : ""}`;
+  const rekParam = `&rek=${encodeURIComponent(rekening.account_id)}`;
+  const terug = `/epos?${vouer ? `vouer=${encodeURIComponent(vouer)}` : ""}${rekParam}`;
 
   return (
     <Shell workspaces={(workspaces ?? []) as Workspace[]}>
@@ -65,10 +66,11 @@ export default async function EposDetail({
           </div>
           {epos.van_epos ? (
             <ReplyModal
+              accountId={rekening.account_id}
               na={epos.van_epos}
               onderwerp={epos.onderwerp.startsWith("Re:") ? epos.onderwerp : `Re: ${epos.onderwerp}`}
               replyTo={epos.provider_id ?? ""}
-              terug={`/epos/${encodeURIComponent(epos.id)}`}
+              terug={`/epos/${encodeURIComponent(epos.id)}?rek=${encodeURIComponent(rekening.account_id)}`}
             />
           ) : null}
         </div>

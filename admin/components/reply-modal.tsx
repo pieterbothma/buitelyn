@@ -4,11 +4,13 @@ import { useState, useTransition } from "react";
 import { antwoordEpos } from "@/app/actions-epos";
 
 export function ReplyModal({
+  accountId,
   na,
   onderwerp,
   replyTo,
   terug,
 }: {
+  accountId: string;
   na: string;
   onderwerp: string;
   replyTo: string;
@@ -42,6 +44,7 @@ export function ReplyModal({
               action={(vorm) => begin(() => antwoordEpos(vorm))}
               className="mt-4 space-y-3"
             >
+              <input type="hidden" name="account_id" value={accountId} />
               <input type="hidden" name="na" value={na} />
               <input type="hidden" name="onderwerp" value={onderwerp} />
               <input type="hidden" name="reply_to" value={replyTo} />
