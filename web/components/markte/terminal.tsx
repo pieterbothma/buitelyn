@@ -5,6 +5,8 @@ import type { Kwotasie, ReeksPunt } from "@/lib/markets/source";
 import { BORDE, naamVirSimbool } from "@/lib/markets/boards";
 import { Portefeulje, type Belegging } from "@/components/markte/portefeulje";
 import { MarkteChat } from "@/components/markte/chat";
+import { NuusBord } from "@/components/markte/nuus";
+import type { NuusItem } from "@/lib/markets/nuus";
 
 const geldFmt = (geld: string) =>
   new Intl.NumberFormat("af-ZA", {
@@ -62,7 +64,7 @@ function Sparkline({ reeks }: { reeks: ReeksPunt[] }) {
   );
 }
 
-export function MarkteTerminal({ aanvanklik }: { aanvanklik: Kwotasie[] }) {
+export function MarkteTerminal({ aanvanklik, nuus = [] }: { aanvanklik: Kwotasie[]; nuus?: NuusItem[] }) {
   const [kwotasies, setKwotasies] = useState<Kwotasie[]>(aanvanklik);
   const [oopRy, setOopRy] = useState<string | null>(null);
   const [reekse, setReekse] = useState<Record<string, ReeksPunt[]>>({});
@@ -191,6 +193,8 @@ export function MarkteTerminal({ aanvanklik }: { aanvanklik: Kwotasie[] }) {
             </ul>
           </section>
         ))}
+
+        <NuusBord items={nuus} />
 
         <Omskakelaar usdZar={kaart.get("ZAR=X")?.prys ?? null} eurZar={kaart.get("EURZAR=X")?.prys ?? null} gbpZar={kaart.get("GBPZAR=X")?.prys ?? null} />
 

@@ -4,6 +4,7 @@ import { TopBar } from "@/components/top-bar";
 import { Footer } from "@/components/footer";
 import { MarkteTerminal } from "@/components/markte/terminal";
 import { getQuotes } from "@/lib/markets/source";
+import { kryNuus } from "@/lib/markets/nuus";
 import { ALLE_SIMBOLE, jseIsOop } from "@/lib/markets/boards";
 
 export const revalidate = 60;
@@ -32,7 +33,11 @@ async function kryOorsig(): Promise<string | null> {
 }
 
 export default async function MarktePage() {
-  const [kwotasies, oorsig] = await Promise.all([getQuotes(ALLE_SIMBOLE), kryOorsig()]);
+  const [kwotasies, oorsig, nuus] = await Promise.all([
+    getQuotes(ALLE_SIMBOLE),
+    kryOorsig(),
+    kryNuus(),
+  ]);
   const oop = jseIsOop();
   const dateline = new Intl.DateTimeFormat("af-ZA", {
     timeZone: "Africa/Johannesburg",
@@ -76,7 +81,7 @@ export default async function MarktePage() {
           ) : null}
 
           <div className="mt-8">
-            <MarkteTerminal aanvanklik={kwotasies} />
+            <MarkteTerminal aanvanklik={kwotasies} nuus={nuus} />
           </div>
         </section>
       </main>

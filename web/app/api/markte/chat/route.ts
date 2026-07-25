@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import OpenAI from "openai";
 import { getQuotes, getSeries } from "@/lib/markets/source";
 import { ALLE_SIMBOLE, naamVirSimbool } from "@/lib/markets/boards";
+import { kryNuus } from "@/lib/markets/nuus";
 import { parseFeed } from "@/lib/feed";
 
 export const maxDuration = 60;
@@ -17,9 +18,19 @@ Reëls:
 - JSE-simbole eindig op .JO. Beskikbare simbole: ${ALLE_SIMBOLE.join(", ")}.
 - As die gebruiker se portefeulje in die konteks is, mag jy dit gebruik.
 - Jy gee inligting en verduideliking, NIE finansiële advies nie — sê so as iemand koop/verkoop-advies vra.
-- As Buitelyn se nuusbriewe iets relevant sê (soek_buitelyn), haal dit aan met die skakel.`;
+- As Buitelyn se nuusbriewe iets relevant sê (soek_buitelyn), haal dit aan met die skakel.
+- Vir "hoekom"-vrae oor bewegings: kyk eers na kry_nuus (SA-bronne); gebruik web-soektog vir enigiets verder. Noem altyd jou bron met 'n skakel, en moenie spekuleer as jy niks kry nie.`;
 
-const TOOLS: OpenAI.Responses.FunctionTool[] = [
+const TOOLS: OpenAI.Responses.Tool[] = [
+  { type: "web_search", search_context_size: "low" },
+  {
+    type: "function",
+    name: "kry_nuus",
+    description:
+      "Kry die jongste Suid-Afrikaanse finansiële nuusopskrifte (Business Day, Moneyweb, Daily Investor) met skakels.",
+    parameters: { type: "object", properties: {} },
+    strict: false,
+  },
   {
     type: "function",
     name: "kry_kwotasies",
@@ -56,6 +67,13 @@ const TOOLS: OpenAI.Responses.FunctionTool[] = [
 ];
 
 async function voerToolUit(naam: string, invoer: Record<string, unknown>): Promise<string> {
+  if (naam === "kry_nuus") {
+    const items = await kryNuus();
+    if (!items.length) return "Geen nuus beskikbaar nie.";
+    return items
+      .map((i) => `[${i.bron}] ${i.titel}${i.opsomming ? ` — ${i.opsomming}` : ""} (${i.skakel})`)
+      .join("\n");
+  }
   if (naam === "kry_kwotasies") {
     const simbole = ((invoer.simbole as string[]) ?? []).filter((s) => ALLE_SIMBOLE.includes(s));
     if (!simbole.length) return "Geen geldige simbole nie.";
