@@ -36,7 +36,11 @@ for (const { bron, url } of SKRAAP_BRONNE) {
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const items = parseNuusFeed(await res.text(), bron).slice(0, 20);
-    if (!items.length) throw new Error("geen items");
+    if (!items.length) {
+      // BizNews's feed is often legitimately empty between stories.
+      console.log(`${new Date().toISOString()} ${bron}: feed leeg — niks om te vang nie`);
+      continue;
+    }
     const { error } = await sb.from("markte_nuus_rou").upsert(
       items.map((i) => ({
         skakel: i.skakel,
