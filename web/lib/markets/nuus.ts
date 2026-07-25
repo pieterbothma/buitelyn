@@ -112,7 +112,29 @@ export function voegSaam(lyste: RouItem[][], maks = MAX_ITEMS, maksPerBron = 4):
   return gekies.sort((a, b) => new Date(b.gepubliseer).getTime() - new Date(a.gepubliseer).getTime());
 }
 
-async function haalBronne(): Promise<RouItem[]> {
+/* Sources whose bot protection blocks Vercel's IPs are fetched by the local
+   scraper on Piet's Mac (scripts/nuus-skraper.ts) and land in markte_nuus_rou;
+   voegSaam's link-dedupe makes direct-fetch and scraper overlap harmless. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function haalGeskraap(sb: any): Promise<RouItem[]> {
+  const grens = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+  const { data } = await sb
+    .from("markte_nuus_rou")
+    .select("skakel, titel, bron, beskrywing, gepubliseer")
+    .gte("gepubliseer", grens)
+    .order("gepubliseer", { ascending: false })
+    .limit(30);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return (data ?? []).map((r: any) => ({
+    titel: r.titel,
+    skakel: r.skakel,
+    bron: r.bron,
+    beskrywing: r.beskrywing ?? "",
+    gepubliseer: new Date(r.gepubliseer).toISOString(),
+  }));
+}
+
+async function haalBronne(): Promise<RouItem[][]> {
   const resultate = await Promise.allSettled(
     BRONNE.map(async ({ bron, url }) => {
       /* Full browser UA: some SA sites' bot protection blocks "compatible;"
@@ -130,7 +152,7 @@ async function haalBronne(): Promise<RouItem[]> {
       return parseNuusFeed(await res.text(), bron);
     })
   );
-  return voegSaam(resultate.map((r) => (r.status === "fulfilled" ? r.value : [])));
+  return resultate.map((r) => (r.status === "fulfilled" ? r.value : []));
 }
 
 type Vertaling = { opskrif: string; opsomming: string };
@@ -169,14 +191,16 @@ async function skryfVertalings(items: RouItem[]): Promise<Vertaling[]> {
    ever writes each article once no matter how often the page revalidates. */
 export async function kryNuus(): Promise<NuusItem[]> {
   try {
-    const items = await haalBronne();
-    if (!items.length) return [];
+    const bronLyste = await haalBronne();
     if (!process.env.APHQ_SUPABASE_URL || !process.env.APHQ_SUPABASE_SERVICE_KEY) {
-      return items.map((i) => ({ ...i, opsomming: "" }));
+      return voegSaam(bronLyste).map(({ beskrywing: _b, ...i }) => ({ ...i, opsomming: "" }));
     }
     const sb = createClient(process.env.APHQ_SUPABASE_URL, process.env.APHQ_SUPABASE_SERVICE_KEY, {
       auth: { persistSession: false },
     });
+    const geskraap = await haalGeskraap(sb).catch(() => [] as RouItem[]);
+    const items = voegSaam([...bronLyste, geskraap]);
+    if (!items.length) return [];
     const { data: bestaande } = await sb
       .from("markte_nuus")
       .select("skakel, opsomming, titel_af")
