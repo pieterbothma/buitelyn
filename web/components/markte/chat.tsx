@@ -41,7 +41,7 @@ export function MarkteChat({ portefeulje }: { portefeulje: Belegging[] }) {
       const data = await res.json();
       setBoodskappe((b) => [
         ...b,
-        { rol: "buitelyn", teks: data.antwoord ?? data.fout ?? "Iets het skeefgeloop." },
+        { rol: "buitelyn", teks: (data.antwoord ?? data.fout ?? "Iets het skeefgeloop.").replace(/\*\*/g, "") },
       ]);
       setTimeout(() => einde.current?.scrollIntoView({ behavior: "smooth" }), 60);
     } catch {
