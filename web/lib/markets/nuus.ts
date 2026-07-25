@@ -115,9 +115,15 @@ export function voegSaam(lyste: RouItem[][], maks = MAX_ITEMS, maksPerBron = 4):
 async function haalBronne(): Promise<RouItem[]> {
   const resultate = await Promise.allSettled(
     BRONNE.map(async ({ bron, url }) => {
+      /* Full browser UA: some SA sites' bot protection blocks "compatible;"
+         UAs from data-centre IPs (Daily Investor dropped out on Vercel). */
       const res = await fetch(url, {
         next: { revalidate: 900 },
-        headers: { "user-agent": "Mozilla/5.0 (compatible; BuitelynMarkte/1.0)" },
+        headers: {
+          "user-agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+          accept: "application/rss+xml, application/xml;q=0.9, */*;q=0.8",
+        },
         signal: AbortSignal.timeout(10_000),
       });
       if (!res.ok) throw new Error(`${bron}: ${res.status}`);
