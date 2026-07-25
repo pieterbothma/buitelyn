@@ -46,7 +46,7 @@ const NAAM_ENTITEITE: Record<string, string> = {
   ndash: "–", mdash: "—", hellip: "…",
 };
 
-function dekodeer(teks: string): string {
+export function dekodeer(teks: string): string {
   return teks
     .replace(/&#(\d+);/g, (_, n) => String.fromCodePoint(Number(n)))
     .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCodePoint(parseInt(n, 16)))
