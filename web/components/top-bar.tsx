@@ -8,6 +8,9 @@ export function TopBar() {
           <Image src="/logo-transparent.png" alt="Buitelyn" width={64} height={64} />
         </a>
         <div className="flex items-center gap-6">
+          <a href="/markte" className="text-[15px] font-semibold underline-offset-4 hover:underline">
+            Markte
+          </a>
           <a
             href="https://buitelyn-shop.fourthwall.com/"
             target="_blank"
