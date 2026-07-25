@@ -10,8 +10,12 @@ import { dirname, join } from "node:path";
 import { createClient } from "@supabase/supabase-js";
 import { parseNuusFeed } from "../lib/markets/nuus.ts";
 
-const GEBLOKTE_BRONNE = [
+const SKRAAP_BRONNE = [
+  // Blocks Vercel's data-centre IPs — only reachable from here.
   { bron: "Daily Investor", url: "https://dailyinvestor.com/feed/" },
+  // RSS carries only the single latest story; polling every 15 min
+  // accumulates them into an archive the site can actually use.
+  { bron: "BizNews", url: "https://www.biznews.com/feed" },
 ];
 
 const webDir = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -24,7 +28,7 @@ const sb = createClient(process.env.APHQ_SUPABASE_URL!, process.env.APHQ_SUPABAS
   auth: { persistSession: false },
 });
 
-for (const { bron, url } of GEBLOKTE_BRONNE) {
+for (const { bron, url } of SKRAAP_BRONNE) {
   try {
     const res = await fetch(url, {
       headers: { "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36" },
