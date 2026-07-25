@@ -49,4 +49,21 @@ describe("voegSaam", () => {
     expect(voegSaam([[a], [b, dup]]).map((i) => i.skakel)).toEqual(["https://x.co/2", "https://x.co/1"]);
     expect(voegSaam([[a, b]], 1)).toHaveLength(1);
   });
+
+  it("caps items per source so one outlet's burst can't flood the board", () => {
+    // 6 Moneyweb posts newer than 3 Business Day posts; cap of 2 per source
+    const vloed = Array.from({ length: 6 }, (_, n) =>
+      rou(`https://mw.co/${n}`, `2026-07-25T12:0${n}:00.000Z`)
+    );
+    const bd = Array.from({ length: 3 }, (_, n) =>
+      rou(`https://bd.co/${n}`, `2026-07-25T08:0${n}:00.000Z`, "Business Day")
+    );
+    const uit = voegSaam([vloed, bd], 5, 2);
+    // every source keeps its cap in the first pass...
+    expect(uit.filter((i) => i.bron === "Business Day")).toHaveLength(2);
+    // ...and the open slot backfills from the freshest overflow (Moneyweb)
+    expect(uit.filter((i) => i.bron === "Moneyweb")).toHaveLength(3);
+    expect(uit).toHaveLength(5);
+    expect(uit[0].gepubliseer >= uit[4].gepubliseer).toBe(true);
+  });
 });

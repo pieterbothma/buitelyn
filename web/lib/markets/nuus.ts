@@ -83,13 +83,31 @@ export function parseNuusFeed(xml: string, bron: string): RouItem[] {
   );
 }
 
-export function voegSaam(lyste: RouItem[][], maks = MAX_ITEMS): RouItem[] {
+/* Sources publish in bursts (Moneyweb pushes its whole radio-show block in
+   one minute), so pure recency lets one outlet flood the board. Cap each
+   source, newest-first; if the capped pass leaves open slots, backfill with
+   the freshest overflow. */
+export function voegSaam(lyste: RouItem[][], maks = MAX_ITEMS, maksPerBron = 4): RouItem[] {
   const gesien = new Set<string>();
-  return lyste
+  const gesorteer = lyste
     .flat()
     .filter((i) => (gesien.has(i.skakel) ? false : (gesien.add(i.skakel), true)))
-    .sort((a, b) => new Date(b.gepubliseer).getTime() - new Date(a.gepubliseer).getTime())
-    .slice(0, maks);
+    .sort((a, b) => new Date(b.gepubliseer).getTime() - new Date(a.gepubliseer).getTime());
+
+  const perBron = new Map<string, number>();
+  const gekies: RouItem[] = [];
+  const oorloop: RouItem[] = [];
+  for (const item of gesorteer) {
+    const telling = perBron.get(item.bron) ?? 0;
+    if (gekies.length < maks && telling < maksPerBron) {
+      perBron.set(item.bron, telling + 1);
+      gekies.push(item);
+    } else {
+      oorloop.push(item);
+    }
+  }
+  gekies.push(...oorloop.slice(0, maks - gekies.length));
+  return gekies.sort((a, b) => new Date(b.gepubliseer).getTime() - new Date(a.gepubliseer).getTime());
 }
 
 async function haalBronne(): Promise<RouItem[]> {
@@ -107,7 +125,9 @@ async function haalBronne(): Promise<RouItem[]> {
   return voegSaam(resultate.map((r) => (r.status === "fulfilled" ? r.value : [])));
 }
 
-async function skryfOpsommings(items: RouItem[]): Promise<string[]> {
+type Vertaling = { opskrif: string; opsomming: string };
+
+async function skryfVertalings(items: RouItem[]): Promise<Vertaling[]> {
   const lys = items
     .map((i, n) => `${n + 1}. [${i.bron}] ${i.titel} — ${i.beskrywing || "(geen uittreksel)"}`)
     .join("\n");
@@ -121,7 +141,7 @@ async function skryfOpsommings(items: RouItem[]): Promise<string[]> {
           {
             parts: [
               {
-                text: `Hier is ${items.length} finansiële nuusberigte (Engels). Skryf vir elkeen 'n een-sin Afrikaanse opsomming in jou eie woorde (±18 woorde, feitelik, Buitelyn se stem: helder, geen clichés, geen aanhalings uit die bron). Antwoord as 'n JSON-lys van ${items.length} strings in dieselfde volgorde.\n\n${lys}`,
+                text: `Hier is ${items.length} finansiële nuusberigte (Engels). Vir elkeen, skryf:\n1. "opskrif" — 'n kort Afrikaanse nuusopskrif (vertaal die opskrif natuurlik, nie woord-vir-woord nie; hou name en syfers presies).\n2. "opsomming" — een-sin Afrikaanse opsomming in jou eie woorde (±18 woorde, feitelik, Buitelyn se stem: helder, geen clichés, geen aanhalings uit die bron).\nAntwoord as 'n JSON-lys van ${items.length} objekte {"opskrif": "...", "opsomming": "..."} in dieselfde volgorde.\n\n${lys}`,
               },
             ],
           },
@@ -133,8 +153,8 @@ async function skryfOpsommings(items: RouItem[]): Promise<string[]> {
   );
   const data = await res.json();
   const geparseer = JSON.parse(data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "[]");
-  if (!Array.isArray(geparseer) || geparseer.length !== items.length) throw new Error("opsomming-vorm");
-  return geparseer.map((s) => String(s));
+  if (!Array.isArray(geparseer) || geparseer.length !== items.length) throw new Error("vertaling-vorm");
+  return geparseer.map((v) => ({ opskrif: String(v?.opskrif ?? ""), opsomming: String(v?.opsomming ?? "") }));
 }
 
 /* Summaries are cached by article URL in the ap-hq Supabase, so Gemini only
@@ -151,28 +171,36 @@ export async function kryNuus(): Promise<NuusItem[]> {
     });
     const { data: bestaande } = await sb
       .from("markte_nuus")
-      .select("skakel, opsomming")
+      .select("skakel, opsomming, titel_af")
       .in("skakel", items.map((i) => i.skakel));
-    const kaart = new Map((bestaande ?? []).map((r) => [r.skakel, r.opsomming as string]));
+    const kaart = new Map(
+      (bestaande ?? [])
+        .filter((r) => r.titel_af) // pre-titel_af rows regenerate lazily
+        .map((r) => [r.skakel as string, { opskrif: r.titel_af as string, opsomming: r.opsomming as string }])
+    );
 
     const nuwes = items.filter((i) => !kaart.has(i.skakel));
     if (nuwes.length) {
       try {
-        const opsommings = await skryfOpsommings(nuwes);
+        const vertalings = await skryfVertalings(nuwes);
         const rye = nuwes.map((i, n) => ({
           skakel: i.skakel,
           titel: i.titel,
+          titel_af: vertalings[n].opskrif,
           bron: i.bron,
-          opsomming: opsommings[n],
+          opsomming: vertalings[n].opsomming,
           gepubliseer: i.gepubliseer,
         }));
         await sb.from("markte_nuus").upsert(rye, { onConflict: "skakel" });
-        rye.forEach((r) => kaart.set(r.skakel, r.opsomming));
+        rye.forEach((r) => kaart.set(r.skakel, { opskrif: r.titel_af, opsomming: r.opsomming }));
       } catch {
-        /* wys sonder opsomming; volgende render probeer weer */
+        /* wys sonder vertaling; volgende render probeer weer */
       }
     }
-    return items.map(({ beskrywing: _b, ...i }) => ({ ...i, opsomming: kaart.get(i.skakel) ?? "" }));
+    return items.map(({ beskrywing: _b, ...i }) => {
+      const v = kaart.get(i.skakel);
+      return { ...i, titel: v?.opskrif || i.titel, opsomming: v?.opsomming ?? "" };
+    });
   } catch {
     return [];
   }
