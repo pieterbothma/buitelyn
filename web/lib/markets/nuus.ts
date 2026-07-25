@@ -25,6 +25,8 @@ const BRONNE = [
   },
   { bron: "Moneyweb", url: "https://www.moneyweb.co.za/feed/" },
   { bron: "Daily Investor", url: "https://dailyinvestor.com/feed/" },
+  // BizNews caps its RSS at a single (latest) item — contributes at most one headline.
+  { bron: "BizNews", url: "https://www.biznews.com/feed" },
 ];
 
 const MAX_ITEMS = 10;
