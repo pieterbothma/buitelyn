@@ -6,40 +6,9 @@ import { ALLE_SIMBOLE, BORDE, naamVirSimbool } from "@/lib/markets/boards";
 import { Portefeulje, type Belegging } from "@/components/markte/portefeulje";
 import { MarkteChat } from "@/components/markte/chat";
 import { NuusBord } from "@/components/markte/nuus";
+import { HouMyDop } from "@/components/markte/dophou";
+import { formatteerPrys, Pyl } from "@/components/markte/format";
 import type { NuusItem } from "@/lib/markets/nuus";
-
-const geldFmt = (geld: string) =>
-  new Intl.NumberFormat("af-ZA", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
-export function formatteerPrys(k: Kwotasie): string {
-  const n = geldFmt(k.geldeenheid).format(k.prys);
-  if (k.geldeenheid === "ZAR") return `R ${n}`;
-  if (k.geldeenheid === "USD") return `$ ${n}`;
-  if (k.geldeenheid === "GBP") return `£ ${n}`;
-  if (k.geldeenheid === "JPY") return `¥ ${n}`;
-  return n;
-}
-
-function Pyl({ op }: { op: boolean }) {
-  return (
-    <span
-      aria-hidden
-      className="inline-block"
-      style={{
-        width: 0,
-        height: 0,
-        borderLeft: "5px solid transparent",
-        borderRight: "5px solid transparent",
-        ...(op
-          ? { borderBottom: "8px solid var(--brand-green)" }
-          : { borderTop: "8px solid var(--brand-red)" }),
-      }}
-    />
-  );
-}
 
 function Sparkline({ reeks }: { reeks: ReeksPunt[] }) {
   if (reeks.length < 2) return <p className="py-4 text-xs text-ink/50">Geen reeksdata nie.</p>;
@@ -69,11 +38,11 @@ export function MarkteTerminal({ aanvanklik, nuus = [] }: { aanvanklik: Kwotasie
   const [oopRy, setOopRy] = useState<string | null>(null);
   const [reekse, setReekse] = useState<Record<string, ReeksPunt[]>>({});
   const [portefeulje, setPortefeulje] = useState<Belegging[]>([]);
+  const [dophouSimbole, setDophouSimbole] = useState<string[]>([]);
 
   /* Portfolio holdings outside the boards ride along as ?ekstra=; a change
      (new custom holding) refetches immediately instead of waiting a minute. */
-  const ekstraCsv = portefeulje
-    .map((b) => b.simbool)
+  const ekstraCsv = [...new Set([...portefeulje.map((b) => b.simbool), ...dophouSimbole])]
     .filter((s) => !ALLE_SIMBOLE.includes(s))
     .sort()
     .join(",");
@@ -123,6 +92,8 @@ export function MarkteTerminal({ aanvanklik, nuus = [] }: { aanvanklik: Kwotasie
         <div className="mb-6">
           <Portefeulje kwotasies={kaart} onVerander={setPortefeulje} />
         </div>
+
+        <HouMyDop kwotasies={kaart} onVerander={setDophouSimbole} />
 
         {/* Hittekaart-strook: JSE Δ% as gekleurde blokkies */}
         {jseKwotasies.length > 0 ? (
