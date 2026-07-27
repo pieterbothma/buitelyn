@@ -25,6 +25,9 @@ export function Portefeulje({
   const [aantal, setAantal] = useState("");
   const [koopprys, setKoopprys] = useState("");
   const [epos, setEpos] = useState("");
+  const [wagwoord, setWagwoord] = useState("");
+  const [modus, setModus] = useState<"in" | "nuut" | "vergeet" | "stel">("in");
+  const [authBoodskap, setAuthBoodskap] = useState<string | null>(null);
   const [gebruiker, setGebruiker] = useState<{ id: string; epos: string } | null>(null);
   const [skakelGestuur, setSkakelGestuur] = useState(false);
   const soekTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -41,6 +44,7 @@ export function Portefeulje({
       /* korrupte data — begin oor */
     }
     if (!sb) return;
+    if (new URLSearchParams(window.location.search).get("stel-wagwoord")) setModus("stel");
     sb.auth.getUser().then(({ data }) => {
       if (data.user) setGebruiker({ id: data.user.id, epos: data.user.email ?? "" });
     });
@@ -98,6 +102,32 @@ export function Portefeulje({
 
   async function tekenIn() {
     if (!sb || !/.+@.+\..+/.test(epos)) return;
+    setAuthBoodskap(null);
+    if (modus === "vergeet") {
+      const { error } = await sb.auth.resetPasswordForEmail(epos.trim(), {
+        redirectTo: `${window.location.origin}/auth/confirm`,
+      });
+      if (error) setAuthBoodskap(error.message);
+      else setSkakelGestuur(true);
+      return;
+    }
+    if (!wagwoord) return;
+    if (modus === "nuut") {
+      const { data, error } = await sb.auth.signUp({
+        email: epos.trim(),
+        password: wagwoord,
+        options: { emailRedirectTo: `${window.location.origin}/auth/confirm` },
+      });
+      if (error) setAuthBoodskap(error.message);
+      else if (!data.session) setSkakelGestuur(true); // e-posbevestiging nodig
+      return;
+    }
+    const { error } = await sb.auth.signInWithPassword({ email: epos.trim(), password: wagwoord });
+    if (error) setAuthBoodskap("Verkeerde epos of wagwoord.");
+  }
+
+  async function stuurSkakel() {
+    if (!sb || !/.+@.+\..+/.test(epos)) return;
     const { error } = await sb.auth.signInWithOtp({
       email: epos.trim(),
       options: { emailRedirectTo: `${window.location.origin}/auth/confirm` },
@@ -105,10 +135,36 @@ export function Portefeulje({
     if (!error) setSkakelGestuur(true);
   }
 
+  async function stelWagwoord() {
+    if (!sb || wagwoord.length < 8) {
+      setAuthBoodskap("Minstens 8 karakters.");
+      return;
+    }
+    const { error } = await sb.auth.updateUser({ password: wagwoord });
+    if (error) setAuthBoodskap(error.message);
+    else {
+      setModus("in");
+      setWagwoord("");
+      setAuthBoodskap(null);
+      window.history.replaceState(null, "", "/markte");
+    }
+  }
+
+  async function tekenInGoogle() {
+    if (!sb) return;
+    setAuthBoodskap(null);
+    const { error } = await sb.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/auth/confirm` },
+    });
+    if (error) setAuthBoodskap("Google-inteken is nog nie opgestel nie.");
+  }
+
   async function tekenUit() {
     if (!sb) return;
     await sb.auth.signOut();
     setSkakelGestuur(false);
+    setModus("in");
     stoor([]);
   }
 
@@ -301,11 +357,36 @@ export function Portefeulje({
         </button>
       </div>
 
+      {sb && gebruiker && modus === "stel" ? (
+        <div className="border-t border-ink/15 px-4 py-3">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              stelWagwoord();
+            }}
+            className="flex flex-wrap items-center gap-2"
+          >
+            <span className="text-sm font-semibold">Kies &apos;n nuwe wagwoord:</span>
+            <input
+              type="password"
+              value={wagwoord}
+              onChange={(e) => setWagwoord(e.target.value)}
+              placeholder="Minstens 8 karakters"
+              className="min-w-44 border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
+            />
+            <button className="bg-ink px-3 py-1.5 text-sm font-semibold text-offwhite hover:bg-ink/85">
+              Stoor
+            </button>
+            {authBoodskap ? <span className="text-xs text-red">{authBoodskap}</span> : null}
+          </form>
+        </div>
+      ) : null}
+
       {sb && !gebruiker ? (
         <div className="border-t border-ink/15 px-4 py-3">
           {skakelGestuur ? (
             <p className="text-sm text-ink/70">
-              Kyk in jou inbox — ons het &apos;n teken-in-skakel gestuur.
+              Kyk in jou inbox — ons het &apos;n skakel gestuur.
             </p>
           ) : (
             <form
@@ -313,21 +394,63 @@ export function Portefeulje({
                 e.preventDefault();
                 tekenIn();
               }}
-              className="flex flex-wrap items-center gap-2"
+              className="space-y-2"
             >
-              <span className="text-sm text-ink/60">
-                Teken in om jou portefeulje oor toestelle te stoor:
-              </span>
-              <input
-                type="email"
-                value={epos}
-                onChange={(e) => setEpos(e.target.value)}
-                placeholder="jou@epos.co.za"
-                className="min-w-44 border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
-              />
-              <button className="bg-ink px-3 py-1.5 text-sm font-semibold text-offwhite hover:bg-ink/85">
-                Teken in
-              </button>
+              <p className="text-sm text-ink/60">
+                {modus === "nuut"
+                  ? "Skep 'n rekening om jou portefeulje oor toestelle te stoor:"
+                  : modus === "vergeet"
+                    ? "Ons stuur 'n skakel om jou wagwoord te herstel:"
+                    : "Teken in om jou portefeulje oor toestelle te stoor:"}
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <input
+                  type="email"
+                  value={epos}
+                  onChange={(e) => setEpos(e.target.value)}
+                  placeholder="jou@epos.co.za"
+                  className="min-w-44 border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
+                />
+                {modus !== "vergeet" ? (
+                  <input
+                    type="password"
+                    value={wagwoord}
+                    onChange={(e) => setWagwoord(e.target.value)}
+                    placeholder="Wagwoord"
+                    className="min-w-36 border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
+                  />
+                ) : null}
+                <button className="bg-ink px-3 py-1.5 text-sm font-semibold text-offwhite hover:bg-ink/85">
+                  {modus === "nuut" ? "Skep rekening" : modus === "vergeet" ? "Stuur skakel" : "Teken in"}
+                </button>
+                <button
+                  type="button"
+                  onClick={tekenInGoogle}
+                  className="border-2 border-ink bg-paper px-3 py-1 text-sm font-semibold hover:bg-ink hover:text-offwhite"
+                >
+                  Teken in met Google
+                </button>
+              </div>
+              {authBoodskap ? <p className="text-xs text-red">{authBoodskap}</p> : null}
+              <p className="flex flex-wrap gap-3 text-xs text-ink/60">
+                {modus !== "nuut" ? (
+                  <button type="button" onClick={() => setModus("nuut")} className="underline underline-offset-2 hover:text-ink">
+                    Skep &apos;n rekening
+                  </button>
+                ) : (
+                  <button type="button" onClick={() => setModus("in")} className="underline underline-offset-2 hover:text-ink">
+                    Het reeds &apos;n rekening? Teken in
+                  </button>
+                )}
+                {modus !== "vergeet" ? (
+                  <button type="button" onClick={() => setModus("vergeet")} className="underline underline-offset-2 hover:text-ink">
+                    Wagwoord vergeet?
+                  </button>
+                ) : null}
+                <button type="button" onClick={stuurSkakel} className="underline underline-offset-2 hover:text-ink">
+                  Stuur eerder &apos;n teken-in-skakel
+                </button>
+              </p>
             </form>
           )}
         </div>

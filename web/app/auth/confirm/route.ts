@@ -11,7 +11,10 @@ export async function GET(request: NextRequest) {
 
   if (token_hash && type) {
     const { error } = await supabase.auth.verifyOtp({ type, token_hash });
-    if (!error) return NextResponse.redirect(new URL("/markte", request.url));
+    if (!error) {
+      const doel = type === "recovery" ? "/markte?stel-wagwoord=1" : "/markte";
+      return NextResponse.redirect(new URL(doel, request.url));
+    }
   }
 
   // Terugval: PKCE-kodevloei (Supabase se verstek-verify-herleiding).
