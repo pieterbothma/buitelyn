@@ -31,3 +31,18 @@ describe("markets source", () => {
     expect(jseIsOop(new Date("2026-07-25T08:00:00Z"))).toBe(false);
   });
 });
+
+import { isGeldigeSimbool } from "./boards";
+
+describe("isGeldigeSimbool", () => {
+  it("aanvaar Yahoo-simboolvorme", () => {
+    for (const s of ["SNT.JO", "AAPL", "ZAR=X", "^GSPC", "BTC-ZAR", "GC=F"]) {
+      expect(isGeldigeSimbool(s)).toBe(true);
+    }
+  });
+  it("verwerp gemors en injektie-agtige strings", () => {
+    for (const s of ["", "snt.jo", "TE LANK SIMBOOL", "A;DROP", "-AAPL", "A".repeat(13)]) {
+      expect(isGeldigeSimbool(s)).toBe(false);
+    }
+  });
+});

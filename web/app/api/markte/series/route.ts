@@ -1,11 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { getSeries } from "@/lib/markets/source";
-import { ALLE_SIMBOLE } from "@/lib/markets/boards";
+import { isGeldigeSimbool } from "@/lib/markets/boards";
 
 export async function GET(request: NextRequest) {
-  const simbool = request.nextUrl.searchParams.get("simbool") ?? "";
-  if (!ALLE_SIMBOLE.includes(simbool)) {
-    return NextResponse.json({ fout: "onbekende simbool" }, { status: 400 });
+  const simbool = (request.nextUrl.searchParams.get("simbool") ?? "").toUpperCase();
+  if (!isGeldigeSimbool(simbool)) {
+    return NextResponse.json({ fout: "ongeldige simbool" }, { status: 400 });
   }
   const reeks = await getSeries(simbool, "1mo");
   return NextResponse.json(

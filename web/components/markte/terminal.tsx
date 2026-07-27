@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Kwotasie, ReeksPunt } from "@/lib/markets/source";
-import { BORDE, naamVirSimbool } from "@/lib/markets/boards";
+import { ALLE_SIMBOLE, BORDE, naamVirSimbool } from "@/lib/markets/boards";
 import { Portefeulje, type Belegging } from "@/components/markte/portefeulje";
 import { MarkteChat } from "@/components/markte/chat";
 import { NuusBord } from "@/components/markte/nuus";
@@ -70,17 +70,28 @@ export function MarkteTerminal({ aanvanklik, nuus = [] }: { aanvanklik: Kwotasie
   const [reekse, setReekse] = useState<Record<string, ReeksPunt[]>>({});
   const [portefeulje, setPortefeulje] = useState<Belegging[]>([]);
 
+  /* Portfolio holdings outside the boards ride along as ?ekstra=; a change
+     (new custom holding) refetches immediately instead of waiting a minute. */
+  const ekstraCsv = portefeulje
+    .map((b) => b.simbool)
+    .filter((s) => !ALLE_SIMBOLE.includes(s))
+    .sort()
+    .join(",");
+
   useEffect(() => {
-    const id = setInterval(async () => {
+    const url = ekstraCsv ? `/api/markte/quotes?ekstra=${encodeURIComponent(ekstraCsv)}` : "/api/markte/quotes";
+    const haal = async () => {
       try {
-        const res = await fetch("/api/markte/quotes");
+        const res = await fetch(url);
         if (res.ok) setKwotasies((await res.json()).kwotasies);
       } catch {
         /* volgende keer weer */
       }
-    }, 60_000);
+    };
+    if (ekstraCsv) haal();
+    const id = setInterval(haal, 60_000);
     return () => clearInterval(id);
-  }, []);
+  }, [ekstraCsv]);
 
   const kaart = useMemo(() => new Map(kwotasies.map((k) => [k.simbool, k])), [kwotasies]);
 

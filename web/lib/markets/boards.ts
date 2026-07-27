@@ -56,6 +56,11 @@ export const BORDE: Bord[] = [
 
 export const ALLE_SIMBOLE = BORDE.flatMap((b) => b.items.map((i) => i.simbool));
 
+/** Yahoo-simboolvorm: letters/syfers plus die JSE-/indeks-/pare-tekens. */
+export function isGeldigeSimbool(simbool: string): boolean {
+  return /^[A-Z0-9^][A-Z0-9.^=-]{0,11}$/.test(simbool);
+}
+
 export function naamVirSimbool(simbool: string): string {
   for (const b of BORDE) {
     const i = b.items.find((x) => x.simbool === simbool);

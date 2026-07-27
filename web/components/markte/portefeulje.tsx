@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Kwotasie } from "@/lib/markets/source";
-import { ALLE_SIMBOLE, naamVirSimbool } from "@/lib/markets/boards";
+import { naamVirSimbool } from "@/lib/markets/boards";
 
-export type Belegging = { simbool: string; aantal: number; koopprys: number };
+export type Belegging = { simbool: string; naam?: string; aantal: number; koopprys: number };
+
+type SoekResultaat = { simbool: string; naam: string; beurs: string };
 
 const SLEUTEL = "buitelyn-portefeulje";
 
@@ -16,9 +18,12 @@ export function Portefeulje({
   onVerander: (b: Belegging[]) => void;
 }) {
   const [beleggings, setBeleggings] = useState<Belegging[]>([]);
-  const [simbool, setSimbool] = useState(ALLE_SIMBOLE[1]);
+  const [soek, setSoek] = useState("");
+  const [resultate, setResultate] = useState<SoekResultaat[]>([]);
+  const [gekose, setGekose] = useState<SoekResultaat | null>(null);
   const [aantal, setAantal] = useState("");
   const [koopprys, setKoopprys] = useState("");
+  const soekTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     try {
@@ -39,11 +44,40 @@ export function Portefeulje({
     onVerander(nuut);
   }
 
+  function soekTikker(q: string) {
+    setSoek(q);
+    setGekose(null);
+    if (soekTimer.current) clearTimeout(soekTimer.current);
+    if (q.trim().length < 2) {
+      setResultate([]);
+      return;
+    }
+    soekTimer.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/markte/soek?q=${encodeURIComponent(q.trim())}`);
+        if (res.ok) setResultate((await res.json()).resultate ?? []);
+      } catch {
+        /* stil */
+      }
+    }, 300);
+  }
+
+  function kies(r: SoekResultaat) {
+    setGekose(r);
+    setSoek(`${r.naam} (${r.simbool})`);
+    setResultate([]);
+  }
+
   function voegBy() {
     const a = parseFloat(aantal);
     const p = parseFloat(koopprys);
-    if (!simbool || !a || !p) return;
-    stoor([...beleggings, { simbool, aantal: a, koopprys: p }]);
+    // 'n Rou tikker soos "AAPL" of "SNT.JO" werk ook sonder om te kies
+    const rou = soek.trim().toUpperCase();
+    const keuse = gekose ?? (/^[A-Z0-9^][A-Z0-9.^=-]{0,11}$/.test(rou) ? { simbool: rou, naam: rou, beurs: "" } : null);
+    if (!keuse || !a || !p) return;
+    stoor([...beleggings, { simbool: keuse.simbool, naam: keuse.naam, aantal: a, koopprys: p }]);
+    setSoek("");
+    setGekose(null);
     setAantal("");
     setKoopprys("");
   }
@@ -84,7 +118,7 @@ export function Portefeulje({
             {rye.map((r) => (
               <li key={r.i} className="flex items-baseline gap-3 px-4 py-2 text-sm">
                 <span className="min-w-0 flex-1 truncate font-semibold">
-                  {naamVirSimbool(r.simbool)}
+                  {r.naam ?? naamVirSimbool(r.simbool)}
                   <span className="ml-1.5 font-normal text-ink/50">× {r.aantal}</span>
                 </span>
                 <span className="font-bold tabular-nums">
@@ -132,17 +166,30 @@ export function Portefeulje({
       )}
 
       <div className="flex flex-wrap items-center gap-2 border-t border-ink/15 px-4 py-3">
-        <select
-          value={simbool}
-          onChange={(e) => setSimbool(e.target.value)}
-          className="border-2 border-ink bg-paper px-2 py-1.5 text-sm"
-        >
-          {ALLE_SIMBOLE.map((s) => (
-            <option key={s} value={s}>
-              {naamVirSimbool(s)}
-            </option>
-          ))}
-        </select>
+        <div className="relative min-w-52 flex-1">
+          <input
+            value={soek}
+            onChange={(e) => soekTikker(e.target.value)}
+            placeholder="Soek aandeel of tikker (bv. Santam, AAPL)…"
+            className="w-full border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
+          />
+          {resultate.length > 0 ? (
+            <ul className="absolute inset-x-0 top-full z-10 border-2 border-t-0 border-ink bg-offwhite">
+              {resultate.map((r) => (
+                <li key={r.simbool}>
+                  <button
+                    onClick={() => kies(r)}
+                    className="flex w-full items-baseline gap-2 px-2 py-1.5 text-left text-sm hover:bg-ink hover:text-offwhite"
+                  >
+                    <span className="min-w-0 flex-1 truncate font-semibold">{r.naam}</span>
+                    <span className="text-xs tabular-nums opacity-60">{r.simbool}</span>
+                    {r.beurs ? <span className="text-[10px] tracking-wide opacity-50">{r.beurs.toUpperCase()}</span> : null}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
         <input
           value={aantal}
           onChange={(e) => setAantal(e.target.value)}

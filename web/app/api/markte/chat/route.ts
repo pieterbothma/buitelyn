@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import OpenAI from "openai";
 import { getQuotes, getSeries } from "@/lib/markets/source";
-import { ALLE_SIMBOLE, naamVirSimbool } from "@/lib/markets/boards";
+import { ALLE_SIMBOLE, isGeldigeSimbool, naamVirSimbool } from "@/lib/markets/boards";
 import { kryNuus } from "@/lib/markets/nuus";
 import { parseFeed } from "@/lib/feed";
 
@@ -15,7 +15,7 @@ Buitelyn is 'n Afrikaanse nuusprogram — "sake, ernstig gevat".
 Reëls:
 - Antwoord in helder, vriendelike Afrikaans. GEEN markdown nie — skoon teks. Kort paragrawe. Bedrae in rand ("R 789,60").
 - Gebruik jou tools vir ELKE syfer — moet nooit pryse uit jou geheue aanhaal nie. Data is ±15 min vertraag; noem dit as dit saak maak.
-- JSE-simbole eindig op .JO. Beskikbare simbole: ${ALLE_SIMBOLE.join(", ")}.
+- JSE-simbole eindig op .JO. Bord-simbole: ${ALLE_SIMBOLE.join(", ")} — maar jy kan enige geldige Yahoo-simbool opvra (bv. SNT.JO, AAPL), ook vir die gebruiker se portefeulje.
 - As die gebruiker se portefeulje in die konteks is, mag jy dit gebruik.
 - Jy gee inligting en verduideliking, NIE finansiële advies nie — sê so as iemand koop/verkoop-advies vra.
 - As Buitelyn se nuusbriewe iets relevant sê (soek_buitelyn), haal dit aan met die skakel.
@@ -75,7 +75,10 @@ async function voerToolUit(naam: string, invoer: Record<string, unknown>): Promi
       .join("\n");
   }
   if (naam === "kry_kwotasies") {
-    const simbole = ((invoer.simbole as string[]) ?? []).filter((s) => ALLE_SIMBOLE.includes(s));
+    const simbole = ((invoer.simbole as string[]) ?? [])
+      .map((s) => String(s).toUpperCase())
+      .filter(isGeldigeSimbool)
+      .slice(0, 20);
     if (!simbole.length) return "Geen geldige simbole nie.";
     const ks = await getQuotes(simbole);
     return ks
@@ -88,8 +91,8 @@ async function voerToolUit(naam: string, invoer: Record<string, unknown>): Promi
       .join("\n");
   }
   if (naam === "kry_reeks") {
-    const simbool = String(invoer.simbool ?? "");
-    if (!ALLE_SIMBOLE.includes(simbool)) return "Onbekende simbool.";
+    const simbool = String(invoer.simbool ?? "").toUpperCase();
+    if (!isGeldigeSimbool(simbool)) return "Ongeldige simbool.";
     const reeks = await getSeries(simbool, "1mo");
     if (!reeks.length) return "Geen reeksdata nie.";
     const eerste = reeks[0].p;
