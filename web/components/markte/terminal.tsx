@@ -120,8 +120,6 @@ export function MarkteTerminal({ aanvanklik, nuus = [] }: { aanvanklik: Kwotasie
   return (
     <div className="grid gap-8 xl:grid-cols-[3fr_2fr]">
       <div className="min-w-0">
-        <NuusBord items={nuus} />
-
         <div className="mb-6">
           <Portefeulje kwotasies={kaart} onVerander={setPortefeulje} />
         </div>
@@ -210,6 +208,8 @@ export function MarkteTerminal({ aanvanklik, nuus = [] }: { aanvanklik: Kwotasie
             </ul>
           </section>
         ))}
+
+        <NuusBord items={nuus} />
 
         <Omskakelaar usdZar={kaart.get("ZAR=X")?.prys ?? null} eurZar={kaart.get("EURZAR=X")?.prys ?? null} gbpZar={kaart.get("GBPZAR=X")?.prys ?? null} />
       </div>
