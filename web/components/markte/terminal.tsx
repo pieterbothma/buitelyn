@@ -207,9 +207,11 @@ export function MarkteTerminal({ aanvanklik, nuus = [] }: { aanvanklik: Kwotasie
 
         <NuusBord items={nuus} />
 
-        <Omskakelaar usdZar={kaart.get("ZAR=X")?.prys ?? null} eurZar={kaart.get("EURZAR=X")?.prys ?? null} gbpZar={kaart.get("GBPZAR=X")?.prys ?? null} />
+        <div className="mb-6">
+          <Portefeulje kwotasies={kaart} onVerander={setPortefeulje} />
+        </div>
 
-        <Portefeulje kwotasies={kaart} onVerander={setPortefeulje} />
+        <Omskakelaar usdZar={kaart.get("ZAR=X")?.prys ?? null} eurZar={kaart.get("EURZAR=X")?.prys ?? null} gbpZar={kaart.get("GBPZAR=X")?.prys ?? null} />
       </div>
 
       <MarkteChat portefeulje={portefeulje} />
