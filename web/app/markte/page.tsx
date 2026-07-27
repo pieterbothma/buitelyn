@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   description: "JSE, rand, kommoditeite en kripto — live, met Buitelyn se KI-markassistent.",
 };
 
-async function kryOorsig(): Promise<string | null> {
+async function kryOorsig(): Promise<{ teks: string; bygewerk: string | null } | null> {
   if (!process.env.APHQ_SUPABASE_URL || !process.env.APHQ_SUPABASE_SERVICE_KEY) return null;
   try {
     const sb = createClient(process.env.APHQ_SUPABASE_URL, process.env.APHQ_SUPABASE_SERVICE_KEY, {
@@ -26,11 +26,19 @@ async function kryOorsig(): Promise<string | null> {
     });
     const { data } = await sb
       .from("markte_oorsigte")
-      .select("teks, datum")
+      .select("teks, datum, opgedateer_at")
       .order("datum", { ascending: false })
       .limit(1)
       .maybeSingle();
-    return data?.teks ?? null;
+    if (!data?.teks) return null;
+    const bygewerk = data.opgedateer_at
+      ? new Intl.DateTimeFormat("af-ZA", {
+          timeZone: "Africa/Johannesburg",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(new Date(data.opgedateer_at))
+      : null;
+    return { teks: data.teks, bygewerk };
   } catch {
     return null;
   }
@@ -136,8 +144,11 @@ export default async function MarktePage() {
               <p className="text-[11px] font-semibold tracking-[0.16em] text-ink/50">
                 VANDAG OP DIE MARKTE
                 <span aria-hidden className="ml-2 inline-block size-1.5 rounded-full bg-red align-middle" />
+                {oorsig.bygewerk ? (
+                  <span className="ml-3 font-normal">BYGEWERK {oorsig.bygewerk}</span>
+                ) : null}
               </p>
-              <p className="mt-2 max-w-3xl text-[15px] leading-relaxed">{oorsig}</p>
+              <p className="mt-2 max-w-3xl text-[15px] leading-relaxed">{oorsig.teks}</p>
             </div>
           ) : null}
 

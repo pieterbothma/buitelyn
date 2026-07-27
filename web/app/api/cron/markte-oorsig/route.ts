@@ -11,6 +11,13 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ fout: "verbode" }, { status: 401 });
   }
 
+  const nou = new Date();
+  const uur = Number(
+    new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Johannesburg", hour: "numeric", hour12: false }).format(nou)
+  );
+  const weekdag = new Intl.DateTimeFormat("af-ZA", { timeZone: "Africa/Johannesburg", weekday: "long" }).format(nou);
+  const tydVanDag = uur < 12 ? "die oggend" : uur < 17 ? "die middag" : "die aand";
+
   const kwotasies = await getQuotes(ALLE_SIMBOLE, 0);
   const feite = kwotasies
     .map(
@@ -31,7 +38,7 @@ export async function GET(request: NextRequest) {
           {
             parts: [
               {
-                text: `Skryf 'n kort Afrikaanse markoorsig (±110 woorde, een paragraaf, Buitelyn se stem: helder, bietjie speels, geen clichés) op grond van hierdie oggend se syfers. Fokus op die 2-3 interessantste bewegings (rand, JSE, goud, kripto). Geen opskrif, geen advies, geen plekhouers.\n\nSyfers: ${feite}`,
+                text: `Dit is nou ${tydVanDag} (${uur}:30) op 'n ${weekdag} in Suid-Afrika. Skryf 'n kort Afrikaanse markoorsig (±110 woorde, een paragraaf, Buitelyn se stem: helder, bietjie speels, geen clichés) oor hoe die markdag TOT DUSVER verloop — pas jou verwysings by die tyd aan (vroegoggend: wat die dag inwag; middag: die dag se verloop; ná 17:00: hoe die JSE gesluit het). Fokus op die 2-3 interessantste bewegings (rand, JSE, goud, kripto). Geen opskrif, geen advies, geen plekhouers.\n\nSyfers: ${feite}`,
               },
             ],
           },
@@ -50,7 +57,9 @@ export async function GET(request: NextRequest) {
   const datum = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" }).format(
     new Date()
   );
-  const { error } = await sb.from("markte_oorsigte").upsert({ datum, teks }, { onConflict: "datum" });
+  const { error } = await sb
+    .from("markte_oorsigte")
+    .upsert({ datum, teks, opgedateer_at: new Date().toISOString() }, { onConflict: "datum" });
   if (error) return NextResponse.json({ fout: error.message }, { status: 500 });
   return NextResponse.json({ ok: true, datum, lengte: teks.length });
 }
