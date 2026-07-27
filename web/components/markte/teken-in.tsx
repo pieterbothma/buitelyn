@@ -70,7 +70,8 @@ export function TekenIn() {
   if (skakelGestuur) {
     return (
       <p className="border-2 border-ink/30 bg-paper p-4 text-sm text-ink/70">
-        Kyk in jou inbox — ons het &apos;n skakel gestuur.
+        Kyk in jou inbox — ons het &apos;n skakel gestuur. Sien jy dit nie? Loer gerus in jou
+        strooipos-vouer (spam).
       </p>
     );
   }

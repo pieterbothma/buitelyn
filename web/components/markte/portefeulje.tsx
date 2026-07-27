@@ -5,7 +5,21 @@ import type { Kwotasie } from "@/lib/markets/source";
 import { naamVirSimbool } from "@/lib/markets/boards";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
-export type Belegging = { id?: string; simbool: string; naam?: string; aantal: number; koopprys: number };
+export type Belegging = {
+  id?: string;
+  simbool: string;
+  naam?: string;
+  aantal: number;
+  koopprys: number;
+  geldeenheid?: string; // geldeenheid van die koopprys (verstek ZAR)
+};
+
+const GELDEENHEDE = [
+  { kode: "ZAR", teken: "R" },
+  { kode: "USD", teken: "$" },
+  { kode: "EUR", teken: "€" },
+  { kode: "GBP", teken: "£" },
+];
 
 type SoekResultaat = { simbool: string; naam: string; beurs: string };
 
@@ -24,6 +38,7 @@ export function Portefeulje({
   const [gekose, setGekose] = useState<SoekResultaat | null>(null);
   const [aantal, setAantal] = useState("");
   const [koopprys, setKoopprys] = useState("");
+  const [geldeenheid, setGeldeenheid] = useState("ZAR");
   const [wagwoord, setWagwoord] = useState("");
   const [stelModus, setStelModus] = useState(false);
   const [authBoodskap, setAuthBoodskap] = useState<string | null>(null);
@@ -77,7 +92,7 @@ export function Portefeulje({
       }
       const { data } = await sb
         .from("portefeuljes")
-        .select("id, simbool, naam, aantal, koopprys")
+        .select("id, simbool, naam, aantal, koopprys, geldeenheid")
         .order("geskep_at");
       const rye: Belegging[] = (data ?? []).map((r) => ({
         id: r.id,
@@ -85,6 +100,7 @@ export function Portefeulje({
         naam: r.naam ?? undefined,
         aantal: Number(r.aantal),
         koopprys: Number(r.koopprys),
+        geldeenheid: r.geldeenheid ?? "ZAR",
       }));
       setBeleggings(rye);
       onVerander(rye);
@@ -150,11 +166,11 @@ export function Portefeulje({
     const rou = soek.trim().toUpperCase();
     const keuse = gekose ?? (/^[A-Z0-9^][A-Z0-9.^=-]{0,11}$/.test(rou) ? { simbool: rou, naam: rou, beurs: "" } : null);
     if (!keuse || !a || !p) return;
-    const nuwe: Belegging = { simbool: keuse.simbool, naam: keuse.naam, aantal: a, koopprys: p };
+    const nuwe: Belegging = { simbool: keuse.simbool, naam: keuse.naam, aantal: a, koopprys: p, geldeenheid };
     if (sb && gebruiker) {
       const { data } = await sb
         .from("portefeuljes")
-        .insert({ user_id: gebruiker.id, simbool: nuwe.simbool, naam: nuwe.naam ?? null, aantal: a, koopprys: p })
+        .insert({ user_id: gebruiker.id, simbool: nuwe.simbool, naam: nuwe.naam ?? null, aantal: a, koopprys: p, geldeenheid })
         .select("id")
         .single();
       nuwe.id = data?.id;
@@ -164,6 +180,7 @@ export function Portefeulje({
     setGekose(null);
     setAantal("");
     setKoopprys("");
+    setGeldeenheid("ZAR");
   }
 
   async function verwyder(indeks: number) {
@@ -177,19 +194,40 @@ export function Portefeulje({
     maximumFractionDigits: 2,
   });
 
+  /* Alles word na rand omgereken — die koopprys volgens sy gekose
+     geldeenheid, en die huidige prys volgens die kwotasie se geldeenheid
+     (AAPL noteer in USD; sonder omrekening sou $-syfers as R optel). */
+  function naRand(bedrag: number, geld: string): number | null {
+    if (geld === "ZAR") return bedrag;
+    const koers =
+      geld === "USD"
+        ? kwotasies.get("ZAR=X")?.prys
+        : geld === "EUR"
+          ? kwotasies.get("EURZAR=X")?.prys
+          : geld === "GBP"
+            ? kwotasies.get("GBPZAR=X")?.prys
+            : null;
+    return koers ? bedrag * koers : null;
+  }
+
   let totaalWaarde = 0;
   let totaalKoste = 0;
   let dagDelta = 0;
 
   const rye = beleggings.map((b, i) => {
     const k = kwotasies.get(b.simbool);
-    const waarde = k ? k.prys * b.aantal : null;
-    if (waarde != null && k) {
+    const prysR = k ? naRand(k.prys, k.geldeenheid) : null;
+    const waarde = prysR != null ? prysR * b.aantal : null;
+    const kosteR = naRand(b.koopprys, b.geldeenheid ?? "ZAR");
+    if (waarde != null && k && kosteR != null) {
       totaalWaarde += waarde;
-      totaalKoste += b.koopprys * b.aantal;
-      if (k.vorigeSluiting != null) dagDelta += (k.prys - k.vorigeSluiting) * b.aantal;
+      totaalKoste += kosteR * b.aantal;
+      if (k.vorigeSluiting != null) {
+        const vorigeR = naRand(k.vorigeSluiting, k.geldeenheid);
+        if (prysR != null && vorigeR != null) dagDelta += (prysR - vorigeR) * b.aantal;
+      }
     }
-    return { ...b, i, k, waarde };
+    return { ...b, i, k, waarde, kosteR };
   });
   const totaalPL = totaalWaarde - totaalKoste;
 
@@ -222,14 +260,14 @@ export function Portefeulje({
                 <span className="font-bold tabular-nums">
                   {r.waarde != null ? `R ${fmt.format(r.waarde)}` : "—"}
                 </span>
-                {r.waarde != null ? (
+                {r.waarde != null && r.kosteR != null ? (
                   <span
                     className={`w-28 text-right text-xs font-semibold tabular-nums ${
-                      r.waarde - r.koopprys * r.aantal >= 0 ? "text-green" : "text-red"
+                      r.waarde - r.kosteR * r.aantal >= 0 ? "text-green" : "text-red"
                     }`}
                   >
-                    {r.waarde - r.koopprys * r.aantal >= 0 ? "+" : ""}
-                    R {fmt.format(r.waarde - r.koopprys * r.aantal)}
+                    {r.waarde - r.kosteR * r.aantal >= 0 ? "+" : ""}
+                    R {fmt.format(r.waarde - r.kosteR * r.aantal)}
                   </span>
                 ) : (
                   <span className="w-28" />
@@ -294,12 +332,26 @@ export function Portefeulje({
           placeholder="Aantal"
           className="w-24 border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
         />
-        <input
-          value={koopprys}
-          onChange={(e) => setKoopprys(e.target.value)}
-          placeholder="Koopprys (R)"
-          className="w-32 border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
-        />
+        <div className="flex">
+          <select
+            value={geldeenheid}
+            onChange={(e) => setGeldeenheid(e.target.value)}
+            aria-label="Geldeenheid"
+            className="border-2 border-r-0 border-ink bg-paper px-1.5 py-1.5 text-sm font-semibold"
+          >
+            {GELDEENHEDE.map((g) => (
+              <option key={g.kode} value={g.kode}>
+                {g.teken}
+              </option>
+            ))}
+          </select>
+          <input
+            value={koopprys}
+            onChange={(e) => setKoopprys(e.target.value)}
+            placeholder="Koopprys per aandeel"
+            className="w-40 border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
+          />
+        </div>
         <button
           onClick={voegBy}
           className="bg-ink px-4 py-1.5 text-sm font-semibold text-offwhite hover:bg-ink/85"

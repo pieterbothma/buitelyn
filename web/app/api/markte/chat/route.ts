@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
 
   const { geskiedenis, portefeulje } = (await request.json()) as {
     geskiedenis: { rol: string; teks: string }[];
-    portefeulje?: { simbool: string; aantal: number; koopprys: number }[];
+    portefeulje?: { simbool: string; aantal: number; koopprys: number; geldeenheid?: string }[];
   };
   if (!Array.isArray(geskiedenis) || geskiedenis.length === 0) {
     return NextResponse.json({ fout: "leë gesprek" }, { status: 400 });
@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
   const portKonteks =
     portefeulje && portefeulje.length
       ? `\n\nGebruiker se portefeulje (blaaier-gestoor): ${portefeulje
-          .map((b) => `${b.simbool} × ${b.aantal} teen R${b.koopprys}`)
+          .map((b) => `${b.simbool} × ${b.aantal} teen ${b.koopprys} ${b.geldeenheid ?? "ZAR"} per aandeel`)
           .join("; ")}`
       : "";
 
