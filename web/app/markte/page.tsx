@@ -74,7 +74,13 @@ export default async function MarktePage() {
     );
   }
 
+  const { data: profiel } = await sb
+    .from("profiele")
+    .select("naam")
+    .eq("user_id", user.id)
+    .maybeSingle();
   const rouNaam =
+    profiel?.naam?.split(" ")[0] ??
     (user.user_metadata?.full_name as string | undefined)?.split(" ")[0] ??
     user.email?.split("@")[0] ??
     "";

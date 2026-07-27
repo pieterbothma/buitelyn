@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ProfielKenteken } from "@/components/profiel-kenteken";
 
 export function TopBar() {
   return (
@@ -25,8 +26,9 @@ export function TopBar() {
             rel="noopener noreferrer"
             className="text-[15px] font-semibold underline-offset-4 hover:underline"
           >
-            Teken in &rarr;
+            Nuusbrief
           </a>
+          <ProfielKenteken />
         </div>
       </div>
     </header>
