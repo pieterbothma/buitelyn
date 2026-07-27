@@ -74,6 +74,12 @@ export default async function MarktePage() {
     );
   }
 
+  const rouNaam =
+    (user.user_metadata?.full_name as string | undefined)?.split(" ")[0] ??
+    user.email?.split("@")[0] ??
+    "";
+  const naam = rouNaam ? rouNaam.charAt(0).toUpperCase() + rouNaam.slice(1) : "";
+
   const [kwotasies, oorsig, nuus] = await Promise.all([
     getQuotes(ALLE_SIMBOLE),
     kryOorsig(),
@@ -96,7 +102,15 @@ export default async function MarktePage() {
         <section className="mx-auto max-w-[1440px] px-6 py-10 md:px-14">
           <div className="border-y-2 border-ink">
             <div className="my-1 flex flex-wrap items-baseline justify-between gap-2 border-y border-ink py-3">
-              <h1 className="text-3xl font-extrabold tracking-[-0.02em] md:text-4xl">Markte</h1>
+              <h1 className="text-3xl font-extrabold tracking-[-0.02em] md:text-4xl">
+                Markte
+                {naam ? (
+                  <span className="ml-3 align-middle text-base font-normal tracking-normal text-ink/60">
+                    Hallo, {naam}
+                    <span aria-hidden className="ml-1.5 inline-block size-1.5 rounded-full bg-red align-middle" />
+                  </span>
+                ) : null}
+              </h1>
               <p className="flex items-center gap-3 text-xs tracking-[0.2em] text-ink/60">
                 {dateline}
                 <span className="flex items-center gap-1.5 font-semibold">
