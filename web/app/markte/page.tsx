@@ -3,11 +3,15 @@ import { createClient } from "@supabase/supabase-js";
 import { TopBar } from "@/components/top-bar";
 import { Footer } from "@/components/footer";
 import { MarkteTerminal } from "@/components/markte/terminal";
+import { TekenIn } from "@/components/markte/teken-in";
+import { supabaseServer } from "@/lib/supabase/server";
 import { getQuotes } from "@/lib/markets/source";
 import { kryNuus } from "@/lib/markets/nuus";
 import { ALLE_SIMBOLE, jseIsOop } from "@/lib/markets/boards";
 
-export const revalidate = 60;
+/* Gegateer: die hek lees die sessie-koekie, dus moet die blad dinamies
+   render — die data-fetches onder het steeds hul eie fetch-cache. */
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Markte — Buitelyn",
@@ -33,6 +37,43 @@ async function kryOorsig(): Promise<string | null> {
 }
 
 export default async function MarktePage() {
+  const sb = await supabaseServer();
+  const {
+    data: { user },
+  } = await sb.auth.getUser();
+
+  if (!user) {
+    return (
+      <>
+        <TopBar />
+        <main className="flex-1">
+          <section className="mx-auto max-w-[1440px] px-6 py-10 md:px-14">
+            <div className="border-y-2 border-ink">
+              <div className="my-1 border-y border-ink py-3">
+                <h1 className="text-3xl font-extrabold tracking-[-0.02em] md:text-4xl">Markte</h1>
+              </div>
+            </div>
+            <div className="mx-auto mt-10 max-w-md border-2 border-ink bg-offwhite p-6">
+              <p className="text-xs font-semibold tracking-[0.16em]">
+                NET VIR INGETEKENDE LESERS
+                <span aria-hidden className="ml-2 inline-block size-1.5 rounded-full bg-red align-middle" />
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-ink/70">
+                Live JSE-borde, die rand, kommoditeite en kripto — met Buitelyn se
+                KI-markassistent en jou eie portefeulje wat oral saamgaan. Gratis, net &apos;n
+                rekening nodig.
+              </p>
+              <div className="mt-4">
+                <TekenIn />
+              </div>
+            </div>
+          </section>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
   const [kwotasies, oorsig, nuus] = await Promise.all([
     getQuotes(ALLE_SIMBOLE),
     kryOorsig(),

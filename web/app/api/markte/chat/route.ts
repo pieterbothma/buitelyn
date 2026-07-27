@@ -4,6 +4,7 @@ import { getQuotes, getSeries } from "@/lib/markets/source";
 import { ALLE_SIMBOLE, isGeldigeSimbool, naamVirSimbool } from "@/lib/markets/boards";
 import { kryNuus } from "@/lib/markets/nuus";
 import { parseFeed } from "@/lib/feed";
+import { supabaseServer } from "@/lib/supabase/server";
 
 export const maxDuration = 60;
 
@@ -131,6 +132,13 @@ export async function POST(request: NextRequest) {
   if (process.env.MARKTE_CHAT_OOP === "false") {
     return NextResponse.json({ fout: "binnekort" }, { status: 503 });
   }
+
+  // Gegateer: die assistent is net vir ingetekende lesers (LLM-koste).
+  const sb = await supabaseServer();
+  const {
+    data: { user },
+  } = await sb.auth.getUser();
+  if (!user) return NextResponse.json({ fout: "teken eers in" }, { status: 401 });
 
   const { geskiedenis, portefeulje } = (await request.json()) as {
     geskiedenis: { rol: string; teks: string }[];
