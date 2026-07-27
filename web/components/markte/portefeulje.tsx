@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import type { Kwotasie } from "@/lib/markets/source";
 import { naamVirSimbool } from "@/lib/markets/boards";
+import { supabaseBrowser } from "@/lib/supabase/client";
 
-export type Belegging = { simbool: string; naam?: string; aantal: number; koopprys: number };
+export type Belegging = { id?: string; simbool: string; naam?: string; aantal: number; koopprys: number };
 
 type SoekResultaat = { simbool: string; naam: string; beurs: string };
 
@@ -23,7 +24,11 @@ export function Portefeulje({
   const [gekose, setGekose] = useState<SoekResultaat | null>(null);
   const [aantal, setAantal] = useState("");
   const [koopprys, setKoopprys] = useState("");
+  const [epos, setEpos] = useState("");
+  const [gebruiker, setGebruiker] = useState<{ id: string; epos: string } | null>(null);
+  const [skakelGestuur, setSkakelGestuur] = useState(false);
   const soekTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sb = supabaseBrowser();
 
   useEffect(() => {
     try {
@@ -35,13 +40,76 @@ export function Portefeulje({
     } catch {
       /* korrupte data — begin oor */
     }
+    if (!sb) return;
+    sb.auth.getUser().then(({ data }) => {
+      if (data.user) setGebruiker({ id: data.user.id, epos: data.user.email ?? "" });
+    });
+    const { data: luisteraar } = sb.auth.onAuthStateChange((_e, sessie) => {
+      setGebruiker(sessie?.user ? { id: sessie.user.id, epos: sessie.user.email ?? "" } : null);
+    });
+    return () => luisteraar.subscription.unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /* Ingeteken: laai uit die databasis; skuif blaaier-items eenmalig oor. */
+  useEffect(() => {
+    if (!sb || !gebruiker) return;
+    (async () => {
+      let plaaslik: Belegging[] = [];
+      try {
+        plaaslik = JSON.parse(localStorage.getItem(SLEUTEL) ?? "[]");
+      } catch {
+        /* niks om te migreer nie */
+      }
+      if (Array.isArray(plaaslik) && plaaslik.length) {
+        await sb.from("portefeuljes").insert(
+          plaaslik.map((b) => ({
+            user_id: gebruiker.id,
+            simbool: b.simbool,
+            naam: b.naam ?? null,
+            aantal: b.aantal,
+            koopprys: b.koopprys,
+          }))
+        );
+        localStorage.removeItem(SLEUTEL);
+      }
+      const { data } = await sb
+        .from("portefeuljes")
+        .select("id, simbool, naam, aantal, koopprys")
+        .order("geskep_at");
+      const rye: Belegging[] = (data ?? []).map((r) => ({
+        id: r.id,
+        simbool: r.simbool,
+        naam: r.naam ?? undefined,
+        aantal: Number(r.aantal),
+        koopprys: Number(r.koopprys),
+      }));
+      setBeleggings(rye);
+      onVerander(rye);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gebruiker?.id]);
+
   function stoor(nuut: Belegging[]) {
     setBeleggings(nuut);
-    localStorage.setItem(SLEUTEL, JSON.stringify(nuut));
+    if (!gebruiker) localStorage.setItem(SLEUTEL, JSON.stringify(nuut));
     onVerander(nuut);
+  }
+
+  async function tekenIn() {
+    if (!sb || !/.+@.+\..+/.test(epos)) return;
+    const { error } = await sb.auth.signInWithOtp({
+      email: epos.trim(),
+      options: { emailRedirectTo: `${window.location.origin}/auth/confirm` },
+    });
+    if (!error) setSkakelGestuur(true);
+  }
+
+  async function tekenUit() {
+    if (!sb) return;
+    await sb.auth.signOut();
+    setSkakelGestuur(false);
+    stoor([]);
   }
 
   function soekTikker(q: string) {
@@ -68,18 +136,33 @@ export function Portefeulje({
     setResultate([]);
   }
 
-  function voegBy() {
+  async function voegBy() {
     const a = parseFloat(aantal);
     const p = parseFloat(koopprys);
     // 'n Rou tikker soos "AAPL" of "SNT.JO" werk ook sonder om te kies
     const rou = soek.trim().toUpperCase();
     const keuse = gekose ?? (/^[A-Z0-9^][A-Z0-9.^=-]{0,11}$/.test(rou) ? { simbool: rou, naam: rou, beurs: "" } : null);
     if (!keuse || !a || !p) return;
-    stoor([...beleggings, { simbool: keuse.simbool, naam: keuse.naam, aantal: a, koopprys: p }]);
+    const nuwe: Belegging = { simbool: keuse.simbool, naam: keuse.naam, aantal: a, koopprys: p };
+    if (sb && gebruiker) {
+      const { data } = await sb
+        .from("portefeuljes")
+        .insert({ user_id: gebruiker.id, simbool: nuwe.simbool, naam: nuwe.naam ?? null, aantal: a, koopprys: p })
+        .select("id")
+        .single();
+      nuwe.id = data?.id;
+    }
+    stoor([...beleggings, nuwe]);
     setSoek("");
     setGekose(null);
     setAantal("");
     setKoopprys("");
+  }
+
+  async function verwyder(indeks: number) {
+    const ry = beleggings[indeks];
+    if (sb && gebruiker && ry?.id) await sb.from("portefeuljes").delete().eq("id", ry.id);
+    stoor(beleggings.filter((_, j) => j !== indeks));
   }
 
   const fmt = new Intl.NumberFormat("af-ZA", {
@@ -105,11 +188,19 @@ export function Portefeulje({
 
   return (
     <section className="border-2 border-ink bg-offwhite">
-      <h2 className="border-b-2 border-ink px-4 py-2 text-xs font-semibold tracking-[0.16em]">
+      <h2 className="flex flex-wrap items-baseline gap-2 border-b-2 border-ink px-4 py-2 text-xs font-semibold tracking-[0.16em]">
         MY PORTEFEULJE
-        <span className="ml-2 font-normal normal-case tracking-normal text-ink/50">
-          (gestoor in jou blaaier)
+        <span className="font-normal normal-case tracking-normal text-ink/50">
+          {gebruiker ? gebruiker.epos : "(gestoor in jou blaaier)"}
         </span>
+        {gebruiker ? (
+          <button
+            onClick={tekenUit}
+            className="ml-auto font-semibold normal-case tracking-normal text-ink/50 underline-offset-2 hover:text-ink hover:underline"
+          >
+            Teken uit
+          </button>
+        ) : null}
       </h2>
 
       {rye.length > 0 ? (
@@ -137,7 +228,7 @@ export function Portefeulje({
                   <span className="w-28" />
                 )}
                 <button
-                  onClick={() => stoor(beleggings.filter((_, j) => j !== r.i))}
+                  onClick={() => verwyder(r.i)}
                   className="text-xs font-semibold text-red/70 hover:text-red"
                 >
                   ✕
@@ -209,6 +300,38 @@ export function Portefeulje({
           + Voeg by
         </button>
       </div>
+
+      {sb && !gebruiker ? (
+        <div className="border-t border-ink/15 px-4 py-3">
+          {skakelGestuur ? (
+            <p className="text-sm text-ink/70">
+              Kyk in jou inbox — ons het &apos;n teken-in-skakel gestuur.
+            </p>
+          ) : (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                tekenIn();
+              }}
+              className="flex flex-wrap items-center gap-2"
+            >
+              <span className="text-sm text-ink/60">
+                Teken in om jou portefeulje oor toestelle te stoor:
+              </span>
+              <input
+                type="email"
+                value={epos}
+                onChange={(e) => setEpos(e.target.value)}
+                placeholder="jou@epos.co.za"
+                className="min-w-44 border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
+              />
+              <button className="bg-ink px-3 py-1.5 text-sm font-semibold text-offwhite hover:bg-ink/85">
+                Teken in
+              </button>
+            </form>
+          )}
+        </div>
+      ) : null}
     </section>
   );
 }
