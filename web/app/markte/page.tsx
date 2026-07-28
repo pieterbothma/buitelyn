@@ -13,7 +13,7 @@ import { ALLE_SIMBOLE, jseIsOop } from "@/lib/markets/boards";
    render — die data-fetches onder het steeds hul eie fetch-cache. */
 export const dynamic = "force-dynamic";
 
-const WYS_OUDIO = false;
+const WYS_OUDIO = true;
 
 export const metadata: Metadata = {
   title: "Markte — Buitelyn",
