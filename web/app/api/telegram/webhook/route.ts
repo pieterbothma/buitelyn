@@ -1,7 +1,9 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextRequest, after } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { beantwoordMarkteVraag } from "@/lib/markets/agent";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 /* Telegram-webhook vir @buitelynbot. Telegram stuur elke boodskap hierheen;
    ons antwoord uitsluitlik via die Bot API (nie die webhook-response nie)
@@ -30,10 +32,21 @@ async function stuur(chatId: number, teks: string) {
 
 const HULP = `Ek is die Buitelyn-bot 🔴
 
-Koppel jou buitelyn.com-rekening by <b>buitelyn.com/markte</b> (Telegram-oortjie) — dan stuur ek jou markte-oorsig klankgrepe, drie keer per beursdag.
+Koppel jou buitelyn.com-rekening by <b>buitelyn.com/markte</b> (Telegram-oortjie) — dan stuur ek jou markte-oorsig klankgrepe, drie keer per beursdag, en kan jy my enigiets oor die markte vra ("wat het Naspers vandag gedoen?").
 
 /oorsig — die jongste markte-oorsig as teks
 /stop — ontkoppel jou rekening`;
+
+/* Telegram parse_mode=HTML: ontsnap eers alles, maak dan net die agent se
+   [naam](url)-skakels klikbaar. Ongeldige HTML laat sendMessage in stilte
+   faal — dus streng ontsnapping voor enige merkup. */
+function htmlVirTelegram(teks: string): string {
+  const ontsnap = teks.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return ontsnap.replace(
+    /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+    (_, naam: string, url: string) => `<a href="${url}">${naam}</a>`
+  );
+}
 
 export async function POST(request: NextRequest) {
   if (request.headers.get("x-telegram-bot-api-secret-token") !== process.env.TELEGRAM_WEBHOOK_SECRET) {
@@ -99,6 +112,35 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
-  await stuur(chatId, HULP);
+  // Vrye teks: gekoppelde gebruikers kry die VRA BUITELYN-agent;
+  // ongekoppeldes kry die hulp-teks (LLM-koste bly agter die rekening-hek).
+  const { data: koppeling } = await sb
+    .from("telegram_koppelinge")
+    .select("user_id")
+    .eq("chat_id", chatId)
+    .maybeSingle();
+  if (!koppeling || teks.startsWith("/") || teks.length > 600) {
+    await stuur(chatId, HULP);
+    return NextResponse.json({ ok: true });
+  }
+
+  // Antwoord ná die 200 (after) — Telegram kry dadelik sy antwoord en
+  // herprobeer nie die update terwyl die agent dink nie.
+  after(async () => {
+    fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendChatAction`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, action: "typing" }),
+    }).catch(() => {});
+    try {
+      const antwoord = await beantwoordMarkteVraag([{ rol: "gebruiker", teks }], {
+        ekstraInstruksies:
+          "Jy antwoord in Telegram — hou dit kort (hoogstens 5 sinne), skoon teks sonder opmaak behalwe skakels as [naam](url).",
+      });
+      await stuur(chatId, htmlVirTelegram(antwoord));
+    } catch {
+      await stuur(chatId, "Die assistent sukkel nou — probeer weer oor 'n rukkie.");
+    }
+  });
   return NextResponse.json({ ok: true });
 }

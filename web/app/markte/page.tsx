@@ -196,7 +196,8 @@ export default async function MarktePage({
           </div>
 
           {/* Oortjies */}
-          <nav className="mt-6 flex flex-wrap border-2 border-ink bg-offwhite">
+          {/* Op mobiel dien die hamburger as oortjie-nav — die balk is net md+ */}
+          <nav className="mt-6 hidden flex-wrap border-2 border-ink bg-offwhite md:flex">
             {TABS.map((t) => (
               <Link
                 key={t.sleutel}
