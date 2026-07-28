@@ -29,7 +29,41 @@ export async function GET(request: NextRequest) {
     day: "numeric",
     month: "long",
   }).format(new Date());
-  const skrip = `Goeiemôre! Hier is Buitelyn se markte-oorsig vir ${datumWoorde}. ... ${oorsig.teks} ... Dis dit vir nou — al die syfers, jou portefeulje en Vra Buitelyn wag by buitelyn punt com slash markte. Lekker dag!`;
+
+  /* Gemini herskryf die geskrewe oorsig as 'n gesproke skrip: syfers in
+     mensetaal (nie "+1,08%" nie) en ElevenLabs v3-oudio-etikette vir toon. */
+  const geminiRes = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: `Herskryf hierdie geskrewe markoorsig as 'n GESPROKE oggendbriefing-skrip vir 'n Afrikaanse radiostem (Buitelyn se stem: helder, warm, bietjie speels).
+
+Reëls:
+- Begin met [energetic] Goeiemôre, Suid-Afrika! en 'n verwysing na ${datumWoorde}.
+- Syfers in mensetaal: nooit "+1,08%" nie — sê "net oor een persent sterker"; rond bedrae af ("sowat sestien rand sewentig teen die dollar"). Geen simbole, hakies of afkortings wat vreemd klink as dit gelees word nie.
+- Strooi 4-6 oudio-etikette uit hierdie palet op natuurlike plekke in: [energetic] [announcing] [thoughtful] [serious] [optimistic] [amused]. Op 'n af-dag mag een [sighs]. Etikette staan op hul eie voor die sin wat die toon kry.
+- Sluit af met [optimistic] en verwys luisteraars na buitelyn punt com slash markte, en 'n kort groet.
+- Lengte: 120-160 woorde. Geen opskrifte, geen plekhouers. Antwoord NET met die skrip.
+
+Geskrewe oorsig:
+${oorsig.teks}`,
+              },
+            ],
+          },
+        ],
+        generationConfig: { temperature: 0.6 },
+      }),
+    }
+  );
+  const geminiData = await geminiRes.json();
+  const skrip: string | undefined = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+  if (!skrip) return NextResponse.json({ fout: "Gemini het geen skrip geskryf nie" }, { status: 502 });
 
   const tts = await fetch(
     `https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_VOICE_ID}?output_format=mp3_44100_128`,
@@ -38,8 +72,8 @@ export async function GET(request: NextRequest) {
       headers: { "xi-api-key": process.env.ELEVENLABS_API_KEY!, "content-type": "application/json" },
       body: JSON.stringify({
         text: skrip,
-        model_id: "eleven_multilingual_v2",
-        voice_settings: { stability: 0.5, similarity_boost: 0.75 },
+        model_id: "eleven_v3", // v3 verstaan die [energetic]-etikette
+        voice_settings: { stability: 0.5 },
       }),
     }
   );
