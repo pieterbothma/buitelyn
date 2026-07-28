@@ -28,18 +28,31 @@ export async function POST(request: NextRequest) {
   } = await sb.auth.getUser();
   if (!user) return NextResponse.json({ fout: "verbode" }, { status: 401 });
 
-  const { prompt, size, logo } = (await request.json()) as {
+  const { prompt, size, logo, opskrif } = (await request.json()) as {
     prompt?: string;
     size?: string;
     logo?: "ink" | "wit" | "geen";
+    opskrif?: string; // teenwoordig = spotprent-modus (eie kaart)
   };
   if (!prompt?.trim()) return NextResponse.json({ fout: "leë prompt" }, { status: 400 });
   const grootte = GROOTTES.has(size ?? "") ? size! : "1536x1024";
 
+  /* Eie kaart = Buitelyn-spotprent: swart opskrif bo, spotprent daaronder,
+     papier/ink/rooi-palet. Foto Idees stuur volledige prompts sonder dié
+     sleutel en bly onaangeraak. */
+  const finalePrompt =
+    opskrif !== undefined
+      ? `Single-panel editorial newspaper cartoon for a South African financial publication. ${
+          opskrif.trim()
+            ? `At the top: the bold black heading "${opskrif.trim()}" in a strong modern sans-serif (League Spartan style), exactly these words, correct spelling. Below it: `
+            : ""
+        }a witty, clever cartoon of ${prompt.trim()}. Clean ink-black linework with expressive characters, one single red accent color (#F03028) used sparingly, flat off-white paper background (#F7F6F2), subtle newspaper texture. No other text anywhere except the heading, no watermarks, no logos.`
+      : prompt.trim();
+
   const model = process.env.OPENAI_IMAGE_MODEL || "gpt-image-2";
-  let res = await genereer(model, prompt.trim(), grootte);
+  let res = await genereer(model, finalePrompt, grootte);
   if (!res.ok && res.status < 500 && model !== "gpt-image-1") {
-    res = await genereer("gpt-image-1", prompt.trim(), grootte);
+    res = await genereer("gpt-image-1", finalePrompt, grootte);
   }
   if (!res.ok) {
     return NextResponse.json(

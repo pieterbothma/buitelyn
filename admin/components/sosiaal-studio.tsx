@@ -26,6 +26,7 @@ export function SosiaalStudio({
   const [oplaaiOop, setOplaaiOop] = useState(false);
   const [oplaaiBoodskap, setOplaaiBoodskap] = useState<string | null>(null);
   const [eiePrompt, setEiePrompt] = useState("");
+  const [eieOpskrif, setEieOpskrif] = useState("");
   const [eieLogo, setEieLogo] = useState<"ink" | "wit" | "geen">("ink");
   const [eieGrootte, setEieGrootte] = useState("1024x1024");
   const [eieBesig, setEieBesig] = useState(false);
@@ -71,7 +72,7 @@ export function SosiaalStudio({
       const res = await fetch("/api/fotos/skep", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ prompt: eiePrompt.trim(), size: eieGrootte, logo: eieLogo }),
+        body: JSON.stringify({ prompt: eiePrompt.trim(), size: eieGrootte, logo: eieLogo, opskrif: eieOpskrif }),
       });
       const data = await res.json();
       if (data.url) {
@@ -202,7 +203,8 @@ export function SosiaalStudio({
         <span aria-hidden className="size-2 rounded-full bg-red" />
       </h2>
       <p className="mt-1 max-w-lg text-sm text-ink/60">
-        Genereer jou eie beeld — die Buitelyn-logo word outomaties in die hoek geplaas.
+        'n Buitelyn-spotprent: swart opskrif bo, 'n slim spotprent van jou onderwerp
+        daaronder — die logo kom outomaties in die hoek.
       </p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <span className="flex border-2 border-ink">
@@ -245,20 +247,28 @@ export function SosiaalStudio({
           e.preventDefault();
           skepEieKaart();
         }}
-        className="mt-2 flex flex-wrap gap-2"
+        className="mt-2 flex max-w-2xl flex-col gap-2"
       >
         <input
-          value={eiePrompt}
-          onChange={(e) => setEiePrompt(e.target.value)}
-          placeholder="Beskryf jou beeld…"
-          className="min-w-72 flex-1 border-2 border-ink bg-offwhite px-3 py-2 text-sm outline-none focus:border-red"
+          value={eieOpskrif}
+          onChange={(e) => setEieOpskrif(e.target.value)}
+          placeholder="Opskrif in die beeld (swart teks bo) — opsioneel"
+          className="border-2 border-ink bg-offwhite px-3 py-2 text-sm outline-none focus:border-red"
         />
-        <button
-          disabled={eieBesig || !eiePrompt.trim()}
-          className="bg-ink px-4 py-2 text-sm font-semibold text-offwhite hover:bg-ink/85 disabled:opacity-50"
-        >
-          {eieBesig ? "Skep… (±30s)" : "Skep kaart"}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <input
+            value={eiePrompt}
+            onChange={(e) => setEiePrompt(e.target.value)}
+            placeholder="Waaroor gaan die spotprent? (bv. Kganyago hou die rentekoers-hek toe terwyl die rand wegloop)"
+            className="min-w-72 flex-1 border-2 border-ink bg-offwhite px-3 py-2 text-sm outline-none focus:border-red"
+          />
+          <button
+            disabled={eieBesig || !eiePrompt.trim()}
+            className="bg-ink px-4 py-2 text-sm font-semibold text-offwhite hover:bg-ink/85 disabled:opacity-50"
+          >
+            {eieBesig ? "Skep… (±30s)" : "Skep spotprent"}
+          </button>
+        </div>
       </form>
       {eieFotos.length ? (
         <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
