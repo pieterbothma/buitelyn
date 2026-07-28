@@ -76,6 +76,24 @@ export async function GET(request: NextRequest) {
     month: "long",
   }).format(new Date());
 
+  /* Drie uitgawes per dag, elk met sy eie groet en invalshoek. */
+  const uur = Number(
+    new Intl.DateTimeFormat("en-GB", { timeZone: "Africa/Johannesburg", hour: "numeric", hour12: false }).format(new Date())
+  );
+  const uitgawe = uur < 11 ? "oggend" : uur < 16 ? "middag" : "aand";
+  const groet =
+    uitgawe === "oggend"
+      ? "Goeiemôre, Suid-Afrika!"
+      : uitgawe === "middag"
+        ? "Goeiemiddag, Suid-Afrika!"
+        : "Goeienaand, Suid-Afrika!";
+  const invalshoek =
+    uitgawe === "oggend"
+      ? "dit is die oggendbriefing — wat die markdag inwag"
+      : uitgawe === "middag"
+        ? "dit is die middaguitgawe — hoe die dag tot dusver verloop"
+        : "dit is die aanduitgawe ná JSE-sluiting — hoe die dag geëindig het";
+
   /* Gemini herskryf die geskrewe oorsig as 'n gesproke skrip: syfers in
      mensetaal (nie "+1,08%" nie) en ElevenLabs v3-oudio-etikette vir toon. */
   const geminiRes = await fetch(
@@ -91,7 +109,7 @@ export async function GET(request: NextRequest) {
                 text: `Herskryf hierdie geskrewe markoorsig as 'n GESPROKE oggendbriefing-skrip vir 'n Afrikaanse radiostem (Buitelyn se stem: helder, warm, bietjie speels).
 
 Reëls:
-- Begin met [energetic] Goeiemôre, Suid-Afrika! en 'n verwysing na ${datumWoorde}.
+- Begin met [energetic] ${groet} en 'n verwysing na ${datumWoorde}; ${invalshoek}.
 - Syfers in mensetaal: nooit "+1,08%" nie — sê "net oor een persent sterker"; rond bedrae af ("sowat sestien rand sewentig teen die dollar"). Geen simbole, hakies of afkortings wat vreemd klink as dit gelees word nie.
 - Strooi 4-6 oudio-etikette uit hierdie palet op natuurlike plekke in: [energetic] [announcing] [thoughtful] [serious] [optimistic] [amused]. Op 'n af-dag mag een [sighs]. Etikette staan op hul eie voor die sin wat die toon kry.
 - Sluit af met [optimistic] en verwys luisteraars na buitelyn punt com slash markte, en 'n kort groet.
@@ -144,7 +162,7 @@ ${oorsig.teks}`,
     if (snypunt > 0.2) mp3 = snyMp3(volMp3, Math.max(0, snypunt - 0.08));
   }
 
-  const pad = `${datum}.mp3`;
+  const pad = `${datum}-${uitgawe}.mp3`;
   const { error: stoorFout } = await sb.storage
     .from("markte-oudio")
     .upload(pad, mp3, { contentType: "audio/mpeg", upsert: true, cacheControl: "60" });
@@ -163,7 +181,7 @@ ${oorsig.teks}`,
     vorm.append("performer", "Buitelyn");
     vorm.append(
       "caption",
-      `🔴 Goeiemôre — jou Buitelyn markte-oorsig vir ${datumWoorde}.\nVolle terminal: buitelyn.com/markte`
+      `🔴 ${groet.replace("!", "")} — jou Buitelyn markte-oorsig (${uitgawe}uitgawe) vir ${datumWoorde}.\nVolle terminal: buitelyn.com/markte`
     );
     const tg = await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendAudio`, {
       method: "POST",
@@ -172,5 +190,5 @@ ${oorsig.teks}`,
     telegram = tg.ok ? "gestuur" : `fout ${tg.status}`;
   }
 
-  return NextResponse.json({ ok: true, datum, grootte: mp3.length, oudioUrl, telegram });
+  return NextResponse.json({ ok: true, datum, uitgawe, grootte: mp3.length, oudioUrl, telegram });
 }

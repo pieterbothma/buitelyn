@@ -172,7 +172,7 @@ export default async function MarktePage() {
           {WYS_OUDIO && oorsig?.oudioUrl ? (
             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-2 border-ink bg-offwhite px-5 py-3">
               <p className="text-[11px] font-semibold tracking-[0.16em]">
-                LUISTER NA DIE OGGENDOORSIG
+                LUISTER NA DIE JONGSTE OORSIG
                 {oorsig.oudioDatum ? ` — ${oorsig.oudioDatum.toUpperCase()}` : ""}
                 <span aria-hidden className="ml-2 inline-block size-1.5 rounded-full bg-red align-middle" />
               </p>

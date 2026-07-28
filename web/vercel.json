@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/markte-oudio",
-      "schedule": "50 4 * * 1-5"
+      "schedule": "50 4,9,15 * * 1-5"
     },
     {
       "path": "/api/cron/markte-opruim",
