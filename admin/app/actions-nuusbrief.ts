@@ -50,7 +50,7 @@ export async function skepNuusbriefKonsep(): Promise<string | null> {
   }
 
   const nuusLys = (nuus ?? [])
-    .map((n) => `- [${n.bron}] ${n.titel_af}: ${n.opsomming} (${n.skakel})`)
+    .map((n, i) => `${i + 1}. [${n.bron}] ${n.titel_af}: ${n.opsomming} — SKAKEL: ${n.skakel}`)
     .join("\n");
 
   const datumWoorde = new Intl.DateTimeFormat("af-ZA", {
@@ -81,6 +81,13 @@ DIE HUISSTYL (uit die laaste 10 uitgawes — volg dit getrou):
 
 TAALREËLS (streng):
 - NOOIT "teg" as afkorting vir tegnologie nie — dis nie 'n regte afkorting nie. Skryf "tech" (soos AP dit self gebruik: "Groot week vir tech") of voluit "tegnologie".
+
+GRONDREËLS (absoluut — oortreding maak die hele konsep waardeloos):
+- Elke storie MOET een van die genommerde items uit die nuuslys hieronder wees. Jy mag NOOIT 'n storie, gebeurtenis, aankondiging of feit uit jou eie geheue byvoeg nie — al lyk dit relevant.
+- Elke storie sluit af met die PRESIESE SKAKEL-URL van daardie item, verbatim, as 'n markdown-skakel: [bron](url). GEEN plekhouer-verwysings soos "[Lees meer hier: X]" nie.
+- Syfers kom SLEGS uit die nuuslys, die dagoorsig of die syfers-reël hieronder. As jy 'n syfer nie het nie, laat dit uit — moenie skat nie.
+- As daar minder as 3 sterk stories in die lys is, skryf minder stories; moenie opmaak om by 3 uit te kom nie.
+- Die Engelse frases in die stylgids is VOORBEELDE van die register — moenie hulle woordeliks kopieer nie; skryf jou eie waar dit natuurlik pas.
 
 Dagoorsig (agtergrond, moenie woordeliks kopieer nie): ${oorsig?.teks ?? "(nog nie beskikbaar nie)"}
 
