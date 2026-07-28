@@ -137,7 +137,14 @@ export async function kryFotoIdees(): Promise<FotoIdee[]> {
   if (!konsep?.teks) return [];
 
   const antwoord = await skryfAfrikaans(
-    `Hier is vandag se Buitelyn-nuusbriefkonsep. Stel presies 4 nuusbrief-illustrasie-idees voor wat by die stories pas — editoriale beeldmateriaal, nie stock-foto-clichés nie. Buitelyn se estetika: skoon, speels-ernstig, koerantagtig. Kort Afrikaanse teks ín die beeld is welkom waar dit die beeld versterk (die beeldmodel render teks uitstekend) — spesifiseer dan die PRESIESE woorde in die prompt, in aanhalingstekens, met korrekte Afrikaanse spelling. Geen regte handelsmerke of logo's nie.
+    `Hier is vandag se Buitelyn-nuusbriefkonsep. Stel presies 4 nuusbrief-illustrasie-idees voor — editoriale beeldmateriaal, nie stock-foto-clichés nie. Buitelyn se estetika: skoon, speels-ernstig, koerantagtig.
+
+BELANGRIK — die konsep bevat reeds kursiewe eenreël-byskrifte onder elke storie-opskrif (bv. "*Die Gov, soos 'n rots in die branders.*" of "*Jou foon is dalk slimmer as jou neef.*"). Dié byskrifte is die beeldkonsepte:
+- Neem elke byskrif en visualiseer sy metafoor letterlik-speels as die beeld (die Gov-rots: 'n statige rots onbeweeglik in stormbranders).
+- Die "beskrywing" noem die byskrif wat dit dien.
+- Die "prompt" mag die byskrif (of 'n verkorte weergawe) as Afrikaanse teks in die beeld spesifiseer — PRESIESE woorde in aanhalingstekens, korrekte spelling (die beeldmodel render teks uitstekend).
+- As daar minder as 4 byskrifte is, vul aan met idees uit die stories self.
+Geen regte handelsmerke of logo's nie.
 
 Antwoord as SUIWER JSON (geen kodeblok nie): 'n lys van 4 objekte:
 - "beskrywing": een Afrikaanse sin wat vir André-Pierre sê wat die beeld wys
