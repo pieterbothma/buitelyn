@@ -18,6 +18,9 @@ export function SosiaalStudio({
   stukke: { kop: string; byskrif: string }[];
 }) {
   const [vorm, setVorm] = useState<"vierkant" | "portret">("vierkant");
+  const [videoBesig, setVideoBesig] = useState(false);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [videoFout, setVideoFout] = useState<string | null>(null);
   const [tekste, setTekste] = useState<SosialeTekste | null>(null);
   const [boodskap, setBoodskap] = useState<string | null>(null);
   const [besig, begin] = useTransition();
@@ -28,6 +31,21 @@ export function SosiaalStudio({
       setTekste(t);
       if (!t) setBoodskap("Genereer eers vandag se konsep.");
     });
+  }
+
+  async function renderVideo() {
+    setVideoBesig(true);
+    setVideoFout(null);
+    try {
+      const res = await fetch("/api/sosiaal/video", { method: "POST" });
+      const data = await res.json();
+      if (res.ok) setVideoUrl(data.url);
+      else setVideoFout(data.fout ?? "Render het misluk.");
+    } catch {
+      setVideoFout("Netwerkfout.");
+    } finally {
+      setVideoBesig(false);
+    }
   }
 
   async function kopieer(teks: string, naam: string) {
@@ -120,9 +138,27 @@ export function SosiaalStudio({
         <span aria-hidden className="size-2 rounded-full bg-red" />
       </h2>
       <p className="mt-1 max-w-lg text-sm text-ink/60">
-        Kom binnekort: die dag se audio as 'n branded audiogram-video (golfvorm + kaart) of
-        beeld-vertoonvideo — kies die formaat en ons bou die render-pyplyn.
+        Die dag se briefing-audio oor die voorbladkaart met 'n golfvorm — gerender in 'n
+        Vercel Sandbox.
       </p>
+      <div className="mt-3 flex flex-wrap items-center gap-3">
+        <button
+          onClick={renderVideo}
+          disabled={videoBesig}
+          className="h-11 bg-ink px-5 text-sm font-semibold text-offwhite hover:bg-ink/85 disabled:opacity-50"
+        >
+          {videoBesig ? "Render… (±2 min)" : "Render audiogram →"}
+        </button>
+        {videoFout ? <span className="text-sm font-semibold text-red">{videoFout}</span> : null}
+      </div>
+      {videoUrl ? (
+        <div className="mt-4 max-w-md border-2 border-green p-3">
+          <video controls src={videoUrl} className="w-full" />
+          <a href={videoUrl} download className="mt-1.5 inline-block text-sm font-semibold underline">
+            Laai MP4 af ↓
+          </a>
+        </div>
+      ) : null}
     </div>
   );
 }
