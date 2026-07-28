@@ -42,7 +42,7 @@ export async function renderKaartPng(stuk: KaartStuk, datum: string, portret: bo
           }}
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ fontSize: 40, fontWeight: 700, letterSpacing: 4 }}>BUITELYN</div>
+            <div style={{ fontSize: 42, fontWeight: 700 }}>Buitelyn</div>
             <div style={{ width: 36, height: 36, borderRadius: 999, backgroundColor: "#F03028", display: "flex" }} />
           </div>
           <div style={{ display: "flex", flexDirection: "column", flex: 1, justifyContent: "center", gap: 28 }}>

@@ -230,7 +230,7 @@ export async function renderGrafiekPng(opsies: GrafiekOpsies): Promise<Buffer> {
               ) : null}
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ display: "flex", fontSize: 32, fontWeight: 700, letterSpacing: 4 }}>BUITELYN</div>
+              <div style={{ display: "flex", fontSize: 34, fontWeight: 700 }}>Buitelyn</div>
               <div style={{ display: "flex", width: 28, height: 28, borderRadius: 999, backgroundColor: "#F03028" }} />
             </div>
           </div>
