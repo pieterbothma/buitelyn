@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       cmd: "bash",
       args: [
         "-c",
-        "curl -sL https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz -o ff.tar.xz && tar -xJf ff.tar.xz --strip-components=2 --wildcards '*/bin/ffmpeg' && ./ffmpeg -version | head -1",
+        "(sudo dnf install -y -q xz || dnf install -y -q xz) && curl -sL https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz -o ff.tar.xz && tar -xJf ff.tar.xz --strip-components=2 --wildcards '*/bin/ffmpeg' && ./ffmpeg -version | head -1",
       ],
     });
     if (aflaai.exitCode !== 0) {
