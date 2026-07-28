@@ -55,36 +55,54 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
 
-  // v3 klink beste maar het 'n korter teksperk; langer stukke val terug na v2.
-  const model = teks.length <= 2800 ? "eleven_v3" : "eleven_multilingual_v2";
-  const res = await fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/with-timestamps?output_format=mp3_44100_128`,
-    {
-      method: "POST",
-      headers: { "xi-api-key": sleutel, "content-type": "application/json" },
-      body: JSON.stringify({
-        text: WARMUP + teks,
-        model_id: model,
-        voice_settings: model === "eleven_v3" ? { stability: 0.5 } : { stability: 0.5, similarity_boost: 0.75 },
-      }),
+  /* v3 klink verreweg die beste maar het 'n teksperk (±3k) — dus verdeel ons
+     lang tekste by paragraaf-grense en las die MP3's aanmekaar; elke stuk kry
+     sy eie warm-up wat presies uitgesny word. */
+  const stukke: string[] = [];
+  let huidige = "";
+  for (const para of teks.split(/\n\n+/)) {
+    if ((huidige + "\n\n" + para).length > 2500 && huidige) {
+      stukke.push(huidige);
+      huidige = para;
+    } else {
+      huidige = huidige ? huidige + "\n\n" + para : para;
     }
-  );
-  if (!res.ok) {
-    const detail = await res.text();
-    return NextResponse.json({ fout: `ElevenLabs ${res.status}: ${detail.slice(0, 200)}` }, { status: 502 });
   }
-  const ttsData = (await res.json()) as {
-    audio_base64: string;
-    alignment?: { characters: string[]; character_start_times_seconds: number[] };
-  };
-  let mp3: Buffer = Buffer.from(ttsData.audio_base64, "base64");
-  const al = ttsData.alignment;
-  if (al) {
-    const vol = al.characters.join("");
-    const begin = vol.indexOf(teks.slice(0, 12));
-    const sny = begin > 0 ? al.character_start_times_seconds[begin] : al.character_start_times_seconds[WARMUP.length] ?? 0;
-    if (sny > 0.2) mp3 = snyMp3(mp3, Math.max(0, sny - 0.08));
+  if (huidige) stukke.push(huidige);
+
+  const dele: Buffer[] = [];
+  for (const stuk of stukke) {
+    const res = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/with-timestamps?output_format=mp3_44100_128`,
+      {
+        method: "POST",
+        headers: { "xi-api-key": sleutel, "content-type": "application/json" },
+        body: JSON.stringify({
+          text: WARMUP + stuk,
+          model_id: "eleven_v3",
+          voice_settings: { stability: 0.5 },
+        }),
+      }
+    );
+    if (!res.ok) {
+      const detail = await res.text();
+      return NextResponse.json({ fout: `ElevenLabs ${res.status}: ${detail.slice(0, 200)}` }, { status: 502 });
+    }
+    const ttsData = (await res.json()) as {
+      audio_base64: string;
+      alignment?: { characters: string[]; character_start_times_seconds: number[] };
+    };
+    let deel: Buffer = Buffer.from(ttsData.audio_base64, "base64");
+    const al = ttsData.alignment;
+    if (al) {
+      const vol = al.characters.join("");
+      const begin = vol.indexOf(stuk.slice(0, 12));
+      const sny = begin > 0 ? al.character_start_times_seconds[begin] : al.character_start_times_seconds[WARMUP.length] ?? 0;
+      if (sny > 0.2) deel = snyMp3(deel, Math.max(0, sny - 0.08));
+    }
+    dele.push(deel);
   }
+  const mp3: Buffer = Buffer.concat(dele);
 
   const svc = supabaseService();
   const pad = `${Date.now()}-${titel.toLowerCase().replace(/[^\w]+/g, "-").slice(0, 60)}.mp3`;
