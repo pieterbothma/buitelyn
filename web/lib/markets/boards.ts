@@ -76,3 +76,49 @@ export function jseIsOop(nou = new Date()): boolean {
   const uur = sast.getHours();
   return dag >= 1 && dag <= 5 && uur >= 9 && uur < 17;
 }
+
+/* Breër JSE-universum vir die Bewegers-bord — groot/likiede name buite die
+   hoofbord. Onopgeloste simbole val stil uit getQuotes se resultaat. */
+export const BEWEGERS_SIMBOLE: BordItem[] = [
+  ...BORDE[0].items.filter((i) => i.simbool !== "STX40.JO"),
+  { simbool: "ABG.JO", naam: "Absa" },
+  { simbool: "NED.JO", naam: "Nedbank" },
+  { simbool: "INL.JO", naam: "Investec" },
+  { simbool: "SLM.JO", naam: "Sanlam" },
+  { simbool: "OMU.JO", naam: "Old Mutual" },
+  { simbool: "DSY.JO", naam: "Discovery" },
+  { simbool: "REM.JO", naam: "Remgro" },
+  { simbool: "CFR.JO", naam: "Richemont" },
+  { simbool: "ANH.JO", naam: "AB InBev" },
+  { simbool: "BTI.JO", naam: "British American Tobacco" },
+  { simbool: "GLN.JO", naam: "Glencore" },
+  { simbool: "BHG.JO", naam: "BHP" },
+  { simbool: "IMP.JO", naam: "Impala Platinum" },
+  { simbool: "SSW.JO", naam: "Sibanye-Stillwater" },
+  { simbool: "ANG.JO", naam: "AngloGold Ashanti" },
+  { simbool: "HAR.JO", naam: "Harmony" },
+  { simbool: "EXX.JO", naam: "Exxaro" },
+  { simbool: "KIO.JO", naam: "Kumba Yster" },
+  { simbool: "SHP.JO", naam: "Shoprite" },
+  { simbool: "WHL.JO", naam: "Woolworths" },
+  { simbool: "PIK.JO", naam: "Pick n Pay" },
+  { simbool: "CLS.JO", naam: "Clicks" },
+  { simbool: "SPP.JO", naam: "Spar" },
+  { simbool: "TFG.JO", naam: "TFG" },
+  { simbool: "TRU.JO", naam: "Truworths" },
+  { simbool: "MRP.JO", naam: "Mr Price" },
+  { simbool: "BID.JO", naam: "Bid Corp" },
+  { simbool: "BVT.JO", naam: "Bidvest" },
+  { simbool: "APN.JO", naam: "Aspen" },
+  { simbool: "NTC.JO", naam: "Netcare" },
+  { simbool: "TKG.JO", naam: "Telkom" },
+  { simbool: "OUT.JO", naam: "OUTsurance" },
+  { simbool: "NRP.JO", naam: "NEPI Rockcastle" },
+  { simbool: "GRT.JO", naam: "Growthpoint" },
+  { simbool: "MNP.JO", naam: "Mondi" },
+  { simbool: "SAP.JO", naam: "Sappi" },
+];
+
+export function bewegersNaam(simbool: string): string {
+  return BEWEGERS_SIMBOLE.find((i) => i.simbool === simbool)?.naam ?? naamVirSimbool(simbool);
+}

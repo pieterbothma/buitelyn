@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import { createClient } from "@supabase/supabase-js";
 import { TopBar } from "@/components/top-bar";
 import { Footer } from "@/components/footer";
+import Link from "next/link";
 import { MarkteTerminal } from "@/components/markte/terminal";
 import { TekenIn } from "@/components/markte/teken-in";
+import { TelegramKoppel } from "@/components/markte/telegram";
+import { BewegersBord } from "@/components/markte/bewegers";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getQuotes } from "@/lib/markets/source";
 import { kryNuus } from "@/lib/markets/nuus";
-import { ALLE_SIMBOLE, jseIsOop } from "@/lib/markets/boards";
+import { ALLE_SIMBOLE, BEWEGERS_SIMBOLE, jseIsOop } from "@/lib/markets/boards";
 
 /* Gegateer: die hek lees die sessie-koekie, dus moet die blad dinamies
    render — die data-fetches onder het steeds hul eie fetch-cache. */
@@ -65,7 +68,35 @@ async function kryOorsig(): Promise<{
   }
 }
 
-export default async function MarktePage() {
+const TABS = [
+  { sleutel: "tuis", naam: "Tuis" },
+  { sleutel: "bewegers", naam: "Bewegers" },
+  { sleutel: "liga", naam: "Liga" },
+  { sleutel: "sens", naam: "SENS" },
+  { sleutel: "telegram", naam: "Telegram" },
+] as const;
+type TabSleutel = (typeof TABS)[number]["sleutel"];
+
+function Binnekort({ titel, teks }: { titel: string; teks: string }) {
+  return (
+    <div className="max-w-xl border-2 border-ink bg-offwhite p-6">
+      <p className="text-xs font-semibold tracking-[0.16em]">
+        {titel.toUpperCase()}
+        <span aria-hidden className="ml-2 inline-block size-1.5 rounded-full bg-red align-middle" />
+        <span className="ml-3 font-normal text-ink/50">BINNEKORT</span>
+      </p>
+      <p className="mt-2 text-sm leading-relaxed text-ink/70">{teks}</p>
+    </div>
+  );
+}
+
+export default async function MarktePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ blad?: string }>;
+}) {
+  const { blad } = await searchParams;
+  const tab: TabSleutel = TABS.some((t) => t.sleutel === blad) ? (blad as TabSleutel) : "tuis";
   const sb = await supabaseServer();
   const {
     data: { user },
@@ -115,10 +146,14 @@ export default async function MarktePage() {
     "";
   const naam = rouNaam ? rouNaam.charAt(0).toUpperCase() + rouNaam.slice(1) : "";
 
-  const [kwotasies, oorsig, nuus] = await Promise.all([
-    getQuotes(ALLE_SIMBOLE),
-    kryOorsig(),
-    kryNuus(),
+  // Haal net wat die aktiewe oortjie nodig het
+  const [kwotasies, oorsig, nuus, bewegers] = await Promise.all([
+    tab === "tuis" ? getQuotes(ALLE_SIMBOLE) : Promise.resolve([]),
+    tab === "tuis" ? kryOorsig() : Promise.resolve(null),
+    tab === "tuis" ? kryNuus() : Promise.resolve([]),
+    tab === "bewegers"
+      ? getQuotes(BEWEGERS_SIMBOLE.map((i) => i.simbool))
+      : Promise.resolve([]),
   ]);
   const oop = jseIsOop();
   const dateline = new Intl.DateTimeFormat("af-ZA", {
@@ -160,7 +195,52 @@ export default async function MarktePage() {
             </div>
           </div>
 
-          {oorsig ? (
+          {/* Oortjies */}
+          <nav className="mt-6 flex flex-wrap border-2 border-ink bg-offwhite">
+            {TABS.map((t) => (
+              <Link
+                key={t.sleutel}
+                href={t.sleutel === "tuis" ? "/markte" : `/markte?blad=${t.sleutel}`}
+                className={`border-r border-ink/20 px-5 py-2.5 text-xs font-semibold tracking-[0.14em] last:border-r-0 ${
+                  tab === t.sleutel ? "bg-ink text-offwhite" : "hover:bg-paper"
+                }`}
+              >
+                {t.naam.toUpperCase()}
+              </Link>
+            ))}
+          </nav>
+
+          {tab === "bewegers" ? (
+            <div className="mt-6">
+              <BewegersBord kwotasies={bewegers} />
+            </div>
+          ) : null}
+
+          {tab === "liga" ? (
+            <div className="mt-6">
+              <Binnekort
+                titel="Buitelyn Liga"
+                teks="Fantasie-JSE: R100 000 denkbeeldige geld, maandelikse ranglys en 'n jaarlikse eindstand — met jou naam op die show as jy wen. Ons bou dit nou."
+              />
+            </div>
+          ) : null}
+
+          {tab === "sens" ? (
+            <div className="mt-6">
+              <Binnekort
+                titel="SENS in Afrikaans"
+                teks="Elke JSE-aankondiging (resultate, dividende, direkteurshandel) in een verstaanbare Afrikaanse paragraaf, met jou eie aandele boaan. Ons bou dit nou."
+              />
+            </div>
+          ) : null}
+
+          {tab === "telegram" ? (
+            <div className="mt-6">
+              <TelegramKoppel />
+            </div>
+          ) : null}
+
+          {tab === "tuis" && oorsig ? (
             <div className="mt-6 border-2 border-ink bg-offwhite p-5">
               <p className="text-[11px] font-semibold tracking-[0.16em] text-ink/50">
                 VANDAG OP DIE MARKTE
@@ -175,7 +255,7 @@ export default async function MarktePage() {
 
           {/* Aparte oggend-oudio: die teks hierbo verfris uurliks, die
               briefing is die 06:50-oggenduitgawe — eie boks, eie datum. */}
-          {WYS_OUDIO && oorsig?.oudioUrl ? (
+          {tab === "tuis" && WYS_OUDIO && oorsig?.oudioUrl ? (
             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-2 border-ink bg-offwhite px-5 py-3">
               <p className="text-[11px] font-semibold tracking-[0.16em]">
                 {oorsig.oudioEtiket}
@@ -187,9 +267,11 @@ export default async function MarktePage() {
             </div>
           ) : null}
 
-          <div className="mt-8">
-            <MarkteTerminal aanvanklik={kwotasies} nuus={nuus} />
-          </div>
+          {tab === "tuis" ? (
+            <div className="mt-8">
+              <MarkteTerminal aanvanklik={kwotasies} nuus={nuus} />
+            </div>
+          ) : null}
         </section>
       </main>
       <Footer />

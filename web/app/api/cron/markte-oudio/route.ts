@@ -171,23 +171,54 @@ ${oorsig.teks}`,
   const oudioUrl = `${process.env.APHQ_SUPABASE_URL}/storage/v1/object/public/markte-oudio/${pad}?v=${Date.now()}`;
   await sb.from("markte_oorsigte").update({ oudio_url: oudioUrl }).eq("datum", datum);
 
-  // Telegram-kanaal-uitsaai (opsioneel — aktiveer met env)
+  // Telegram-uitsaai: opsionele kanaal + alle gekoppelde gebruikers wat
+  // hierdie uitgawe gekies het. Die eerste sendAudio laai die MP3 op;
+  // daarna hergebruik ons Telegram se file_id (geen heroplaai per persoon).
   let telegram = "oorgeslaan";
-  if (process.env.TELEGRAM_BOT_TOKEN && process.env.TELEGRAM_KANAAL) {
-    const vorm = new FormData();
-    vorm.append("chat_id", process.env.TELEGRAM_KANAAL);
-    vorm.append("audio", new Blob([new Uint8Array(mp3)], { type: "audio/mpeg" }), `buitelyn-markte-${datum}.mp3`);
-    vorm.append("title", `Markte-oorsig ${datumWoorde}`);
-    vorm.append("performer", "Buitelyn");
-    vorm.append(
-      "caption",
-      `🔴 ${groet.replace("!", "")} — jou Buitelyn markte-oorsig (${uitgawe}uitgawe) vir ${datumWoorde}.\nVolle terminal: buitelyn.com/markte`
-    );
-    const tg = await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendAudio`, {
-      method: "POST",
-      body: vorm,
-    });
-    telegram = tg.ok ? "gestuur" : `fout ${tg.status}`;
+  if (process.env.TELEGRAM_BOT_TOKEN) {
+    const byskrif = `🔴 ${groet.replace("!", "")} — jou Buitelyn markte-oorsig (${uitgawe}uitgawe) vir ${datumWoorde}.\nVolle terminal: buitelyn.com/markte`;
+    const titel = `Markte-oorsig ${datumWoorde}`;
+    let fileId: string | null = null;
+
+    const stuurAudio = async (chatId: string | number): Promise<boolean> => {
+      const api = `https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendAudio`;
+      let res: Response;
+      if (fileId) {
+        res = await fetch(api, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ chat_id: chatId, audio: fileId, caption: byskrif, title: titel, performer: "Buitelyn" }),
+        });
+      } else {
+        const vorm = new FormData();
+        vorm.append("chat_id", String(chatId));
+        vorm.append("audio", new Blob([new Uint8Array(mp3)], { type: "audio/mpeg" }), `buitelyn-markte-${datum}-${uitgawe}.mp3`);
+        vorm.append("title", titel);
+        vorm.append("performer", "Buitelyn");
+        vorm.append("caption", byskrif);
+        res = await fetch(api, { method: "POST", body: vorm });
+      }
+      if (res.ok && !fileId) {
+        const data = (await res.json()) as { result?: { audio?: { file_id?: string } } };
+        fileId = data.result?.audio?.file_id ?? null;
+      }
+      return res.ok;
+    };
+
+    let gestuur = 0;
+    let misluk = 0;
+    if (process.env.TELEGRAM_KANAAL) {
+      (await stuurAudio(process.env.TELEGRAM_KANAAL)) ? gestuur++ : misluk++;
+    }
+    const { data: koppelinge } = await sb
+      .from("telegram_koppelinge")
+      .select("chat_id")
+      .not("chat_id", "is", null)
+      .eq(uitgawe, true);
+    for (const k of koppelinge ?? []) {
+      (await stuurAudio(k.chat_id as number)) ? gestuur++ : misluk++;
+    }
+    telegram = `${gestuur} gestuur${misluk ? `, ${misluk} misluk` : ""}`;
   }
 
   return NextResponse.json({ ok: true, datum, uitgawe, grootte: mp3.length, oudioUrl, telegram });
