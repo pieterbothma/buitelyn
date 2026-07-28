@@ -20,7 +20,12 @@ export const metadata: Metadata = {
   description: "JSE, rand, kommoditeite en kripto — live, met Buitelyn se KI-markassistent.",
 };
 
-async function kryOorsig(): Promise<{ teks: string; bygewerk: string | null; oudioUrl: string | null } | null> {
+async function kryOorsig(): Promise<{
+  teks: string;
+  bygewerk: string | null;
+  oudioUrl: string | null;
+  oudioDatum: string | null;
+} | null> {
   if (!process.env.APHQ_SUPABASE_URL || !process.env.APHQ_SUPABASE_SERVICE_KEY) return null;
   try {
     const sb = createClient(process.env.APHQ_SUPABASE_URL, process.env.APHQ_SUPABASE_SERVICE_KEY, {
@@ -40,7 +45,15 @@ async function kryOorsig(): Promise<{ teks: string; bygewerk: string | null; oud
           minute: "2-digit",
         }).format(new Date(data.opgedateer_at))
       : null;
-    return { teks: data.teks, bygewerk, oudioUrl: data.oudio_url ?? null };
+    const oudioDatum = data.oudio_url
+      ? new Intl.DateTimeFormat("af-ZA", {
+          timeZone: "Africa/Johannesburg",
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+        }).format(new Date(`${data.datum}T12:00:00Z`))
+      : null;
+    return { teks: data.teks, bygewerk, oudioUrl: data.oudio_url ?? null, oudioDatum };
   } catch {
     return null;
   }
@@ -151,17 +164,20 @@ export default async function MarktePage() {
                 ) : null}
               </p>
               <p className="mt-2 max-w-3xl text-[15px] leading-relaxed">{oorsig.teks}</p>
-              {/* LUISTER-speler tydelik versteek (pipeline loop steeds; sit
-                  WYS_OUDIO op true om weer te wys) */}
-              {WYS_OUDIO && oorsig.oudioUrl ? (
-                <div className="mt-3 flex items-center gap-3">
-                  <span className="text-[11px] font-semibold tracking-[0.16em] text-ink/50">
-                    LUISTER
-                  </span>
-                  {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-                  <audio controls preload="none" src={oorsig.oudioUrl} className="h-9 max-w-md flex-1" />
-                </div>
-              ) : null}
+            </div>
+          ) : null}
+
+          {/* Aparte oggend-oudio: die teks hierbo verfris uurliks, die
+              briefing is die 06:50-oggenduitgawe — eie boks, eie datum. */}
+          {WYS_OUDIO && oorsig?.oudioUrl ? (
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-2 border-ink bg-offwhite px-5 py-3">
+              <p className="text-[11px] font-semibold tracking-[0.16em]">
+                LUISTER NA DIE OGGENDOORSIG
+                {oorsig.oudioDatum ? ` — ${oorsig.oudioDatum.toUpperCase()}` : ""}
+                <span aria-hidden className="ml-2 inline-block size-1.5 rounded-full bg-red align-middle" />
+              </p>
+              {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+              <audio controls preload="none" src={oorsig.oudioUrl} className="h-9 min-w-64 max-w-md flex-1" />
             </div>
           ) : null}
 
