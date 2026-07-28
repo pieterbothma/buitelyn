@@ -177,16 +177,17 @@ ${konsep.teks.slice(0, 4000)}`
   }
 }
 
-export async function stoorNuusbriefKonsep(teks: string): Promise<void> {
+export async function stoorNuusbriefKonsep(teks: string, datum?: string): Promise<void> {
   const sb = await supabaseServer();
   const {
     data: { user },
   } = await sb.auth.getUser();
   if (!user || !teks.trim()) return;
+  const doelDatum = datum && /^\d{4}-\d{2}-\d{2}$/.test(datum) ? datum : vandagSAST();
   await sb
     .from("nuusbrief_konsepte")
     .upsert(
-      { datum: vandagSAST(), teks, opgedateer_at: new Date().toISOString() },
+      { datum: doelDatum, teks, opgedateer_at: new Date().toISOString() },
       { onConflict: "datum" }
     );
   revalidatePath("/w/buitelyn/konsep");

@@ -8,7 +8,7 @@ import {
   type FotoIdee,
 } from "@/app/actions-nuusbrief";
 
-function FotoIdees({ bestaandeFotos }: { bestaandeFotos: string[] }) {
+function FotoIdees({ bestaandeFotos, aktief }: { bestaandeFotos: string[]; aktief: boolean }) {
   const [idees, setIdees] = useState<FotoIdee[]>([]);
   const [fotos, setFotos] = useState<string[]>(bestaandeFotos);
   const [eiePrompt, setEiePrompt] = useState("");
@@ -52,9 +52,13 @@ function FotoIdees({ bestaandeFotos }: { bestaandeFotos: string[] }) {
         <span aria-hidden className="size-2 rounded-full bg-red" />
       </h2>
       <p className="mt-1 max-w-lg text-sm text-ink/60">
-        Beeld-idees uit vandag se konsep — skep met een klik, of skryf jou eie prompt.
+        {aktief
+          ? "Beeld-idees uit vandag se konsep — skep met een klik, of skryf jou eie prompt."
+          : "Die dag se gegenereerde beelde."}
       </p>
 
+      {aktief ? (
+      <>
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <span className="flex border-2 border-ink">
           {[
@@ -121,6 +125,8 @@ function FotoIdees({ bestaandeFotos }: { bestaandeFotos: string[] }) {
           {besigMet === "eie" ? "Skep… (±30s)" : "Skep foto"}
         </button>
       </form>
+      </>
+      ) : null}
 
       {fotos.length > 0 ? (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -139,9 +145,13 @@ function FotoIdees({ bestaandeFotos }: { bestaandeFotos: string[] }) {
 export function KonsepStudio({
   aanvanklik,
   fotos = [],
+  datum,
+  isVandag = true,
 }: {
   aanvanklik: string;
   fotos?: string[];
+  datum?: string;
+  isVandag?: boolean;
 }) {
   const [teks, setTeks] = useState(aanvanklik);
   const [boodskap, setBoodskap] = useState<string | null>(null);
@@ -162,7 +172,7 @@ export function KonsepStudio({
 
   function stoor() {
     begin(async () => {
-      await stoorNuusbriefKonsep(teks);
+      await stoorNuusbriefKonsep(teks, datum);
       setBoodskap("Gestoor.");
     });
   }
@@ -175,13 +185,15 @@ export function KonsepStudio({
   return (
     <div>
       <div className="flex flex-wrap items-center gap-2">
-        <button
-          onClick={genereer}
-          disabled={besig}
-          className="h-11 bg-ink px-5 text-sm font-semibold text-offwhite hover:bg-ink/85 disabled:opacity-50"
-        >
-          {besig ? "Besig…" : teks ? "Genereer oor" : "Genereer vandag se konsep"}
-        </button>
+        {isVandag ? (
+          <button
+            onClick={genereer}
+            disabled={besig}
+            className="h-11 bg-ink px-5 text-sm font-semibold text-offwhite hover:bg-ink/85 disabled:opacity-50"
+          >
+            {besig ? "Besig…" : teks ? "Genereer oor" : "Genereer vandag se konsep"}
+          </button>
+        ) : null}
         {teks ? (
           <>
             <button
@@ -217,7 +229,7 @@ export function KonsepStudio({
         </p>
       )}
 
-      <FotoIdees bestaandeFotos={fotos} />
+      <FotoIdees bestaandeFotos={fotos} aktief={isVandag} />
     </div>
   );
 }
