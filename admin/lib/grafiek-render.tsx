@@ -56,9 +56,12 @@ function bouPlot(opsies: GrafiekOpsies) {
   const span = maks - min || 1;
   min -= span * 0.06;
   maks += span * 0.06;
-  // 4-5 mooi ruitlyne
-  const stap = (maks - min) / 4;
-  const ruite = [0, 1, 2, 3, 4].map((i) => maks - i * stap);
+  // Ruitlyne op mooi ronde waardes (1/2/5 × 10^n)
+  const rouStap = (maks - min) / 4.5;
+  const mag = Math.pow(10, Math.floor(Math.log10(rouStap)));
+  const stap = [1, 2, 5, 10].map((m) => m * mag).find((v) => v >= rouStap) ?? rouStap;
+  const ruite: number[] = [];
+  for (let v = Math.ceil(min / stap) * stap; v <= maks; v += stap) ruite.push(Math.round(v * 100) / 100);
   return { reekse, min, maks, ruite, persent };
 }
 
