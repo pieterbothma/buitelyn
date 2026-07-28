@@ -23,6 +23,7 @@ export async function POST(request: NextRequest) {
   const svcLees = supabaseService();
   const vorm = await request.formData().catch(() => null);
   const bron = String(vorm?.get("bron") ?? "briefing");
+  const formaat = String(vorm?.get("formaat") ?? "reels"); // reels (9:16) of vierkant
 
   // Klankbron: dagoorsig-briefing, jongste nuusbrief-audio, of eie oplaai
   let klank: Buffer;
@@ -60,15 +61,27 @@ export async function POST(request: NextRequest) {
     klank = Buffer.from(await klankRes.arrayBuffer());
   }
 
-  const { data: konsep } = await sb
-    .from("nuusbrief_konsepte")
-    .select("teks")
+  // Selfde kaartbron as die poskaarte: opgelaaide nuusbrief eerste, dan konsep
+  const { data: opgelaai } = await sb
+    .from("sosiaal_stukke")
+    .select("stukke")
     .eq("datum", datum)
     .maybeSingle();
-  const stuk = konsep?.teks
-    ? parseerKonsepStories(konsep.teks)[0]
-    : { kop: "Vandag op die markte", byskrif: "" };
-  const kaart = await renderKaartPng(stuk ?? { kop: "Vandag op die markte", byskrif: "" }, datum, false);
+  let stuk: { kop: string; byskrif: string } = { kop: "Vandag op die markte", byskrif: "" };
+  if (opgelaai?.stukke) {
+    const s0 = (opgelaai.stukke as { kop: string; opsomming: string }[])[0];
+    if (s0) stuk = { kop: s0.kop, byskrif: s0.opsomming };
+  } else {
+    const { data: konsep } = await sb
+      .from("nuusbrief_konsepte")
+      .select("teks")
+      .eq("datum", datum)
+      .maybeSingle();
+    const k = konsep?.teks ? parseerKonsepStories(konsep.teks)[0] : null;
+    if (k) stuk = { kop: k.kop, byskrif: "" };
+  }
+  const isReels = formaat !== "vierkant";
+  const kaart = await renderKaartPng(stuk, datum, isReels);
 
   let sandbox: Sandbox | null = null;
   try {
@@ -92,13 +105,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Reels: 1080x1920 — die 4:5-kaart op papier-agtergrond met golfvorm onder
+    const filter = isReels
+      ? "[0:v]scale=1080:1350,pad=1080:1920:0:220:color=0xF7F6F2[bg];[1:a]showwaves=s=952x170:mode=cline:colors=0xF03028:rate=25[w];[bg][w]overlay=64:1680:format=auto[v]"
+      : "[1:a]showwaves=s=952x140:mode=cline:colors=0xF03028:rate=25[w];[0:v]scale=1080:1080[bg];[bg][w]overlay=64:870:format=auto[v]";
     const render = await sandbox.runCommand({
       cmd: "./ffmpeg",
       args: [
         "-loop", "1", "-i", "kaart.png",
         "-i", "klank.mp3",
-        "-filter_complex",
-        "[1:a]showwaves=s=952x140:mode=cline:colors=0xF03028:rate=25[w];[0:v]scale=1080:1080[bg];[bg][w]overlay=64:870:format=auto[v]",
+        "-filter_complex", filter,
         "-map", "[v]", "-map", "1:a",
         "-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p",
         "-c:a", "aac", "-b:a", "128k",

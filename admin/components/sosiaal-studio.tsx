@@ -33,6 +33,7 @@ export function SosiaalStudio({
   const [eieFotos, setEieFotos] = useState<string[]>([]);
   const [videoBesig, setVideoBesig] = useState(false);
   const [videoBron, setVideoBron] = useState<"briefing" | "nuusbrief" | "oplaai">("briefing");
+  const [videoFormaat, setVideoFormaat] = useState<"reels" | "vierkant">("reels");
   const [videoLeer, setVideoLeer] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoFout, setVideoFout] = useState<string | null>(null);
@@ -92,6 +93,7 @@ export function SosiaalStudio({
     try {
       const vorm = new FormData();
       vorm.append("bron", videoBron);
+      vorm.append("formaat", videoFormaat);
       if (videoBron === "oplaai" && videoLeer) vorm.append("leer", videoLeer);
       const res = await fetch("/api/sosiaal/video", { method: "POST", body: vorm });
       const data = await res.json();
@@ -334,6 +336,22 @@ export function SosiaalStudio({
               onClick={() => setVideoBron(g.w)}
               className={`px-3 py-1.5 text-xs font-semibold ${
                 videoBron === g.w ? "bg-ink text-offwhite" : "bg-offwhite hover:bg-paper"
+              }`}
+            >
+              {g.n}
+            </button>
+          ))}
+        </span>
+        <span className="flex border-2 border-ink">
+          {([
+            { w: "reels", n: "Reels (9:16)" },
+            { w: "vierkant", n: "Vierkant (1:1)" },
+          ] as const).map((g) => (
+            <button
+              key={g.w}
+              onClick={() => setVideoFormaat(g.w)}
+              className={`px-3 py-1.5 text-xs font-semibold ${
+                videoFormaat === g.w ? "bg-ink text-offwhite" : "bg-offwhite hover:bg-paper"
               }`}
             >
               {g.n}
