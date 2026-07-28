@@ -46,19 +46,16 @@ export function NuusBord({
               {i.titel}
             </a>
             {i.opsomming ? (
-              <p className="mt-1 text-sm leading-relaxed text-ink/70">{i.opsomming}</p>
-            ) : null}
-            {onVra && i.vrae?.length ? (
-              <p className="mt-1.5 flex flex-wrap gap-2">
-                {i.vrae.slice(0, 2).map((v) => (
-                  <button
-                    key={v}
-                    onClick={() => onVra(v)}
-                    className="border border-ink/30 bg-paper px-2 py-1 text-xs font-semibold text-ink/70 hover:border-ink hover:bg-ink hover:text-offwhite"
-                  >
-                    {v}
-                  </button>
-                ))}
+              <p className="mt-1 text-sm leading-relaxed text-ink/70">
+                {i.opsomming}{" "}
+                <a
+                  href={i.skakel}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="whitespace-nowrap text-ink/40 underline underline-offset-2 hover:text-red"
+                >
+                  skakel →
+                </a>
               </p>
             ) : null}
           </li>
