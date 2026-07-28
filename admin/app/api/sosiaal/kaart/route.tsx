@@ -44,6 +44,6 @@ export async function GET(request: NextRequest) {
 
   const png = await renderKaartPng(stuk, datum, portret);
   return new Response(new Uint8Array(png), {
-    headers: { "content-type": "image/png", "cache-control": "private, max-age=300" },
+    headers: { "content-type": "image/png", "cache-control": "private, no-store" },
   });
 }

@@ -21,9 +21,10 @@ export default async function Sosiaal({ params }: { params: Promise<{ slug: stri
     new Date()
   );
   const [{ data: opgelaai }, { data: konsep }] = await Promise.all([
-    sb.from("sosiaal_stukke").select("stukke").eq("datum", datum).maybeSingle(),
-    sb.from("nuusbrief_konsepte").select("teks").eq("datum", datum).maybeSingle(),
+    sb.from("sosiaal_stukke").select("stukke, geskep_at").eq("datum", datum).maybeSingle(),
+    sb.from("nuusbrief_konsepte").select("teks, opgedateer_at").eq("datum", datum).maybeSingle(),
   ]);
+  const weergawe = new Date(opgelaai?.geskep_at ?? konsep?.opgedateer_at ?? 0).getTime();
   const stukke = opgelaai?.stukke
     ? (opgelaai.stukke as { kop: string; opsomming: string }[]).map((s) => ({
         kop: s.kop,
@@ -41,7 +42,7 @@ export default async function Sosiaal({ params }: { params: Promise<{ slug: stri
         video.
       </p>
       <div className="mt-6">
-        <SosiaalStudio datum={datum} stukke={stukke} />
+        <SosiaalStudio datum={datum} stukke={stukke} weergawe={weergawe} />
       </div>
     </Shell>
   );

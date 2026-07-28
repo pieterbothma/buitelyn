@@ -14,14 +14,17 @@ const PLATFORMS: { sleutel: keyof SosialeTekste; naam: string }[] = [
 export function SosiaalStudio({
   datum,
   stukke,
+  weergawe = 0,
 }: {
   datum: string;
   stukke: { kop: string; byskrif: string }[];
+  weergawe?: number;
 }) {
   const router = useRouter();
   const [vorm, setVorm] = useState<"vierkant" | "portret">("vierkant");
   const [oplaaiTeks, setOplaaiTeks] = useState("");
   const [oplaaiOop, setOplaaiOop] = useState(false);
+  const [oplaaiBoodskap, setOplaaiBoodskap] = useState<string | null>(null);
   const [eiePrompt, setEiePrompt] = useState("");
   const [eieLogo, setEieLogo] = useState<"ink" | "wit" | "geen">("ink");
   const [eieGrootte, setEieGrootte] = useState("1024x1024");
@@ -44,15 +47,16 @@ export function SosiaalStudio({
 
   function laaiOp() {
     if (!oplaaiTeks.trim()) return;
+    setOplaaiBoodskap(null);
     begin(async () => {
       const n = await laaiNuusbriefOp(oplaaiTeks);
       if (n > 0) {
-        setBoodskap(`${n} kaarte gemaak uit die nuusbrief.`);
+        setOplaaiBoodskap(`${n} kaarte gemaak — hulle verskyn nou hieronder.`);
         setOplaaiTeks("");
         setOplaaiOop(false);
         router.refresh();
       } else {
-        setBoodskap("Kon nie stukke onttrek nie — probeer weer.");
+        setOplaaiBoodskap("Kon nie stukke onttrek nie — probeer weer.");
       }
     });
   }
@@ -139,12 +143,15 @@ export function SosiaalStudio({
             </div>
           </div>
         ) : (
-          <button
-            onClick={() => setOplaaiOop(true)}
-            className="border-2 border-ink bg-offwhite px-4 py-2 text-sm font-semibold hover:bg-paper"
-          >
-            Laai vandag se Buitelyn op ↑
-          </button>
+          <span className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setOplaaiOop(true)}
+              className="border-2 border-ink bg-offwhite px-4 py-2 text-sm font-semibold hover:bg-paper"
+            >
+              Laai vandag se Buitelyn op ↑
+            </button>
+            {oplaaiBoodskap ? <span className="text-sm text-ink/60">{oplaaiBoodskap}</span> : null}
+          </span>
         )}
       </div>
       <div className="mt-3 flex border-2 border-ink self-start w-fit">
@@ -166,7 +173,7 @@ export function SosiaalStudio({
           {stukke.map((s, i) => (
             <a
               key={i}
-              href={`/api/sosiaal/kaart?datum=${datum}&i=${i}&vorm=${vorm}`}
+              href={`/api/sosiaal/kaart?datum=${datum}&i=${i}&vorm=${vorm}&v=${weergawe}`}
               target="_blank"
               rel="noopener noreferrer"
               className="group block border-2 border-ink"
@@ -174,7 +181,7 @@ export function SosiaalStudio({
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={`/api/sosiaal/kaart?datum=${datum}&i=${i}&vorm=${vorm}`}
+                src={`/api/sosiaal/kaart?datum=${datum}&i=${i}&vorm=${vorm}&v=${weergawe}`}
                 alt={s.kop}
                 className="w-full group-hover:opacity-90"
               />
