@@ -98,6 +98,8 @@ GRONDREËLS (absoluut — oortreding maak die hele konsep waardeloos):
 - Elke storie sluit af met die PRESIESE SKAKEL-URL van daardie item, verbatim, as 'n markdown-skakel: [bron](url). GEEN plekhouer-verwysings soos "[Lees meer hier: X]" nie.
 - Syfers kom SLEGS uit die nuuslys, die dagoorsig of die syfers-reël hieronder. As jy 'n syfer nie het nie, laat dit uit — moenie skat nie.
 - As daar minder as 3 sterk stories in die lys is, skryf minder stories; moenie opmaak om by 3 uit te kom nie.
+- Die ENIGSTE URL's wat in die konsep mag verskyn, is die SKAKEL-URL's uit die nuuslys en buitelyn.com/markte. Geen ander webtuistes, geen "voorbeeldskakels", geen algemene verwysings soos coinmarketcap nie.
+- Die "Syfers"-reël hieronder is agtergrond vir die markblokkie — dit is NIE 'n storie nie; moenie 'n storie daaruit bou nie.
 - Die Engelse frases in die stylgids is VOORBEELDE van die register — moenie hulle woordeliks kopieer nie; skryf jou eie waar dit natuurlik pas.
 
 Dagoorsig (agtergrond, moenie woordeliks kopieer nie): ${oorsig?.teks ?? "(nog nie beskikbaar nie)"}
@@ -111,11 +113,20 @@ Antwoord NET met die markdown-konsep.`
   );
   if (!teks) return null;
 
+  /* Meganiese naskou: enige URL wat nie uit die nuuslys (of ons eie blad)
+     kom nie, word sigbaar gemerk — prompt-reëls alleen hou nie. */
+  const toegelaat = new Set((nuus ?? []).map((n) => n.skakel));
+  const gemerk = teks.replace(/https?:\/\/[^\s)\]]+/g, (url) => {
+    const skoon = url.replace(/[.,;]+$/, "");
+    if (toegelaat.has(skoon) || skoon.includes("buitelyn.com")) return url;
+    return `${url} ⚠️VERDAGTE-SKAKEL — nie uit die nuuslys nie, verwyder voor publikasie`;
+  });
+
   await sb
     .from("nuusbrief_konsepte")
-    .upsert({ datum, teks, opgedateer_at: new Date().toISOString() }, { onConflict: "datum" });
+    .upsert({ datum, teks: gemerk, opgedateer_at: new Date().toISOString() }, { onConflict: "datum" });
   revalidatePath("/w/buitelyn/konsep");
-  return teks;
+  return gemerk;
 }
 
 export type FotoIdee = { beskrywing: string; prompt: string };
