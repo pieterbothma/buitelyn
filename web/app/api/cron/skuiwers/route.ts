@@ -18,13 +18,6 @@ function htmlOntsnap(t: string): string {
   return t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-function skakelsNaHtml(t: string): string {
-  return htmlOntsnap(t).replace(
-    /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
-    (_, naam: string, url: string) => `<a href="${url}">${naam}</a>`
-  );
-}
-
 export async function GET(request: NextRequest) {
   if (request.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ fout: "nee" }, { status: 401 });
@@ -88,20 +81,28 @@ export async function GET(request: NextRequest) {
       .not("chat_id", "is", null)
       .eq("skuiwers", true);
     if (intekenare?.length) {
-      const simbole = geskryf.map((n) => n.simbool);
+      const simbole = skuiwers.map((k) => k.simbool);
       const [{ data: houdings }, { data: dop }] = await Promise.all([
         sb.from("portefeuljes").select("user_id, simbool").in("simbool", simbole),
         sb.from("dophou").select("user_id, simbool").in("simbool", simbole),
       ]);
       const eie = new Set([...(houdings ?? []), ...(dop ?? [])].map((r) => `${r.user_id}:${r.simbool}`));
 
+      // Kompakte lys (Piet se keuse): die hele dag se skuiwers, gegroepeer —
+      // die KI-notas leef op die Bewegers-oortjie, nie in die boodskap nie.
+      const wenners = skuiwers.filter((k) => k.deltaPersent! > 0);
+      const verloorders = skuiwers.filter((k) => k.deltaPersent! < 0);
+      const reel = (k: (typeof skuiwers)[number], eieMerk: boolean) =>
+        `${k.deltaPersent! >= 0 ? "▲" : "▼"} ${htmlOntsnap(bewegersNaam(k.simbool))} ${k.deltaPersent! >= 0 ? "+" : "−"}${Math.abs(k.deltaPersent!).toFixed(2).replace(".", ",")}%${eieMerk ? " ⭐" : ""}`;
       for (const g of intekenare) {
-        const reels = geskryf.map((n) => {
-          const merk = eie.has(`${g.user_id}:${n.simbool}`) ? " ⭐" : "";
-          const pyl = n.delta >= 0 ? "▲ +" : "▼ −";
-          return `<b>${htmlOntsnap(n.naam)}</b> ${pyl}${Math.abs(n.delta).toFixed(2).replace(".", ",")}%${merk}\n${skakelsNaHtml(n.nota)}`;
-        });
-        const boodskap = [`🔴 <b>Groot skuiwers op die JSE</b>`, "", reels.join("\n\n"), "", "buitelyn.com/markte?blad=bewegers · ±15 min vertraag"].join("\n");
+        const blokke: string[] = [];
+        if (wenners.length) {
+          blokke.push(`<b>Grootste Wenners</b>\n${wenners.map((k) => reel(k, eie.has(`${g.user_id}:${k.simbool}`))).join("\n")}`);
+        }
+        if (verloorders.length) {
+          blokke.push(`<b>Grootste Verloorders</b>\n${verloorders.map((k) => reel(k, eie.has(`${g.user_id}:${k.simbool}`))).join("\n")}`);
+        }
+        const boodskap = [`🔴 <b>Groot skuiwers op die JSE</b>`, "", blokke.join("\n\n"), "", "Die hoekom: buitelyn.com/markte?blad=bewegers · ±15 min vertraag"].join("\n");
         const res = await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
           method: "POST",
           headers: { "content-type": "application/json" },
