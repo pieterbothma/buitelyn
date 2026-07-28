@@ -31,10 +31,15 @@ function formateerWaarde(v: number, geld?: string): string {
   return `${teken}${n}`;
 }
 
-function asDatum(t: number): string {
-  return new Intl.DateTimeFormat("af-ZA", { timeZone: "Africa/Johannesburg", month: "short", year: "2-digit" }).format(
-    new Date(t * 1000)
-  );
+/* Etiket-formaat volg die reeks se spanwydte: intradag → tyd, weke → dag, anders maand. */
+function asDatum(t: number, spanSekondes: number): string {
+  const opsies: Intl.DateTimeFormatOptions =
+    spanSekondes <= 3 * 86400
+      ? { hour: "2-digit", minute: "2-digit" }
+      : spanSekondes <= 200 * 86400
+        ? { day: "numeric", month: "short" }
+        : { month: "short", year: "2-digit" };
+  return new Intl.DateTimeFormat("af-ZA", { timeZone: "Africa/Johannesburg", ...opsies }).format(new Date(t * 1000));
 }
 
 /** Bou plot-data: genormaliseerde (of rou) reekse, y-domein, ruitlyn-waardes. */
@@ -127,10 +132,11 @@ export async function renderGrafiekPng(opsies: GrafiekOpsies): Promise<Buffer> {
   } else {
     const { reekse, min, maks, ruite, persent } = bouPlot(opsies);
     const eerste = opsies.reekse[0]?.punte ?? [];
+    const span = eerste.length > 1 ? eerste[eerste.length - 1].t - eerste[0].t : 0;
     const xEtikette = [0, 0.25, 0.5, 0.75, 1]
       .map((f) => eerste[Math.round(f * (eerste.length - 1))])
       .filter(Boolean)
-      .map((p) => asDatum(p.t));
+      .map((p) => asDatum(p.t, span));
     const nulY = persent ? plotH - ((0 - min) / (maks - min)) * plotH : null;
     inhoud = (
       <div style={{ display: "flex", flexDirection: "column", width: plotW }}>

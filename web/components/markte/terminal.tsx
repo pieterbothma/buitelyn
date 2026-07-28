@@ -37,6 +37,7 @@ function Sparkline({ reeks }: { reeks: ReeksPunt[] }) {
 export function MarkteTerminal({ aanvanklik, nuus = [] }: { aanvanklik: Kwotasie[]; nuus?: NuusItem[] }) {
   const [kwotasies, setKwotasies] = useState<Kwotasie[]>(aanvanklik);
   const [oopRy, setOopRy] = useState<string | null>(null);
+  const [ryReeks, setRyReeks] = useState<Record<string, string>>({});
   const [reekse, setReekse] = useState<Record<string, ReeksPunt[]>>({});
   const [portefeulje, setPortefeulje] = useState<Belegging[]>([]);
   const [dophouSimbole, setDophouSimbole] = useState<string[]>([]);
@@ -70,22 +71,31 @@ export function MarkteTerminal({ aanvanklik, nuus = [] }: { aanvanklik: Kwotasie
 
   const kaart = useMemo(() => new Map(kwotasies.map((k) => [k.simbool, k])), [kwotasies]);
 
-  const kliekRy = useCallback(
-    async (simbool: string) => {
-      setOopRy((huidig) => (huidig === simbool ? null : simbool));
-      if (!reekse[simbool]) {
-        try {
-          const res = await fetch(`/api/markte/series?simbool=${encodeURIComponent(simbool)}`);
-          if (res.ok) {
-            const { reeks } = await res.json();
-            setReekse((r) => ({ ...r, [simbool]: reeks }));
-          }
-        } catch {
-          /* ignoreer */
+  const laaiReeks = useCallback(
+    async (simbool: string, range: string) => {
+      const sleutel = `${simbool}:${range}`;
+      if (reekse[sleutel]) return;
+      try {
+        const res = await fetch(
+          `/api/markte/series?simbool=${encodeURIComponent(simbool)}&reeks=${range}`
+        );
+        if (res.ok) {
+          const { reeks } = await res.json();
+          setReekse((r) => ({ ...r, [sleutel]: reeks }));
         }
+      } catch {
+        /* ignoreer */
       }
     },
     [reekse]
+  );
+
+  const kliekRy = useCallback(
+    (simbool: string) => {
+      setOopRy((huidig) => (huidig === simbool ? null : simbool));
+      laaiReeks(simbool, ryReeks[simbool] ?? "1mo");
+    },
+    [laaiReeks, ryReeks]
   );
 
   const jseKwotasies = BORDE[0].items
@@ -169,8 +179,37 @@ export function MarkteTerminal({ aanvanklik, nuus = [] }: { aanvanklik: Kwotasie
                     </button>
                     {oop ? (
                       <div className="border-t border-ink/10 px-4 pb-3">
-                        <p className="flex items-baseline justify-between pt-2 text-[11px] tracking-[0.14em] text-ink/50">
-                          AFGELOPE MAAND
+                        <p className="flex flex-wrap items-center justify-between gap-2 pt-2 text-[11px] tracking-[0.14em] text-ink/50">
+                          <span className="flex items-center gap-2">
+                            <span className="flex border border-ink/30">
+                              {[
+                                { w: "1d", n: "1D" },
+                                { w: "1mo", n: "1M" },
+                                { w: "1y", n: "1J" },
+                              ].map((r) => {
+                                const aktief = (ryReeks[item.simbool] ?? "1mo") === r.w;
+                                return (
+                                  <button
+                                    key={r.w}
+                                    onClick={() => {
+                                      setRyReeks((v) => ({ ...v, [item.simbool]: r.w }));
+                                      laaiReeks(item.simbool, r.w);
+                                    }}
+                                    className={`px-2 py-0.5 text-[11px] font-semibold tracking-normal ${
+                                      aktief ? "bg-ink text-offwhite" : "hover:bg-paper"
+                                    }`}
+                                  >
+                                    {r.n}
+                                  </button>
+                                );
+                              })}
+                            </span>
+                            {(ryReeks[item.simbool] ?? "1mo") === "1d"
+                              ? "VANDAG"
+                              : (ryReeks[item.simbool] ?? "1mo") === "1y"
+                                ? "AFGELOPE JAAR"
+                                : "AFGELOPE MAAND"}
+                          </span>
                           <button
                             onClick={() =>
                               vraChat(`Wat gaan aan met ${item.naam} (${item.simbool}) — hoe lyk vandag en die afgelope maand?`)
@@ -180,8 +219,8 @@ export function MarkteTerminal({ aanvanklik, nuus = [] }: { aanvanklik: Kwotasie
                             Vra Buitelyn oor {item.naam} →
                           </button>
                         </p>
-                        {reekse[item.simbool] ? (
-                          <Sparkline reeks={reekse[item.simbool]} />
+                        {reekse[`${item.simbool}:${ryReeks[item.simbool] ?? "1mo"}`] ? (
+                          <Sparkline reeks={reekse[`${item.simbool}:${ryReeks[item.simbool] ?? "1mo"}`]} />
                         ) : (
                           <p className="py-4 text-xs text-ink/50">Laai…</p>
                         )}

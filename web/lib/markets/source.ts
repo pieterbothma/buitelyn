@@ -109,9 +109,10 @@ export async function getQuotes(simbole: string[], revalidate = 60): Promise<Kwo
   return simbole.map((s) => uit.get(s)).filter((k): k is Kwotasie => Boolean(k));
 }
 
-export type ReeksRange = "5d" | "1mo" | "6mo" | "ytd" | "1y" | "5y" | "max";
+export type ReeksRange = "1d" | "5d" | "1mo" | "6mo" | "ytd" | "1y" | "5y" | "max";
 
 const REEKS_INTERVAL: Record<ReeksRange, string> = {
+  "1d": "5m",
   "5d": "30m",
   "1mo": "1d",
   "6mo": "1d",

@@ -5,9 +5,10 @@ import { renderGrafiekPng, type GrafiekReeks, type GrafiekTipe } from "@/lib/gra
 
 export const maxDuration = 60;
 
-const RANGES = new Set(["5d", "1mo", "6mo", "ytd", "1y", "5y", "max"]);
+const RANGES = new Set(["1d", "5d", "1mo", "6mo", "ytd", "1y", "5y", "max"]);
 const TIPES = new Set(["vergelyking", "enkel", "staaf"]);
 const RANGE_NAAM: Record<string, string> = {
+  "1d": "vandag",
   "5d": "laaste 5 dae",
   "1mo": "laaste maand",
   "6mo": "laaste 6 maande",

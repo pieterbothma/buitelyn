@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getSeries, type ReeksRange } from "@/lib/markets/source";
 import { isGeldigeSimbool } from "@/lib/markets/boards";
 
-const RANGES = new Set(["5d", "1mo", "6mo", "ytd", "1y", "5y", "max"]);
+const RANGES = new Set(["1d", "5d", "1mo", "6mo", "ytd", "1y", "5y", "max"]);
 
 export async function GET(request: NextRequest) {
   const simbool = (request.nextUrl.searchParams.get("simbool") ?? "").toUpperCase();

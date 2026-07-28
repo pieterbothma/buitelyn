@@ -10,6 +10,7 @@ const TIPES = [
   { w: "staaf", n: "Staafgrafiek" },
 ] as const;
 const REEKSE = [
+  { w: "1d", n: "1D" },
   { w: "1mo", n: "1M" },
   { w: "6mo", n: "6M" },
   { w: "ytd", n: "YTD" },
