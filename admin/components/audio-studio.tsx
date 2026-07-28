@@ -24,6 +24,14 @@ export function AudioStudio({ posts }: { posts: Pos[] }) {
       }
     });
   }
+
+  function verwerkGekose() {
+    if (!teks.trim()) return;
+    beginVerwerk(async () => {
+      const skoon = await verwerkTeksVirAudio(teks);
+      if (skoon) setTeks(skoon);
+    });
+  }
   const [status, setStatus] = useState<"idle" | "besig" | "klaar" | "fout">("idle");
   const [mp3, setMp3] = useState<string | null>(null);
   const [fout, setFout] = useState("");
@@ -104,10 +112,17 @@ export function AudioStudio({ posts }: { posts: Pos[] }) {
               rows={16}
               className="mt-3 w-full border-2 border-ink bg-paper px-3 py-2 text-sm outline-none focus:border-red"
             />
-            <div className="mt-3 flex items-center gap-4">
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <button
+                onClick={verwerkGekose}
+                disabled={verwerkBesig || status === "besig"}
+                className="border-2 border-ink bg-offwhite px-4 py-2 text-sm font-semibold hover:bg-paper disabled:opacity-50"
+              >
+                {verwerkBesig ? "Verwerk…" : "Verwerk teks vir Audio"}
+              </button>
               <button
                 onClick={genereer}
-                disabled={status === "besig"}
+                disabled={status === "besig" || verwerkBesig}
                 className="bg-ink px-6 py-2.5 text-sm font-semibold text-offwhite hover:bg-ink/85 disabled:opacity-50"
               >
                 {status === "besig" ? "Genereer… (kan 'n minuut vat)" : "Genereer audio →"}
