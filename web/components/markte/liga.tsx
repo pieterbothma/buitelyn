@@ -36,7 +36,7 @@ export function LigaBord({ profielNaam }: { profielNaam: string }) {
     laai();
   }, [laai]);
 
-  if (ek === undefined) return <p className="py-8 text-sm text-ink/50">Laai die Liga…</p>;
+  if (ek === undefined) return <p className="py-8 text-sm text-ink/50">Laai die Beursliga…</p>;
   if (ek === null) return <SluitAan profielNaam={profielNaam} klaar={laai} />;
 
   return (
@@ -90,7 +90,7 @@ function SluitAan({ profielNaam, klaar }: { profielNaam: string; klaar: () => vo
   return (
     <div className="max-w-xl border-2 border-ink bg-offwhite p-6">
       <p className="text-xs font-semibold tracking-[0.16em]">
-        SLUIT AAN BY DIE BUITELYN LIGA
+        SLUIT AAN BY DIE BEURSLIGA
         <span aria-hidden className="ml-2 inline-block size-1.5 rounded-full bg-red align-middle" />
       </p>
       <p className="mt-2 text-sm leading-relaxed text-ink/70">
@@ -210,7 +210,7 @@ function Portefeulje({
     <section className="border-2 border-ink bg-offwhite">
       <h2 className="flex items-baseline justify-between border-b-2 border-ink px-4 py-2 text-xs font-semibold tracking-[0.16em]">
         <span>
-          MY LIGA-PORTEFEULJE <span className="ml-1 text-red">{nr(ek.nommer)}</span>
+          MY BEURSLIGA-PORTEFEULJE <span className="ml-1 text-red">{nr(ek.nommer)}</span>
         </span>
         <span className="font-bold normal-case tracking-normal">R {fmtR.format(waarde)}</span>
       </h2>

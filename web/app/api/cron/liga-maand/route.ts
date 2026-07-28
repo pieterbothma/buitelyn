@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           chat_id: g.chat_id,
-          text: `🏆 <b>Buitelyn Liga — ${maandNaam} se wenner</b>\n\n#${String(wenner.nommer).padStart(2, "0")} ${wenner.naam} met ${wenner.opbrengs_persent >= 0 ? "+" : ""}${wenner.opbrengs_persent.toFixed(2).replace(".", ",")}%!\n\nNuwe rondte het begin — almal weer op R100 000: buitelyn.com/markte?blad=liga`,
+          text: `🏆 <b>Buitelyn Beursliga — ${maandNaam} se wenner</b>\n\n#${String(wenner.nommer).padStart(2, "0")} ${wenner.naam} met ${wenner.opbrengs_persent >= 0 ? "+" : ""}${wenner.opbrengs_persent.toFixed(2).replace(".", ",")}%!\n\nNuwe rondte het begin — almal weer op R100 000: buitelyn.com/markte?blad=liga`,
           parse_mode: "HTML",
           disable_web_page_preview: true,
         }),

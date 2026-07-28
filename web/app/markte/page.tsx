@@ -104,7 +104,7 @@ async function kryOorsig(): Promise<{
 const TABS = [
   { sleutel: "tuis", naam: "Tuis" },
   { sleutel: "bewegers", naam: "Bewegers" },
-  { sleutel: "liga", naam: "Liga" },
+  { sleutel: "liga", naam: "Beursliga" },
   { sleutel: "sens", naam: "SENS" },
   { sleutel: "telegram", naam: "Telegram" },
 ] as const;

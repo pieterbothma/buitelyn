@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
       .single();
     if (error) {
       return NextResponse.json(
-        { fout: error.code === "23505" ? "jy is reeds in die Liga" : error.message },
+        { fout: error.code === "23505" ? "jy is reeds in die Beursliga" : error.message },
         { status: 400 }
       );
     }
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
   const aantal = Math.floor(Number(body.aantal) || 0);
   if (body.aksie === "koop" || body.aksie === "verkoop") {
     if (!simbool.endsWith(".JO") || !isGeldigeSimbool(simbool)) {
-      return NextResponse.json({ fout: "net JSE-aandele (.JO) in die Liga" }, { status: 400 });
+      return NextResponse.json({ fout: "net JSE-aandele (.JO) in die Beursliga" }, { status: 400 });
     }
     if (aantal < 1) return NextResponse.json({ fout: "ongeldige aantal" }, { status: 400 });
     const { data: speler } = await sb.from("liga_spelers").select("kontant").eq("user_id", user.id).maybeSingle();

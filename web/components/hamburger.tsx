@@ -77,7 +77,7 @@ function Ikoon({ naam }: { naam: string }) {
 const SKAKELS: { naam: string; href: string; ikoon: string; sub?: boolean; ekstern?: boolean }[] = [
   { naam: "Markte", href: "/markte", ikoon: "markte" },
   { naam: "Bewegers", href: "/markte?blad=bewegers", ikoon: "bewegers", sub: true },
-  { naam: "Liga", href: "/markte?blad=liga", ikoon: "liga", sub: true },
+  { naam: "Beursliga", href: "/markte?blad=liga", ikoon: "liga", sub: true },
   { naam: "SENS", href: "/markte?blad=sens", ikoon: "sens", sub: true },
   { naam: "Telegram", href: "/markte?blad=telegram", ikoon: "telegram", sub: true },
   { naam: "Winkel", href: "https://buitelyn-shop.fourthwall.com/", ikoon: "winkel", ekstern: true },

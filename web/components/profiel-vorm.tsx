@@ -111,7 +111,7 @@ export function ProfielVorm({
       </form>
 
       <p className="mt-6 border-t border-ink/15 pt-4 text-xs text-ink/50">
-        Jou naam en foto verskyn in die Markte-groet en op die Liga-ranglys. Jou portefeulje is
+        Jou naam en foto verskyn in die Markte-groet en op die Beursliga-ranglys. Jou portefeulje is
         aan hierdie rekening gekoppel. Klik die foto om dit te verander (JPG/PNG, maks 3 MB).
       </p>
     </div>
