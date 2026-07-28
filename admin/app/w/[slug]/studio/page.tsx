@@ -23,6 +23,11 @@ const GEREEDSKAP = [
     naam: "Sosiale Media",
     wat: "Vandag se nuusbrief as plasings: branded poskaarte, platform-tekste, en binnekort video met audio.",
   },
+  {
+    pad: "grafiek",
+    naam: "Grafiek-bouer",
+    wat: "Publikasie-gereed grafieke: vergelyk aandele (%), prys oor tyd, of staaf 'n periode se wenners — in Buitelyn se raam.",
+  },
 ];
 
 export default async function Studio({ params }: { params: Promise<{ slug: string }> }) {
