@@ -60,7 +60,15 @@ export function MarkteTerminal({ aanvanklik, nuus = [] }: { aanvanklik: Kwotasie
     const haal = async () => {
       try {
         const res = await fetch(url);
-        if (res.ok) setKwotasies((await res.json()).kwotasies);
+        if (res.ok) {
+          const nuwe = (await res.json()).kwotasies as Kwotasie[];
+          // voeg oor die oues: 'n simbool wat een haal mis (Yahoo-hik) hou sy laaste prys
+          setKwotasies((oud) => {
+            const kaart = new Map(oud.map((k) => [k.simbool, k]));
+            for (const k of nuwe) kaart.set(k.simbool, k);
+            return [...kaart.values()];
+          });
+        }
       } catch {
         /* volgende keer weer */
       }

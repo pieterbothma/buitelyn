@@ -50,12 +50,15 @@ function metaNaKwotasie(simbool: string, meta: any): Kwotasie | null {
 }
 
 async function yahooKwotasie(simbool: string, revalidate: number): Promise<Kwotasie | null> {
+  const url = `${YAHOO}/${encodeURIComponent(simbool)}?range=1d&interval=5m`;
   try {
-    const res = await fetch(
-      `${YAHOO}/${encodeURIComponent(simbool)}?range=1d&interval=5m`,
-      { headers: UA, next: { revalidate } }
-    );
-    if (!res.ok) return null;
+    let res = await fetch(url, { headers: UA, next: { revalidate } });
+    if (!res.ok) {
+      /* Yahoo 429/5xx is verbygaande én die mislukte antwoord kan in die
+         fetch-kas vassteek — een vars herprobeer sonder kas. */
+      res = await fetch(url, { headers: UA, cache: "no-store" });
+      if (!res.ok) return null;
+    }
     const data = await res.json();
     return metaNaKwotasie(simbool, data?.chart?.result?.[0]?.meta);
   } catch {
