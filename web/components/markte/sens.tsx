@@ -55,30 +55,29 @@ export function SensBord({ items, eieSimbole }: { items: SensItem[]; eieSimbole:
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="flex flex-wrap border-2 border-ink bg-offwhite">
-          {tipes.map((t) => (
-            <button
-              key={t}
-              onClick={() => setTipe(t)}
-              className={`border-r border-ink/20 px-3 py-1.5 text-xs font-semibold tracking-[0.08em] last:border-r-0 ${
-                tipe === t ? "bg-ink text-offwhite" : "hover:bg-paper"
-              }`}
-            >
-              {t === "alles" ? "ALLES" : TIPE_NAME[t].toUpperCase()}
-            </button>
-          ))}
-        </div>
+      {/* Een horisontaal-rolbare strook los pille — geen geknelde wikkel-boks op mobiel nie */}
+      <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {eieSimbole.length ? (
           <button
             onClick={() => setNetMyne(!netMyne)}
-            className={`border-2 border-ink px-3 py-1.5 text-xs font-semibold tracking-[0.08em] ${
-              netMyne ? "bg-red text-offwhite border-red" : "bg-offwhite hover:bg-paper"
+            className={`shrink-0 whitespace-nowrap border-2 px-3 py-1.5 text-xs font-semibold tracking-[0.08em] ${
+              netMyne ? "border-red bg-red text-offwhite" : "border-ink bg-offwhite hover:bg-paper"
             }`}
           >
-            ⭐ NET MYNE
+            ⭐ MYNE
           </button>
         ) : null}
+        {tipes.map((t) => (
+          <button
+            key={t}
+            onClick={() => setTipe(t)}
+            className={`shrink-0 whitespace-nowrap border-2 border-ink px-3 py-1.5 text-xs font-semibold tracking-[0.08em] ${
+              tipe === t ? "bg-ink text-offwhite" : "bg-offwhite hover:bg-paper"
+            }`}
+          >
+            {t === "alles" ? "ALLES" : TIPE_NAME[t].toUpperCase()}
+          </button>
+        ))}
       </div>
 
       <div className="mt-4 border-2 border-ink bg-offwhite">
@@ -119,7 +118,7 @@ export function SensBord({ items, eieSimbole }: { items: SensItem[]; eieSimbole:
                       rel="noreferrer"
                       className="whitespace-nowrap text-ink/40 underline underline-offset-2 hover:text-red"
                     >
-                      volteks →
+                      skakel →
                     </a>
                   </p>
                 </div>
