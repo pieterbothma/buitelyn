@@ -18,11 +18,21 @@ export async function skepNuusbriefKonsep(): Promise<string | null> {
   if (!user) return null;
 
   const datum = vandagSAST();
+  /* Varsheid: net stories uit die laaste 18 uur — behalwe Maandae, wanneer
+     18u net tot Sondagmiddag strek (dooie nuusdag); dan dek ons die naweek
+     terug tot Vrydag met 72u. */
+  const dagSAST = new Date(
+    new Date().toLocaleString("en-US", { timeZone: "Africa/Johannesburg" })
+  ).getDay();
+  const vensterUre = dagSAST === 1 ? 72 : 18;
+  const drempel = new Date(Date.now() - vensterUre * 60 * 60 * 1000).toISOString();
+
   const [{ data: oorsig }, { data: nuus }] = await Promise.all([
     sb.from("markte_oorsigte").select("teks").eq("datum", datum).maybeSingle(),
     sb
       .from("markte_nuus")
       .select("titel_af, opsomming, bron, skakel, gepubliseer")
+      .gte("gepubliseer", drempel)
       .order("gepubliseer", { ascending: false })
       .limit(8),
   ]);
