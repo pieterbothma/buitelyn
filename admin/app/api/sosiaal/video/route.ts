@@ -21,22 +21,54 @@ export async function POST(request: NextRequest) {
     new Date()
   );
   const svcLees = supabaseService();
-  const [{ data: konsep }, { data: oorsig }] = await Promise.all([
-    sb.from("nuusbrief_konsepte").select("teks").eq("datum", datum).maybeSingle(),
-    // markte_oorsigte is service-role-only (web-app se tabel)
-    svcLees.from("markte_oorsigte").select("oudio_url").eq("datum", datum).maybeSingle(),
-  ]);
-  if (!oorsig?.oudio_url)
-    return NextResponse.json({ fout: "geen briefing-audio vir vandag nie" }, { status: 404 });
+  const vorm = await request.formData().catch(() => null);
+  const bron = String(vorm?.get("bron") ?? "briefing");
 
+  // Klankbron: dagoorsig-briefing, jongste nuusbrief-audio, of eie oplaai
+  let klank: Buffer;
+  if (bron === "oplaai") {
+    const leer = vorm?.get("leer") as File | null;
+    if (!leer || leer.size === 0)
+      return NextResponse.json({ fout: "geen audio-lêer opgelaai nie" }, { status: 400 });
+    if (leer.size > 20_000_000)
+      return NextResponse.json({ fout: "lêer te groot (>20MB)" }, { status: 400 });
+    klank = Buffer.from(await leer.arrayBuffer());
+  } else if (bron === "nuusbrief") {
+    const { data: ep } = await sb
+      .from("audio_episodes")
+      .select("mp3_path")
+      .order("geskep_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!ep?.mp3_path)
+      return NextResponse.json({ fout: "geen nuusbrief-audio nie — genereer eers een" }, { status: 404 });
+    const { data: af, error: afFout } = await svcLees.storage
+      .from("audio-episodes")
+      .download(ep.mp3_path);
+    if (afFout || !af) return NextResponse.json({ fout: "kon nie episode haal nie" }, { status: 502 });
+    klank = Buffer.from(await af.arrayBuffer());
+  } else {
+    const { data: oorsig } = await svcLees
+      .from("markte_oorsigte")
+      .select("oudio_url")
+      .eq("datum", datum)
+      .maybeSingle();
+    if (!oorsig?.oudio_url)
+      return NextResponse.json({ fout: "geen briefing-audio vir vandag nie" }, { status: 404 });
+    const klankRes = await fetch(oorsig.oudio_url);
+    if (!klankRes.ok) return NextResponse.json({ fout: "kon nie audio haal nie" }, { status: 502 });
+    klank = Buffer.from(await klankRes.arrayBuffer());
+  }
+
+  const { data: konsep } = await sb
+    .from("nuusbrief_konsepte")
+    .select("teks")
+    .eq("datum", datum)
+    .maybeSingle();
   const stuk = konsep?.teks
     ? parseerKonsepStories(konsep.teks)[0]
     : { kop: "Vandag op die markte", byskrif: "" };
   const kaart = await renderKaartPng(stuk ?? { kop: "Vandag op die markte", byskrif: "" }, datum, false);
-
-  const klankRes = await fetch(oorsig.oudio_url);
-  if (!klankRes.ok) return NextResponse.json({ fout: "kon nie audio haal nie" }, { status: 502 });
-  const klank = Buffer.from(await klankRes.arrayBuffer());
 
   let sandbox: Sandbox | null = null;
   try {

@@ -31,6 +31,8 @@ export function SosiaalStudio({
   const [eieBesig, setEieBesig] = useState(false);
   const [eieFotos, setEieFotos] = useState<string[]>([]);
   const [videoBesig, setVideoBesig] = useState(false);
+  const [videoBron, setVideoBron] = useState<"briefing" | "nuusbrief" | "oplaai">("briefing");
+  const [videoLeer, setVideoLeer] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoFout, setVideoFout] = useState<string | null>(null);
   const [tekste, setTekste] = useState<SosialeTekste | null>(null);
@@ -87,7 +89,10 @@ export function SosiaalStudio({
     setVideoBesig(true);
     setVideoFout(null);
     try {
-      const res = await fetch("/api/sosiaal/video", { method: "POST" });
+      const vorm = new FormData();
+      vorm.append("bron", videoBron);
+      if (videoBron === "oplaai" && videoLeer) vorm.append("leer", videoLeer);
+      const res = await fetch("/api/sosiaal/video", { method: "POST", body: vorm });
       const data = await res.json();
       if (res.ok) setVideoUrl(data.url);
       else setVideoFout(data.fout ?? "Render het misluk.");
@@ -307,10 +312,40 @@ export function SosiaalStudio({
         Die dag se briefing-audio oor die voorbladkaart met 'n golfvorm — gerender in 'n
         Vercel Sandbox.
       </p>
-      <div className="mt-3 flex flex-wrap items-center gap-3">
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <span className="flex border-2 border-ink">
+          {([
+            { w: "briefing", n: "Dagoorsig" },
+            { w: "nuusbrief", n: "Nuusbrief-audio" },
+            { w: "oplaai", n: "Laai audio op" },
+          ] as const).map((g) => (
+            <button
+              key={g.w}
+              onClick={() => setVideoBron(g.w)}
+              className={`px-3 py-1.5 text-xs font-semibold ${
+                videoBron === g.w ? "bg-ink text-offwhite" : "bg-offwhite hover:bg-paper"
+              }`}
+            >
+              {g.n}
+            </button>
+          ))}
+        </span>
+        {videoBron === "oplaai" ? (
+          <label className="cursor-pointer border-2 border-dashed border-ink bg-offwhite px-3 py-1.5 text-xs font-semibold hover:bg-paper">
+            {videoLeer ? videoLeer.name.slice(0, 30) : "Kies MP3…"}
+            <input
+              type="file"
+              accept="audio/*"
+              className="hidden"
+              onChange={(e) => setVideoLeer(e.target.files?.[0] ?? null)}
+            />
+          </label>
+        ) : null}
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-3">
         <button
           onClick={renderVideo}
-          disabled={videoBesig}
+          disabled={videoBesig || (videoBron === "oplaai" && !videoLeer)}
           className="h-11 bg-ink px-5 text-sm font-semibold text-offwhite hover:bg-ink/85 disabled:opacity-50"
         >
           {videoBesig ? "Render… (±2 min)" : "Render audiogram →"}
