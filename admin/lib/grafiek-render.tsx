@@ -222,15 +222,17 @@ export async function renderGrafiekPng(opsies: GrafiekOpsies): Promise<Buffer> {
         }}
       >
         <div style={{ display: "flex", flexDirection: "column", flex: 1, border: "6px solid #1A1A1A", backgroundColor: "#F7F6F2", padding: "36px 44px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ display: "flex", fontSize: 32, fontWeight: 700, letterSpacing: 4 }}>BUITELYN</div>
-            <div style={{ display: "flex", width: 28, height: 28, borderRadius: 999, backgroundColor: "#F03028" }} />
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", marginTop: 14, gap: 6 }}>
-            <div style={{ display: "flex", fontSize: 52, fontWeight: 700, lineHeight: 1.05 }}>{opsies.opskrif}</div>
-            {opsies.subtitel ? (
-              <div style={{ display: "flex", fontSize: 26, fontWeight: 500, color: "#575652" }}>{opsies.subtitel}</div>
-            ) : null}
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div style={{ display: "flex", fontSize: 52, fontWeight: 700, lineHeight: 1.05 }}>{opsies.opskrif}</div>
+              {opsies.subtitel ? (
+                <div style={{ display: "flex", fontSize: 26, fontWeight: 500, color: "#575652" }}>{opsies.subtitel}</div>
+              ) : null}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <div style={{ display: "flex", fontSize: 32, fontWeight: 700, letterSpacing: 4 }}>BUITELYN</div>
+              <div style={{ display: "flex", width: 28, height: 28, borderRadius: 999, backgroundColor: "#F03028" }} />
+            </div>
           </div>
           <div style={{ display: "flex", flex: 1, alignItems: "center", justifyContent: "center", marginTop: 10 }}>{inhoud}</div>
           {legende ? <div style={{ display: "flex", marginTop: 8 }}>{legende}</div> : null}
