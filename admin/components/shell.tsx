@@ -42,7 +42,7 @@ export function Shell({
             href="/epos"
             className="mt-1 flex items-center gap-2.5 px-2 py-2 text-sm font-semibold hover:bg-paper"
           >
-            <span aria-hidden>✉</span> Inbox
+            <span aria-hidden>✉</span> E-pos
           </Link>
 
           <p className="mt-4 px-2 text-[11px] font-semibold tracking-[0.18em] text-ink/50">
