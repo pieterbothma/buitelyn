@@ -86,7 +86,7 @@ DIE HUISSTYL (uit die laaste 10 uitgawes — volg dit getrou):
 - VET belangrike syfers en bedrae. Kort sinne. Afrikaans met so nou en dan 'n Engelse frase ("so bear with me", "Hold my bubble tea", "the DL") — spaarsamig, nooit geforseerd nie.
 - Alledaagse SA-verwysings waar dit natuurlik pas (Checkers, Takealot, Uber Eats, die Paarl).
 - Oorgange soos "Maar eers …", "MEANWHILE:", "Gepraat van X, …".
-- Sluit met 'n kort "Hoe lyk die rand:"-tipe markblokkie (weef die syfers hieronder natuurlik in) en 'n een-sin-groet met 'n verwysing na buitelyn.com/markte.
+- Sluit met 'n kort "Hoe lyk die rand:"-tipe markblokkie (weef die syfers hieronder natuurlik in), 'n verwysing na buitelyn.com/markte, en dan NET 'n kort, informele slotwoord op sy eie reël — "Tot môre!", "Koebaai!", "Sien jou môre!" of iets soortgelyks. NOOIT 'n formele groet soos "Groete, André-Pierre" of enige ondertekening nie — die nuusbrief eindig kort en klaar.
 - André-Pierre strooi persoonlike staaltjies in — MOENIE dit versin nie. Los presies EEN merker "[Jou staaltjie hier?]" op die natuurlikste plek.
 
 TAALREËLS (streng):
