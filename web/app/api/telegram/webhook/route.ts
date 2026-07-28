@@ -30,7 +30,7 @@ async function stuur(chatId: number, teks: string) {
 
 const HULP = `Ek is die Buitelyn-bot 🔴
 
-Koppel jou buitelyn.com-rekening by <b>buitelyn.com/markte</b> (Telegram-oortjie) — dan stuur ek jou markte-oorsig as oudio, drie keer per beursdag.
+Koppel jou buitelyn.com-rekening by <b>buitelyn.com/markte</b> (Telegram-oortjie) — dan stuur ek jou markte-oorsig klankgrepe, drie keer per beursdag.
 
 /oorsig — die jongste markte-oorsig as teks
 /stop — ontkoppel jou rekening`;
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
       chatId,
       error
         ? "Iets het skeefgeloop met die koppeling — probeer 'n vars kode."
-        : `Gekoppel, ${boodskap.chat.first_name ?? "vriend"}! 🔴\n\nJy ontvang nou die Buitelyn markte-oudio hier. Stel jou uitgawes (oggend/middag/aand) by buitelyn.com/markte se Telegram-oortjie.\n\n/oorsig gee jou enige tyd die jongste teks-oorsig.`
+        : `Gekoppel, ${boodskap.chat.first_name ?? "vriend"}! 🔴\n\nJy ontvang nou die Buitelyn markte-klankgrepe hier. Stel jou uitgawes (oggend/middag/aand) by buitelyn.com/markte se Telegram-oortjie.\n\n/oorsig gee jou enige tyd die jongste teks-oorsig.`
     );
     return NextResponse.json({ ok: true });
   }

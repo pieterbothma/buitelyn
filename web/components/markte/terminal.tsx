@@ -8,6 +8,7 @@ import { Portefeulje, type Belegging } from "@/components/markte/portefeulje";
 import { MarkteChat } from "@/components/markte/chat";
 import { NuusBord } from "@/components/markte/nuus";
 import { HouMyDop } from "@/components/markte/dophou";
+import { JseAlle } from "@/components/markte/jse-alle";
 import { formatteerPrys, Pyl } from "@/components/markte/format";
 import type { NuusItem } from "@/lib/markets/nuus";
 
@@ -137,8 +138,9 @@ export function MarkteTerminal({ aanvanklik, nuus = [] }: { aanvanklik: Kwotasie
 
         {BORDE.map((bord) => (
           <section key={bord.titel} className="mb-6 border-2 border-ink bg-offwhite">
-            <h2 className="border-b-2 border-ink px-4 py-2 text-xs font-semibold tracking-[0.16em]">
+            <h2 className="flex items-center justify-between border-b-2 border-ink px-4 py-2 text-xs font-semibold tracking-[0.16em]">
               {bord.titel.toUpperCase()}
+              {bord.titel === "JSE" ? <JseAlle /> : null}
             </h2>
             <ul className="divide-y divide-ink/10">
               {bord.items.map((item) => {

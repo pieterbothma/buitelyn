@@ -77,8 +77,8 @@ export function TelegramKoppel() {
           <span aria-hidden className="ml-2 inline-block size-1.5 rounded-full bg-red align-middle" />
         </p>
         <p className="mt-2 text-sm leading-relaxed text-ink/70">
-          Koppel @buitelynbot en kry die daaglikse markte-oudio direk in Telegram — oggend,
-          middag en ná sluitingstyd. Later ook kennisgewings oor die grootste bewegers.
+          Koppel @buitelynbot — dan stuur ek jou markte-oorsig klankgrepe: oggend, middag en
+          ná sluitingstyd. Later ook kennisgewings oor die grootste bewegers.
         </p>
         {status.kode ? (
           <div className="mt-4">
