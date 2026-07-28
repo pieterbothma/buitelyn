@@ -137,7 +137,7 @@ export async function kryFotoIdees(): Promise<FotoIdee[]> {
   if (!konsep?.teks) return [];
 
   const antwoord = await skryfAfrikaans(
-    `Hier is vandag se Buitelyn-nuusbriefkonsep. Stel presies 4 nuusbrief-illustrasie-idees voor wat by die stories pas — editoriale beeldmateriaal, nie stock-foto-clichés nie. Buitelyn se estetika: skoon, speels-ernstig, koerantagtig; geen teks in die beeld nie, geen logo's of regte mense se gesigte nie.
+    `Hier is vandag se Buitelyn-nuusbriefkonsep. Stel presies 4 nuusbrief-illustrasie-idees voor wat by die stories pas — editoriale beeldmateriaal, nie stock-foto-clichés nie. Buitelyn se estetika: skoon, speels-ernstig, koerantagtig. Kort Afrikaanse teks ín die beeld is welkom waar dit die beeld versterk (die beeldmodel render teks uitstekend) — spesifiseer dan die PRESIESE woorde in die prompt, in aanhalingstekens, met korrekte Afrikaanse spelling. Geen regte handelsmerke of logo's nie.
 
 Antwoord as SUIWER JSON (geen kodeblok nie): 'n lys van 4 objekte:
 - "beskrywing": een Afrikaanse sin wat vir André-Pierre sê wat die beeld wys
