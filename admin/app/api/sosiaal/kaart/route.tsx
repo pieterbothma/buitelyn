@@ -19,13 +19,27 @@ export async function GET(request: NextRequest) {
   const i = Number(sp.get("i") ?? 0);
   const portret = sp.get("vorm") === "portret";
 
-  const { data: konsep } = await sb
-    .from("nuusbrief_konsepte")
-    .select("teks")
+  // Voorkeur: stukke uit die opgelaaide finale nuusbrief; anders konsep-koppe.
+  const { data: opgelaai } = await sb
+    .from("sosiaal_stukke")
+    .select("stukke")
     .eq("datum", datum)
     .maybeSingle();
-  if (!konsep?.teks) return new Response("geen konsep", { status: 404 });
-  const stuk = parseerKonsepStories(konsep.teks)[i];
+  let stuk: { kop: string; byskrif: string } | undefined;
+  if (opgelaai?.stukke) {
+    const s = (opgelaai.stukke as { kop: string; opsomming: string }[])[i];
+    if (s) stuk = { kop: s.kop, byskrif: s.opsomming };
+  } else {
+    const { data: konsep } = await sb
+      .from("nuusbrief_konsepte")
+      .select("teks")
+      .eq("datum", datum)
+      .maybeSingle();
+    if (konsep?.teks) {
+      const k = parseerKonsepStories(konsep.teks)[i];
+      if (k) stuk = { kop: k.kop, byskrif: "" }; // konsep-byskrifte is beeld-idees, nie kaartteks nie
+    }
+  }
   if (!stuk) return new Response("geen storie", { status: 404 });
 
   const png = await renderKaartPng(stuk, datum, portret);

@@ -20,12 +20,18 @@ export default async function Sosiaal({ params }: { params: Promise<{ slug: stri
   const datum = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" }).format(
     new Date()
   );
-  const { data: konsep } = await sb
-    .from("nuusbrief_konsepte")
-    .select("teks")
-    .eq("datum", datum)
-    .maybeSingle();
-  const stukke = konsep?.teks ? parseerKonsepStories(konsep.teks) : [];
+  const [{ data: opgelaai }, { data: konsep }] = await Promise.all([
+    sb.from("sosiaal_stukke").select("stukke").eq("datum", datum).maybeSingle(),
+    sb.from("nuusbrief_konsepte").select("teks").eq("datum", datum).maybeSingle(),
+  ]);
+  const stukke = opgelaai?.stukke
+    ? (opgelaai.stukke as { kop: string; opsomming: string }[]).map((s) => ({
+        kop: s.kop,
+        byskrif: s.opsomming,
+      }))
+    : konsep?.teks
+      ? parseerKonsepStories(konsep.teks).map((k) => ({ kop: k.kop, byskrif: "" }))
+      : [];
 
   return (
     <Shell workspaces={(workspaces ?? []) as Workspace[]} active={active as Workspace}>

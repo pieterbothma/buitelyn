@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { krySosialeTekste, type SosialeTekste } from "@/app/actions-sosiaal";
+import { useRouter } from "next/navigation";
+import { krySosialeTekste, laaiNuusbriefOp, type SosialeTekste } from "@/app/actions-sosiaal";
 
 const PLATFORMS: { sleutel: keyof SosialeTekste; naam: string }[] = [
   { sleutel: "x", naam: "X / Twitter" },
@@ -17,7 +18,15 @@ export function SosiaalStudio({
   datum: string;
   stukke: { kop: string; byskrif: string }[];
 }) {
+  const router = useRouter();
   const [vorm, setVorm] = useState<"vierkant" | "portret">("vierkant");
+  const [oplaaiTeks, setOplaaiTeks] = useState("");
+  const [oplaaiOop, setOplaaiOop] = useState(false);
+  const [eiePrompt, setEiePrompt] = useState("");
+  const [eieLogo, setEieLogo] = useState<"ink" | "wit" | "geen">("ink");
+  const [eieGrootte, setEieGrootte] = useState("1024x1024");
+  const [eieBesig, setEieBesig] = useState(false);
+  const [eieFotos, setEieFotos] = useState<string[]>([]);
   const [videoBesig, setVideoBesig] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoFout, setVideoFout] = useState<string | null>(null);
@@ -31,6 +40,43 @@ export function SosiaalStudio({
       setTekste(t);
       if (!t) setBoodskap("Genereer eers vandag se konsep.");
     });
+  }
+
+  function laaiOp() {
+    if (!oplaaiTeks.trim()) return;
+    begin(async () => {
+      const n = await laaiNuusbriefOp(oplaaiTeks);
+      if (n > 0) {
+        setBoodskap(`${n} kaarte gemaak uit die nuusbrief.`);
+        setOplaaiTeks("");
+        setOplaaiOop(false);
+        router.refresh();
+      } else {
+        setBoodskap("Kon nie stukke onttrek nie — probeer weer.");
+      }
+    });
+  }
+
+  async function skepEieKaart() {
+    if (!eiePrompt.trim()) return;
+    setEieBesig(true);
+    setBoodskap(null);
+    try {
+      const res = await fetch("/api/fotos/skep", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ prompt: eiePrompt.trim(), size: eieGrootte, logo: eieLogo }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        setEieFotos((f) => [data.url, ...f]);
+        setEiePrompt("");
+      } else setBoodskap(data.fout ?? "Kon nie skep nie.");
+    } catch {
+      setBoodskap("Netwerkfout.");
+    } finally {
+      setEieBesig(false);
+    }
   }
 
   async function renderVideo() {
@@ -60,8 +106,47 @@ export function SosiaalStudio({
         <span aria-hidden className="size-2 rounded-full bg-red" />
       </h2>
       <p className="mt-1 max-w-lg text-sm text-ink/60">
-        Branded kaarte uit vandag se konsep — regsklik en stoor, of maak oop en deel.
+        Branded kaarte uit vandag se nuusbrief — regsklik en stoor, of maak oop en deel.
       </p>
+      <div className="mt-3">
+        {oplaaiOop ? (
+          <div className="max-w-xl border-2 border-ink bg-offwhite p-4">
+            <p className="text-sm font-semibold">Laai vandag se Buitelyn op</p>
+            <p className="mt-0.5 text-xs text-ink/50">
+              Plak die finale nuusbrief-teks — die kaarte kry koppe met kort opsommings.
+            </p>
+            <textarea
+              value={oplaaiTeks}
+              onChange={(e) => setOplaaiTeks(e.target.value)}
+              rows={6}
+              placeholder="Plak die nuusbrief hier…"
+              className="mt-2 w-full border-2 border-ink bg-paper p-3 text-sm outline-none focus:border-red"
+            />
+            <div className="mt-2 flex gap-2">
+              <button
+                onClick={laaiOp}
+                disabled={besig || !oplaaiTeks.trim()}
+                className="bg-ink px-4 py-2 text-sm font-semibold text-offwhite hover:bg-ink/85 disabled:opacity-50"
+              >
+                {besig ? "Verwerk…" : "Maak kaarte →"}
+              </button>
+              <button
+                onClick={() => setOplaaiOop(false)}
+                className="px-3 py-2 text-sm font-semibold text-ink/50 hover:text-ink"
+              >
+                Kanselleer
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => setOplaaiOop(true)}
+            className="border-2 border-ink bg-offwhite px-4 py-2 text-sm font-semibold hover:bg-paper"
+          >
+            Laai vandag se Buitelyn op ↑
+          </button>
+        )}
+      </div>
       <div className="mt-3 flex border-2 border-ink self-start w-fit">
         {(["vierkant", "portret"] as const).map((v) => (
           <button
@@ -99,6 +184,80 @@ export function SosiaalStudio({
       ) : (
         <p className="mt-4 text-sm text-ink/50">Genereer eers vandag se konsep in die Studio.</p>
       )}
+
+      <h2 className="mt-10 flex items-center gap-2 border-t-2 border-ink pt-6 text-lg font-extrabold tracking-tight">
+        Eie kaart
+        <span aria-hidden className="size-2 rounded-full bg-red" />
+      </h2>
+      <p className="mt-1 max-w-lg text-sm text-ink/60">
+        Genereer jou eie beeld — die Buitelyn-logo word outomaties in die hoek geplaas.
+      </p>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <span className="flex border-2 border-ink">
+          {([
+            { w: "ink", n: "Ink-logo" },
+            { w: "wit", n: "Wit-logo" },
+            { w: "geen", n: "Geen logo" },
+          ] as const).map((g) => (
+            <button
+              key={g.w}
+              onClick={() => setEieLogo(g.w)}
+              className={`px-3 py-1.5 text-xs font-semibold ${
+                eieLogo === g.w ? "bg-ink text-offwhite" : "bg-offwhite hover:bg-paper"
+              }`}
+            >
+              {g.n}
+            </button>
+          ))}
+        </span>
+        <span className="flex border-2 border-ink">
+          {[
+            { w: "1536x1024", n: "Landskap" },
+            { w: "1024x1024", n: "Vierkant" },
+            { w: "1024x1536", n: "Portret" },
+          ].map((g) => (
+            <button
+              key={g.w}
+              onClick={() => setEieGrootte(g.w)}
+              className={`px-3 py-1.5 text-xs font-semibold ${
+                eieGrootte === g.w ? "bg-ink text-offwhite" : "bg-offwhite hover:bg-paper"
+              }`}
+            >
+              {g.n}
+            </button>
+          ))}
+        </span>
+      </div>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          skepEieKaart();
+        }}
+        className="mt-2 flex flex-wrap gap-2"
+      >
+        <input
+          value={eiePrompt}
+          onChange={(e) => setEiePrompt(e.target.value)}
+          placeholder="Beskryf jou beeld…"
+          className="min-w-72 flex-1 border-2 border-ink bg-offwhite px-3 py-2 text-sm outline-none focus:border-red"
+        />
+        <button
+          disabled={eieBesig || !eiePrompt.trim()}
+          className="bg-ink px-4 py-2 text-sm font-semibold text-offwhite hover:bg-ink/85 disabled:opacity-50"
+        >
+          {eieBesig ? "Skep… (±30s)" : "Skep kaart"}
+        </button>
+      </form>
+      {eieFotos.length ? (
+        <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {eieFotos.map((url) => (
+            <a key={url} href={url} target="_blank" rel="noopener noreferrer" className="group block border-2 border-ink">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt="Eie kaart" className="w-full group-hover:opacity-90" />
+            </a>
+          ))}
+        </div>
+      ) : null}
 
       <h2 className="mt-10 flex items-center gap-2 border-t-2 border-ink pt-6 text-lg font-extrabold tracking-tight">
         Plasing-tekste
