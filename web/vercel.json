@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/markte-opruim",
       "schedule": "0 22 * * *"
+    },
+    {
+      "path": "/api/cron/portefeulje-opsom",
+      "schedule": "0 17 * * 1-5"
     }
   ],
   "regions": [

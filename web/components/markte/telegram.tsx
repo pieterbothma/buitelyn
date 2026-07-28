@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-type Voorkeure = { oggend: boolean; middag: boolean; aand: boolean; skuiwers: boolean };
+type Voorkeure = { oggend: boolean; middag: boolean; aand: boolean; skuiwers: boolean; portefeulje: boolean };
 type Status = { gekoppel: boolean; kode: string | null; voorkeure: Voorkeure | null };
 
 const UITGAWES: { veld: keyof Voorkeure; naam: string; tyd: string }[] = [
   { veld: "oggend", naam: "Oggendoorsig", tyd: "±06:50" },
   { veld: "middag", naam: "Middagoorsig", tyd: "±11:50" },
   { veld: "aand", naam: "Dagopsomming", tyd: "±17:50" },
+  { veld: "portefeulje", naam: "Portefeulje-opsomming", tyd: "±19:00 · jou houdings in rand" },
 ];
 
 export function TelegramKoppel() {
