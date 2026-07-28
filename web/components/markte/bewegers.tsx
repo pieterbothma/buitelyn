@@ -28,12 +28,13 @@ export function BewegersBord({ kwotasies }: { kwotasies: Kwotasie[] }) {
 
   return (
     <div>
-      <div className="flex flex-wrap gap-0 border-2 border-ink bg-offwhite">
+      {/* Mobiel: onder mekaar (volwydte); md+: langs mekaar */}
+      <div className="flex flex-col border-2 border-ink bg-offwhite md:flex-row">
         {AANSIGTE.map((a) => (
           <button
             key={a.sleutel}
             onClick={() => setAansig(a.sleutel)}
-            className={`border-r border-ink/20 px-4 py-2 text-xs font-semibold tracking-[0.12em] last:border-r-0 ${
+            className={`border-b border-ink/20 px-4 py-2 text-left text-xs font-semibold tracking-[0.12em] last:border-b-0 md:border-b-0 md:border-r md:text-center md:last:border-r-0 ${
               aansig === a.sleutel ? "bg-ink text-offwhite" : "hover:bg-paper"
             }`}
           >
