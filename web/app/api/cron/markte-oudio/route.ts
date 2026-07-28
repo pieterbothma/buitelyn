@@ -7,6 +7,16 @@ export const maxDuration = 120;
    anker die taal, en ons sny dit voor publikasie uit (Piet se truuk). */
 const WARMUP = "Ek praat Afrikaans. ";
 
+/* Uitspraak-reëls: spel woorde soos die stem hulle rég moet sê — geld net
+   vir die TTS-teks, nooit vir enigiets geskrewe nie. Brei gerus uit. */
+const UITSPRAAK: [RegExp, string][] = [
+  [/\bru[- ]?olie\b/gi, "rie-olie"],
+];
+
+function virStem(teks: string): string {
+  return UITSPRAAK.reduce((t, [patroon, se]) => t.replace(patroon, se), teks);
+}
+
 /** Sny 'n CBR MP3 by ~sekondes: loop MPEG-raamkoppe en laat val volledige
  *  rame vóór die snypunt (ID3v2-kop word behou-oorgeslaan). */
 function snyMp3(mp3: Buffer, sekondes: number): Buffer {
@@ -98,8 +108,9 @@ ${oorsig.teks}`,
     }
   );
   const geminiData = await geminiRes.json();
-  const skrip: string | undefined = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-  if (!skrip) return NextResponse.json({ fout: "Gemini het geen skrip geskryf nie" }, { status: 502 });
+  const rouSkrip: string | undefined = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+  if (!rouSkrip) return NextResponse.json({ fout: "Gemini het geen skrip geskryf nie" }, { status: 502 });
+  const skrip = virStem(rouSkrip);
 
   const tts = await fetch(
     `https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_VOICE_ID}/with-timestamps?output_format=mp3_44100_128`,
