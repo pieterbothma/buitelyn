@@ -19,7 +19,7 @@ export default async function Inbox() {
 
   return (
     <Shell workspaces={(workspaces ?? []) as Workspace[]}>
-      <h1 className="text-3xl font-extrabold tracking-tight">Inbox</h1>
+      <h1 className="text-3xl font-extrabold tracking-tight">Idees-inbox</h1>
       <p className="mt-1 text-sm text-ink/60">Ongesorteerde idees — tag elkeen in 'n werkruimte.</p>
       <ul className="mt-6 max-w-3xl divide-y divide-ink/10 border-2 border-ink bg-offwhite">
         {(idees ?? []).length === 0 ? (

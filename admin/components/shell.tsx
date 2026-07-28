@@ -87,24 +87,14 @@ export function Shell({
                       </li>
                     ) : null}
                     {ws.slug === "buitelyn" ? (
-                      <>
-                        <li>
-                          <Link
-                            href={`/w/${ws.slug}/konsep`}
-                            className="block py-1 text-[13px] text-ink/70 hover:text-ink hover:underline"
-                          >
-                            Nuusbrief-konsep
-                          </Link>
-                        </li>
-                        <li>
-                          <Link
-                            href={`/w/${ws.slug}/oudio`}
-                            className="block py-1 text-[13px] text-ink/70 hover:text-ink hover:underline"
-                          >
-                            Nuusbrief → Oudio
-                          </Link>
-                        </li>
-                      </>
+                      <li>
+                        <Link
+                          href={`/w/${ws.slug}/studio`}
+                          className="block py-1 text-[13px] text-ink/70 hover:text-ink hover:underline"
+                        >
+                          Studio
+                        </Link>
+                      </li>
                     ) : null}
                   </ul>
                 ) : null}
