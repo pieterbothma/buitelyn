@@ -13,6 +13,8 @@ import { ALLE_SIMBOLE, jseIsOop } from "@/lib/markets/boards";
    render — die data-fetches onder het steeds hul eie fetch-cache. */
 export const dynamic = "force-dynamic";
 
+const WYS_OUDIO = false;
+
 export const metadata: Metadata = {
   title: "Markte — Buitelyn",
   description: "JSE, rand, kommoditeite en kripto — live, met Buitelyn se KI-markassistent.",
@@ -149,7 +151,9 @@ export default async function MarktePage() {
                 ) : null}
               </p>
               <p className="mt-2 max-w-3xl text-[15px] leading-relaxed">{oorsig.teks}</p>
-              {oorsig.oudioUrl ? (
+              {/* LUISTER-speler tydelik versteek (pipeline loop steeds; sit
+                  WYS_OUDIO op true om weer te wys) */}
+              {WYS_OUDIO && oorsig.oudioUrl ? (
                 <div className="mt-3 flex items-center gap-3">
                   <span className="text-[11px] font-semibold tracking-[0.16em] text-ink/50">
                     LUISTER
