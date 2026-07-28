@@ -120,10 +120,10 @@ ${oorsig.teks}`,
     audio_base64: string;
     alignment?: { characters: string[]; character_start_times_seconds: number[] };
   };
-  const volMp3 = Buffer.from(ttsData.audio_base64, "base64");
+  const volMp3: Buffer = Buffer.from(ttsData.audio_base64, "base64");
 
   // Sny die warm-up uit: eerste karakter ná die warm-up se starttyd
-  let mp3 = volMp3;
+  let mp3: Buffer = volMp3;
   const al = ttsData.alignment;
   if (al) {
     const teks = al.characters.join("");
