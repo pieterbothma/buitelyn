@@ -24,6 +24,7 @@ export async function POST(request: NextRequest) {
   const vorm = await request.formData().catch(() => null);
   const bron = String(vorm?.get("bron") ?? "briefing");
   const formaat = String(vorm?.get("formaat") ?? "reels"); // reels (9:16) of vierkant
+  const kaartIndeks = Math.max(0, Number(vorm?.get("kaart") ?? 0) || 0);
 
   // Klankbron: dagoorsig-briefing, jongste nuusbrief-audio, of eie oplaai
   let klank: Buffer;
@@ -69,7 +70,8 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
   let stuk: { kop: string; byskrif: string } = { kop: "Vandag op die markte", byskrif: "" };
   if (opgelaai?.stukke) {
-    const s0 = (opgelaai.stukke as { kop: string; opsomming: string }[])[0];
+    const lys = opgelaai.stukke as { kop: string; opsomming: string }[];
+    const s0 = lys[kaartIndeks] ?? lys[0];
     if (s0) stuk = { kop: s0.kop, byskrif: s0.opsomming };
   } else {
     const { data: konsep } = await sb
@@ -77,7 +79,8 @@ export async function POST(request: NextRequest) {
       .select("teks")
       .eq("datum", datum)
       .maybeSingle();
-    const k = konsep?.teks ? parseerKonsepStories(konsep.teks)[0] : null;
+    const lys = konsep?.teks ? parseerKonsepStories(konsep.teks) : [];
+    const k = lys[kaartIndeks] ?? lys[0];
     if (k) stuk = { kop: k.kop, byskrif: "" };
   }
   const isReels = formaat !== "vierkant";

@@ -34,6 +34,7 @@ export function SosiaalStudio({
   const [videoBesig, setVideoBesig] = useState(false);
   const [videoBron, setVideoBron] = useState<"briefing" | "nuusbrief" | "oplaai">("briefing");
   const [videoFormaat, setVideoFormaat] = useState<"reels" | "vierkant">("reels");
+  const [videoKaart, setVideoKaart] = useState(0);
   const [videoLeer, setVideoLeer] = useState<File | null>(null);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [videoFout, setVideoFout] = useState<string | null>(null);
@@ -94,6 +95,7 @@ export function SosiaalStudio({
       const vorm = new FormData();
       vorm.append("bron", videoBron);
       vorm.append("formaat", videoFormaat);
+      vorm.append("kaart", String(videoKaart));
       if (videoBron === "oplaai" && videoLeer) vorm.append("leer", videoLeer);
       const res = await fetch("/api/sosiaal/video", { method: "POST", body: vorm });
       const data = await res.json();
@@ -342,6 +344,19 @@ export function SosiaalStudio({
             </button>
           ))}
         </span>
+        {stukke.length > 1 ? (
+          <select
+            value={videoKaart}
+            onChange={(e) => setVideoKaart(Number(e.target.value))}
+            className="border-2 border-ink bg-offwhite px-2 py-1.5 text-xs font-semibold"
+          >
+            {stukke.map((s, i) => (
+              <option key={i} value={i}>
+                {i === 0 ? "Voorblad: " : ""}{s.kop.slice(0, 40)}
+              </option>
+            ))}
+          </select>
+        ) : null}
         <span className="flex border-2 border-ink">
           {([
             { w: "reels", n: "Reels (9:16)" },
