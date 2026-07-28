@@ -7,6 +7,7 @@ import { MarkteTerminal } from "@/components/markte/terminal";
 import { TekenIn } from "@/components/markte/teken-in";
 import { TelegramKoppel } from "@/components/markte/telegram";
 import { BewegersBord } from "@/components/markte/bewegers";
+import { SensBord, type SensItem } from "@/components/markte/sens";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getQuotes } from "@/lib/markets/source";
 import { kryNuus } from "@/lib/markets/nuus";
@@ -34,6 +35,23 @@ async function kryNotas(): Promise<Record<string, string>> {
     return Object.fromEntries((data ?? []).map((r) => [r.simbool, r.nota]));
   } catch {
     return {};
+  }
+}
+
+async function krySens(): Promise<SensItem[]> {
+  if (!process.env.APHQ_SUPABASE_URL || !process.env.APHQ_SUPABASE_SERVICE_KEY) return [];
+  try {
+    const sb = createClient(process.env.APHQ_SUPABASE_URL, process.env.APHQ_SUPABASE_SERVICE_KEY, {
+      auth: { persistSession: false },
+    });
+    const { data } = await sb
+      .from("sens_aankondigings")
+      .select("sens_id, tyd, kode, maatskappy, titel, tipe, opsomming, skakel")
+      .order("tyd", { ascending: false })
+      .limit(80);
+    return (data ?? []) as SensItem[];
+  } catch {
+    return [];
   }
 }
 
@@ -161,7 +179,7 @@ export default async function MarktePage({
   const naam = rouNaam ? rouNaam.charAt(0).toUpperCase() + rouNaam.slice(1) : "";
 
   // Haal net wat die aktiewe oortjie nodig het
-  const [kwotasies, oorsig, nuus, bewegers, notas] = await Promise.all([
+  const [kwotasies, oorsig, nuus, bewegers, notas, sensItems] = await Promise.all([
     tab === "tuis" ? getQuotes(ALLE_SIMBOLE) : Promise.resolve([]),
     tab === "tuis" ? kryOorsig() : Promise.resolve(null),
     tab === "tuis" ? kryNuus() : Promise.resolve([]),
@@ -169,7 +187,16 @@ export default async function MarktePage({
       ? getQuotes(BEWEGERS_SIMBOLE.map((i) => i.simbool))
       : Promise.resolve([]),
     tab === "bewegers" ? kryNotas() : Promise.resolve({}),
+    tab === "sens" ? krySens() : Promise.resolve([] as SensItem[]),
   ]);
+  let eieSimbole: string[] = [];
+  if (tab === "sens") {
+    const [{ data: h }, { data: d }] = await Promise.all([
+      sb.from("portefeuljes").select("simbool").eq("user_id", user.id),
+      sb.from("dophou").select("simbool").eq("user_id", user.id),
+    ]);
+    eieSimbole = [...new Set([...(h ?? []), ...(d ?? [])].map((r) => r.simbool))];
+  }
   const oop = jseIsOop();
   const dateline = new Intl.DateTimeFormat("af-ZA", {
     timeZone: "Africa/Johannesburg",
@@ -245,10 +272,7 @@ export default async function MarktePage({
 
           {tab === "sens" ? (
             <div className="mt-6">
-              <Binnekort
-                titel="SENS in Afrikaans"
-                teks="Elke JSE-aankondiging (resultate, dividende, direkteurshandel) in een verstaanbare Afrikaanse paragraaf, met jou eie aandele boaan. Ons bou dit nou."
-              />
+              <SensBord items={sensItems} eieSimbole={eieSimbole} />
             </div>
           ) : null}
 

@@ -26,7 +26,7 @@ export async function GET() {
   if (!user) return NextResponse.json({ fout: "nie aangemeld" }, { status: 401 });
   const { data } = await service()
     .from("telegram_koppelinge")
-    .select("chat_id, koppel_kode, kode_verval, oggend, middag, aand, skuiwers, portefeulje")
+    .select("chat_id, koppel_kode, kode_verval, oggend, middag, aand, skuiwers, portefeulje, sens")
     .eq("user_id", user.id)
     .maybeSingle();
   const kodeGeldig = data?.kode_verval && new Date(data.kode_verval) > new Date();
@@ -34,7 +34,7 @@ export async function GET() {
     gekoppel: Boolean(data?.chat_id),
     kode: !data?.chat_id && kodeGeldig ? data?.koppel_kode : null,
     voorkeure: data
-      ? { oggend: data.oggend, middag: data.middag, aand: data.aand, skuiwers: data.skuiwers, portefeulje: data.portefeulje }
+      ? { oggend: data.oggend, middag: data.middag, aand: data.aand, skuiwers: data.skuiwers, portefeulje: data.portefeulje, sens: data.sens }
       : null,
   });
 }
@@ -66,7 +66,7 @@ export async function PATCH(request: NextRequest) {
   if (!user) return NextResponse.json({ fout: "nie aangemeld" }, { status: 401 });
   const body = (await request.json()) as Record<string, unknown>;
   const velde: Record<string, boolean> = {};
-  for (const v of ["oggend", "middag", "aand", "skuiwers", "portefeulje"] as const) {
+  for (const v of ["oggend", "middag", "aand", "skuiwers", "portefeulje", "sens"] as const) {
     if (typeof body[v] === "boolean") velde[v] = body[v];
   }
   if (!Object.keys(velde).length) return NextResponse.json({ fout: "geen velde" }, { status: 400 });
