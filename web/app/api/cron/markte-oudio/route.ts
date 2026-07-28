@@ -146,9 +146,10 @@ ${oorsig.teks}`,
   const pad = `${datum}.mp3`;
   const { error: stoorFout } = await sb.storage
     .from("markte-oudio")
-    .upload(pad, mp3, { contentType: "audio/mpeg", upsert: true });
+    .upload(pad, mp3, { contentType: "audio/mpeg", upsert: true, cacheControl: "60" });
   if (stoorFout) return NextResponse.json({ fout: stoorFout.message }, { status: 500 });
-  const oudioUrl = `${process.env.APHQ_SUPABASE_URL}/storage/v1/object/public/markte-oudio/${pad}`;
+  // ?v= bust ou kas-kopieë (selfde pad, nuwe inhoud) by blaaiers én CDN
+  const oudioUrl = `${process.env.APHQ_SUPABASE_URL}/storage/v1/object/public/markte-oudio/${pad}?v=${Date.now()}`;
   await sb.from("markte_oorsigte").update({ oudio_url: oudioUrl }).eq("datum", datum);
 
   // Telegram-kanaal-uitsaai (opsioneel — aktiveer met env)
