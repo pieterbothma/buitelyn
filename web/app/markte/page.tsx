@@ -175,7 +175,7 @@ export default async function MarktePage({
               <h1 className="text-3xl font-extrabold tracking-[-0.02em] md:text-4xl">
                 Markte
                 {naam ? (
-                  <span className="ml-3 align-middle text-base font-normal tracking-normal text-ink/60">
+                  <span className="mt-1 block text-base font-normal tracking-normal text-ink/60 md:ml-3 md:mt-0 md:inline md:align-middle">
                     Hallo, {naam}
                     <span aria-hidden className="ml-1.5 inline-block size-1.5 rounded-full bg-red align-middle" />
                   </span>

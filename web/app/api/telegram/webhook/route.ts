@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
   if (/^\/stop\b/i.test(teks)) {
     await sb
       .from("telegram_koppelinge")
-      .update({ chat_id: null, gekoppel_at: null })
+      .update({ chat_id: null, gekoppel_at: null, gesprek: [], gesprek_at: null })
       .eq("chat_id", chatId);
     await stuur(chatId, "Ontkoppel. Jy kan enige tyd weer koppel by buitelyn.com/markte.");
     return NextResponse.json({ ok: true });
@@ -116,13 +116,21 @@ export async function POST(request: NextRequest) {
   // ongekoppeldes kry die hulp-teks (LLM-koste bly agter die rekening-hek).
   const { data: koppeling } = await sb
     .from("telegram_koppelinge")
-    .select("user_id")
+    .select("user_id, gesprek, gesprek_at")
     .eq("chat_id", chatId)
     .maybeSingle();
   if (!koppeling || teks.startsWith("/") || teks.length > 600) {
     await stuur(chatId, HULP);
     return NextResponse.json({ ok: true });
   }
+
+  // Kort geheue vir opvolgvrae ("en Prosus?"): laaste beurte, maar net as
+  // die gesprek vars is — ou konteks verwar meer as wat dit help.
+  const GESPREK_VENSTER_MS = 2 * 60 * 60_000;
+  const vars =
+    koppeling.gesprek_at && Date.now() - new Date(koppeling.gesprek_at).getTime() < GESPREK_VENSTER_MS;
+  const vorige = (vars ? ((koppeling.gesprek ?? []) as { rol: string; teks: string }[]) : []).slice(-8);
+  const geskiedenis = [...vorige, { rol: "gebruiker", teks }];
 
   // Antwoord ná die 200 (after) — Telegram kry dadelik sy antwoord en
   // herprobeer nie die update terwyl die agent dink nie.
@@ -133,11 +141,19 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({ chat_id: chatId, action: "typing" }),
     }).catch(() => {});
     try {
-      const antwoord = await beantwoordMarkteVraag([{ rol: "gebruiker", teks }], {
+      const antwoord = await beantwoordMarkteVraag(geskiedenis, {
         ekstraInstruksies:
           "Jy antwoord in Telegram — hou dit kort (hoogstens 5 sinne), skoon teks sonder opmaak behalwe skakels as [naam](url).",
       });
       await stuur(chatId, htmlVirTelegram(antwoord));
+      const knip = (t: string) => t.slice(0, 1000);
+      await sb
+        .from("telegram_koppelinge")
+        .update({
+          gesprek: [...geskiedenis.map((b) => ({ ...b, teks: knip(b.teks) })), { rol: "bot", teks: knip(antwoord) }].slice(-8),
+          gesprek_at: new Date().toISOString(),
+        })
+        .eq("chat_id", chatId);
     } catch {
       await stuur(chatId, "Die assistent sukkel nou — probeer weer oor 'n rukkie.");
     }
