@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { Belegging } from "@/components/markte/portefeulje";
 
 type Boodskap = { rol: "gebruiker" | "buitelyn"; teks: string };
