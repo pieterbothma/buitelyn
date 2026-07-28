@@ -3,6 +3,42 @@ import { createClient } from "@supabase/supabase-js";
 
 export const maxDuration = 120;
 
+/* Die stem sukkel soms met Afrikaans as dit koud begin; 'n warm-up-frase
+   anker die taal, en ons sny dit voor publikasie uit (Piet se truuk). */
+const WARMUP = "Ek praat Afrikaans. ";
+
+/** Sny 'n CBR MP3 by ~sekondes: loop MPEG-raamkoppe en laat val volledige
+ *  rame vóór die snypunt (ID3v2-kop word behou-oorgeslaan). */
+function snyMp3(mp3: Buffer, sekondes: number): Buffer {
+  let pos = 0;
+  if (mp3.length > 10 && mp3.toString("latin1", 0, 3) === "ID3") {
+    const grootte = ((mp3[6] & 0x7f) << 21) | ((mp3[7] & 0x7f) << 14) | ((mp3[8] & 0x7f) << 7) | (mp3[9] & 0x7f);
+    pos = 10 + grootte;
+  }
+  const BITRATES = [0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320];
+  const RATES = [44100, 48000, 32000];
+  let tyd = 0;
+  while (pos + 4 <= mp3.length) {
+    if (mp3[pos] !== 0xff || (mp3[pos + 1] & 0xe0) !== 0xe0) {
+      pos++;
+      continue;
+    }
+    const bitrate = BITRATES[(mp3[pos + 2] >> 4) & 0x0f];
+    const rate = RATES[(mp3[pos + 2] >> 2) & 0x03];
+    if (!bitrate || !rate) {
+      pos++;
+      continue;
+    }
+    const padding = (mp3[pos + 2] >> 1) & 0x01;
+    const raamGrootte = Math.floor((144 * bitrate * 1000) / rate) + padding;
+    const raamTyd = 1152 / rate;
+    if (tyd >= sekondes) return mp3.subarray(pos);
+    tyd += raamTyd;
+    pos += raamGrootte;
+  }
+  return mp3; // kon nie sny nie — gee alles terug
+}
+
 /* Daaglikse oudiobriefing (06:50 SAST): lees die oggend se dagoorsig,
    ElevenLabs praat dit in Afrikaans, MP3 na publieke Storage, URL op die
    oorsig-ry, en (indien opgestel) uitsaai na die Telegram-kanaal. */
@@ -66,12 +102,12 @@ ${oorsig.teks}`,
   if (!skrip) return NextResponse.json({ fout: "Gemini het geen skrip geskryf nie" }, { status: 502 });
 
   const tts = await fetch(
-    `https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_VOICE_ID}?output_format=mp3_44100_128`,
+    `https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_VOICE_ID}/with-timestamps?output_format=mp3_44100_128`,
     {
       method: "POST",
       headers: { "xi-api-key": process.env.ELEVENLABS_API_KEY!, "content-type": "application/json" },
       body: JSON.stringify({
-        text: skrip,
+        text: WARMUP + skrip,
         model_id: "eleven_v3", // v3 verstaan die [energetic]-etikette
         voice_settings: { stability: 0.5 },
       }),
@@ -80,7 +116,21 @@ ${oorsig.teks}`,
   if (!tts.ok) {
     return NextResponse.json({ fout: `ElevenLabs ${tts.status}: ${(await tts.text()).slice(0, 200)}` }, { status: 502 });
   }
-  const mp3 = Buffer.from(await tts.arrayBuffer());
+  const ttsData = (await tts.json()) as {
+    audio_base64: string;
+    alignment?: { characters: string[]; character_start_times_seconds: number[] };
+  };
+  const volMp3 = Buffer.from(ttsData.audio_base64, "base64");
+
+  // Sny die warm-up uit: eerste karakter ná die warm-up se starttyd
+  let mp3 = volMp3;
+  const al = ttsData.alignment;
+  if (al) {
+    const teks = al.characters.join("");
+    const begin = teks.indexOf(skrip.slice(0, 12));
+    const snypunt = begin > 0 ? al.character_start_times_seconds[begin] : al.character_start_times_seconds[WARMUP.length] ?? 0;
+    if (snypunt > 0.2) mp3 = snyMp3(volMp3, Math.max(0, snypunt - 0.08));
+  }
 
   const pad = `${datum}.mp3`;
   const { error: stoorFout } = await sb.storage
