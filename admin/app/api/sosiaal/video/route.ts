@@ -49,11 +49,16 @@ export async function POST(request: NextRequest) {
       cmd: "bash",
       args: [
         "-c",
-        "curl -sL https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz | tar -xJ --strip-components=1 --wildcards '*/ffmpeg'",
+        "curl -sL https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz -o ff.tar.xz && tar -xJf ff.tar.xz --strip-components=2 --wildcards '*/bin/ffmpeg' && ./ffmpeg -version | head -1",
       ],
     });
-    if (aflaai.exitCode !== 0)
-      return NextResponse.json({ fout: "ffmpeg-aflaai het misluk" }, { status: 502 });
+    if (aflaai.exitCode !== 0) {
+      const foutTeks = await aflaai.stderr();
+      return NextResponse.json(
+        { fout: `ffmpeg-aflaai het misluk: ${foutTeks.slice(-250)}` },
+        { status: 502 }
+      );
+    }
 
     const render = await sandbox.runCommand({
       cmd: "./ffmpeg",
