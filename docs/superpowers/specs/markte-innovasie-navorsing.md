@@ -32,7 +32,7 @@ Buitelyn /markte word die plek waar Afrikaanssprekendes elke dag hul geld verst�
 
 **Bou-plan:** Albei bene bestaan reeds (dagoorsig-teks + ElevenLabs-nuusbriefpatroon); net die cron, Storage-stoor en audio-speler-komponent is nuut. 4–8 ure; lopende koste: sente per dag.
 
-### 4. Persoonlike oggend-e-pos: 'Jou Markte-oggendpos'
+### 4. ~~Persoonlike oggend-e-pos~~ — GESKRAP (2026-07-28: Substack dek die oggend-e-pos; ons dupliseer nie AP se nuusbrief nie): 'Jou Markte-oggendpos'
 
 **Wat:** Opt-in cron om 07:00 per gebruiker: (1) die dagoorsig, (2) jou portefeulje-P/L sedert gister ('Jou portefeulje is R1 240 op'), (3) dophoulys-skuiwe, (4) top-3 nuusopskrifte oor jóú aandele — via Resend vanaf die geverifieerde buitelyn.com-domein. Later dieselfde templaat as Sondag-weekverslag met 'n Gemini-narratief.
 
