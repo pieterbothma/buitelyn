@@ -181,16 +181,18 @@ export default async function MarktePage({
                   </span>
                 ) : null}
               </h1>
-              <p className="flex items-center gap-3 text-xs tracking-[0.2em] text-ink/60">
-                {dateline}
-                <span className="flex items-center gap-1.5 font-semibold">
+              {/* Op mobiel: eie volwydte-reël, stywer spasiëring, items breek as
+                  eenhede (nie middel-in 'n frase nie) */}
+              <p className="flex w-full flex-wrap items-center gap-x-4 gap-y-1 text-[11px] tracking-[0.12em] text-ink/60 md:w-auto md:justify-end md:text-xs md:tracking-[0.2em]">
+                <span className="whitespace-nowrap">{dateline}</span>
+                <span className="flex items-center gap-1.5 whitespace-nowrap font-semibold">
                   <span
                     aria-hidden
                     className={`size-2 rounded-full ${oop ? "bg-green" : "bg-red"}`}
                   />
                   JSE {oop ? "OOP" : "TOE"}
                 </span>
-                <span>VERTRAAG ±15 MIN</span>
+                <span className="whitespace-nowrap">±15 MIN VERTRAAG</span>
               </p>
             </div>
           </div>
