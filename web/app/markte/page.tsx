@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   description: "JSE, rand, kommoditeite en kripto — live, met Buitelyn se KI-markassistent.",
 };
 
-async function kryOorsig(): Promise<{ teks: string; bygewerk: string | null } | null> {
+async function kryOorsig(): Promise<{ teks: string; bygewerk: string | null; oudioUrl: string | null } | null> {
   if (!process.env.APHQ_SUPABASE_URL || !process.env.APHQ_SUPABASE_SERVICE_KEY) return null;
   try {
     const sb = createClient(process.env.APHQ_SUPABASE_URL, process.env.APHQ_SUPABASE_SERVICE_KEY, {
@@ -26,7 +26,7 @@ async function kryOorsig(): Promise<{ teks: string; bygewerk: string | null } | 
     });
     const { data } = await sb
       .from("markte_oorsigte")
-      .select("teks, datum, opgedateer_at")
+      .select("teks, datum, opgedateer_at, oudio_url")
       .order("datum", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -38,7 +38,7 @@ async function kryOorsig(): Promise<{ teks: string; bygewerk: string | null } | 
           minute: "2-digit",
         }).format(new Date(data.opgedateer_at))
       : null;
-    return { teks: data.teks, bygewerk };
+    return { teks: data.teks, bygewerk, oudioUrl: data.oudio_url ?? null };
   } catch {
     return null;
   }
@@ -149,6 +149,15 @@ export default async function MarktePage() {
                 ) : null}
               </p>
               <p className="mt-2 max-w-3xl text-[15px] leading-relaxed">{oorsig.teks}</p>
+              {oorsig.oudioUrl ? (
+                <div className="mt-3 flex items-center gap-3">
+                  <span className="text-[11px] font-semibold tracking-[0.16em] text-ink/50">
+                    LUISTER
+                  </span>
+                  {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                  <audio controls preload="none" src={oorsig.oudioUrl} className="h-9 max-w-md flex-1" />
+                </div>
+              ) : null}
             </div>
           ) : null}
 
