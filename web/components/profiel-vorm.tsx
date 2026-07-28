@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
 export function ProfielVorm({
@@ -13,9 +13,30 @@ export function ProfielVorm({
   avatarUrl: string | null;
 }) {
   const [naam, setNaam] = useState(aanvanklikeNaam);
+  const [avatar, setAvatar] = useState(avatarUrl);
   const [boodskap, setBoodskap] = useState<string | null>(null);
   const [besig, setBesig] = useState(false);
+  const lêerRef = useRef<HTMLInputElement>(null);
   const sb = supabaseBrowser();
+
+  async function laaiFoto(f: File) {
+    setBesig(true);
+    setBoodskap(null);
+    try {
+      const vorm = new FormData();
+      vorm.append("foto", f);
+      const res = await fetch("/api/profiel/avatar", { method: "POST", body: vorm });
+      const d = await res.json();
+      if (res.ok) {
+        setAvatar(d.url);
+        setBoodskap("Foto opgedateer.");
+      } else {
+        setBoodskap(d.fout ?? "Oplaai het misluk.");
+      }
+    } finally {
+      setBesig(false);
+    }
+  }
 
   async function stoor() {
     if (!sb || !naam.trim()) return;
@@ -25,7 +46,7 @@ export function ProfielVorm({
     if (!data.user) return;
     const { error } = await sb
       .from("profiele")
-      .upsert({ user_id: data.user.id, naam: naam.trim(), avatar_url: avatarUrl }, { onConflict: "user_id" });
+      .upsert({ user_id: data.user.id, naam: naam.trim(), avatar_url: avatar }, { onConflict: "user_id" });
     setBesig(false);
     setBoodskap(error ? error.message : "Gestoor.");
   }
@@ -33,14 +54,31 @@ export function ProfielVorm({
   return (
     <div className="border-2 border-ink bg-offwhite p-6">
       <div className="flex items-center gap-4">
-        {avatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={avatarUrl} alt={naam} className="size-14 rounded-full border-2 border-ink object-cover" referrerPolicy="no-referrer" />
-        ) : (
-          <span className="flex size-14 items-center justify-center rounded-full border-2 border-ink bg-ink text-lg font-bold text-offwhite">
-            {(naam || epos).charAt(0).toUpperCase()}
+        <button
+          type="button"
+          onClick={() => lêerRef.current?.click()}
+          title="Verander profielfoto"
+          className="group relative shrink-0"
+        >
+          {avatar ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={avatar} alt={naam} className="size-14 rounded-full border-2 border-ink object-cover" referrerPolicy="no-referrer" />
+          ) : (
+            <span className="flex size-14 items-center justify-center rounded-full border-2 border-ink bg-ink text-lg font-bold text-offwhite">
+              {(naam || epos).charAt(0).toUpperCase()}
+            </span>
+          )}
+          <span className="absolute inset-0 flex items-center justify-center rounded-full bg-ink/60 text-[10px] font-bold text-offwhite opacity-0 transition-opacity group-hover:opacity-100">
+            VERANDER
           </span>
-        )}
+        </button>
+        <input
+          ref={lêerRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          className="hidden"
+          onChange={(e) => e.target.files?.[0] && laaiFoto(e.target.files[0])}
+        />
         <div className="min-w-0">
           <p className="truncate text-sm font-bold">{naam || "—"}</p>
           <p className="truncate text-xs text-ink/50">{epos}</p>
@@ -73,7 +111,8 @@ export function ProfielVorm({
       </form>
 
       <p className="mt-6 border-t border-ink/15 pt-4 text-xs text-ink/50">
-        Jou naam verskyn in die Markte-groet. Jou portefeulje is aan hierdie rekening gekoppel.
+        Jou naam en foto verskyn in die Markte-groet en op die Liga-ranglys. Jou portefeulje is
+        aan hierdie rekening gekoppel. Klik die foto om dit te verander (JPG/PNG, maks 3 MB).
       </p>
     </div>
   );

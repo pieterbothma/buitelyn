@@ -8,6 +8,7 @@ import { TekenIn } from "@/components/markte/teken-in";
 import { TelegramKoppel } from "@/components/markte/telegram";
 import { BewegersBord } from "@/components/markte/bewegers";
 import { SensBord, type SensItem } from "@/components/markte/sens";
+import { LigaBord } from "@/components/markte/liga";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getQuotes } from "@/lib/markets/source";
 import { kryNuus } from "@/lib/markets/nuus";
@@ -108,19 +109,6 @@ const TABS = [
   { sleutel: "telegram", naam: "Telegram" },
 ] as const;
 type TabSleutel = (typeof TABS)[number]["sleutel"];
-
-function Binnekort({ titel, teks }: { titel: string; teks: string }) {
-  return (
-    <div className="max-w-xl border-2 border-ink bg-offwhite p-6">
-      <p className="text-xs font-semibold tracking-[0.16em]">
-        {titel.toUpperCase()}
-        <span aria-hidden className="ml-2 inline-block size-1.5 rounded-full bg-red align-middle" />
-        <span className="ml-3 font-normal text-ink/50">BINNEKORT</span>
-      </p>
-      <p className="mt-2 text-sm leading-relaxed text-ink/70">{teks}</p>
-    </div>
-  );
-}
 
 export default async function MarktePage({
   searchParams,
@@ -278,10 +266,7 @@ export default async function MarktePage({
 
           {tab === "liga" ? (
             <div className="mt-6">
-              <Binnekort
-                titel="Buitelyn Liga"
-                teks="Fantasie-JSE: R100 000 denkbeeldige geld, maandelikse ranglys en 'n jaarlikse eindstand — met jou naam op die show as jy wen. Ons bou dit nou."
-              />
+              <LigaBord profielNaam={naam} />
             </div>
           ) : null}
 

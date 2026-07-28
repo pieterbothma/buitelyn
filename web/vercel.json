@@ -23,6 +23,10 @@
     {
       "path": "/api/cron/sens",
       "schedule": "*/30 4-16 * * 1-5"
+    },
+    {
+      "path": "/api/cron/liga-maand",
+      "schedule": "0 3 1 * *"
     }
   ],
   "regions": [
