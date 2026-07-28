@@ -18,6 +18,11 @@ const GEREEDSKAP = [
     naam: "Nuusbrief → Audio",
     wat: "Maak 'n ElevenLabs-audio-weergawe van 'n nuusbrief-uitgawe.",
   },
+  {
+    pad: "sosiaal",
+    naam: "Sosiale Media",
+    wat: "Vandag se nuusbrief as plasings: branded poskaarte, platform-tekste, en binnekort video met audio.",
+  },
 ];
 
 export default async function Studio({ params }: { params: Promise<{ slug: string }> }) {
