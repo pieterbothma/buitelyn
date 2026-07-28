@@ -1,9 +1,48 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import type { Belegging } from "@/components/markte/portefeulje";
 
 type Boodskap = { rol: "gebruiker" | "buitelyn"; teks: string };
+
+/* Maak [teks](url)-skakels én kaal URL's klikbaar; res bly gewone teks. */
+const MD_SKAKEL = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+const KAAL_URL = /https?:\/\/[^\s)]+/g;
+
+function Skakel({ href, teks }: { href: string; teks: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="font-semibold underline underline-offset-2 hover:text-red"
+    >
+      {teks}
+    </a>
+  );
+}
+
+function linkifiseer(teks: string): ReactNode[] {
+  const dele: ReactNode[] = [];
+  let sleutel = 0;
+  const kaal = (stuk: string) => {
+    let laaste = 0;
+    for (const m of stuk.matchAll(KAAL_URL)) {
+      if (m.index! > laaste) dele.push(stuk.slice(laaste, m.index));
+      dele.push(<Skakel key={sleutel++} href={m[0]} teks={m[0].replace(/^https?:\/\//, "").slice(0, 40)} />);
+      laaste = m.index! + m[0].length;
+    }
+    if (laaste < stuk.length) dele.push(stuk.slice(laaste));
+  };
+  let laaste = 0;
+  for (const m of teks.matchAll(MD_SKAKEL)) {
+    if (m.index! > laaste) kaal(teks.slice(laaste, m.index));
+    dele.push(<Skakel key={sleutel++} href={m[2]} teks={m[1]} />);
+    laaste = m.index! + m[0].length;
+  }
+  if (laaste < teks.length) kaal(teks.slice(laaste));
+  return dele;
+}
 
 const VOORSTELLE = [
   "Hoekom is die rand vandag sterker of swakker?",
@@ -94,7 +133,7 @@ export function MarkteChat({ portefeulje }: { portefeulje: Belegging[] }) {
                   : "border-ink/25 bg-paper"
               }`}
             >
-              {b.teks}
+              {b.rol === "buitelyn" ? linkifiseer(b.teks) : b.teks}
             </div>
           ))
         )}
