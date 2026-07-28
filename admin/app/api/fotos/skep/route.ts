@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
      'n leë regs-onder-hoek (vir die logo). */
   const finalePrompt =
     opskrif !== undefined
-      ? `Single-panel editorial newspaper cartoon for a South African financial publication: a witty, clever cartoon of ${prompt.trim()}. Clean ink-black linework with expressive characters, one single red accent color (#F03028) used sparingly, flat off-white paper background (#F7F6F2), subtle newspaper texture. IMPORTANT composition constraints: keep the top 18% of the image completely empty plain paper background (headline space will be added later); keep the bottom-right corner (roughly 18% width, 12% height) empty plain paper (logo space). Absolutely no text, lettering, captions, watermarks or logos anywhere in the image.`
+      ? `Single-panel editorial cartoon for a South African financial publication: a witty, clever cartoon of ${prompt.trim()}. Warm hand-drawn COLOURED PENCIL illustration style — soft layered pencil strokes, gentle natural colours, visible paper grain, expressive characters — on a flat off-white paper background (#F7F6F2). IMPORTANT composition constraints: keep the top 18% of the image completely empty plain paper background (headline space will be added later); keep the bottom-right corner (roughly 18% width, 12% height) empty plain paper (logo space). Absolutely no text, lettering, captions, watermarks or logos anywhere in the image.`
       : prompt.trim();
 
   const model = process.env.OPENAI_IMAGE_MODEL || "gpt-image-2";
