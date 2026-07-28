@@ -23,6 +23,20 @@ export const metadata: Metadata = {
   description: "JSE, rand, kommoditeite en kripto — live, met Buitelyn se KI-markassistent.",
 };
 
+async function kryNotas(): Promise<Record<string, string>> {
+  if (!process.env.APHQ_SUPABASE_URL || !process.env.APHQ_SUPABASE_SERVICE_KEY) return {};
+  try {
+    const sb = createClient(process.env.APHQ_SUPABASE_URL, process.env.APHQ_SUPABASE_SERVICE_KEY, {
+      auth: { persistSession: false },
+    });
+    const datum = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" }).format(new Date());
+    const { data } = await sb.from("skuiwer_notas").select("simbool, nota").eq("datum", datum);
+    return Object.fromEntries((data ?? []).map((r) => [r.simbool, r.nota]));
+  } catch {
+    return {};
+  }
+}
+
 async function kryOorsig(): Promise<{
   teks: string;
   bygewerk: string | null;
@@ -147,13 +161,14 @@ export default async function MarktePage({
   const naam = rouNaam ? rouNaam.charAt(0).toUpperCase() + rouNaam.slice(1) : "";
 
   // Haal net wat die aktiewe oortjie nodig het
-  const [kwotasies, oorsig, nuus, bewegers] = await Promise.all([
+  const [kwotasies, oorsig, nuus, bewegers, notas] = await Promise.all([
     tab === "tuis" ? getQuotes(ALLE_SIMBOLE) : Promise.resolve([]),
     tab === "tuis" ? kryOorsig() : Promise.resolve(null),
     tab === "tuis" ? kryNuus() : Promise.resolve([]),
     tab === "bewegers"
       ? getQuotes(BEWEGERS_SIMBOLE.map((i) => i.simbool))
       : Promise.resolve([]),
+    tab === "bewegers" ? kryNotas() : Promise.resolve({}),
   ]);
   const oop = jseIsOop();
   const dateline = new Intl.DateTimeFormat("af-ZA", {
@@ -215,7 +230,7 @@ export default async function MarktePage({
 
           {tab === "bewegers" ? (
             <div className="mt-6">
-              <BewegersBord kwotasies={bewegers} />
+              <BewegersBord kwotasies={bewegers} notas={notas} />
             </div>
           ) : null}
 

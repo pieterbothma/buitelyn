@@ -15,6 +15,10 @@
     {
       "path": "/api/cron/portefeulje-opsom",
       "schedule": "0 17 * * 1-5"
+    },
+    {
+      "path": "/api/cron/skuiwers",
+      "schedule": "15 7-15 * * 1-5"
     }
   ],
   "regions": [

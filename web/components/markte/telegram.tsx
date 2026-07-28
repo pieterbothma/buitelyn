@@ -10,6 +10,7 @@ const UITGAWES: { veld: keyof Voorkeure; naam: string; tyd: string }[] = [
   { veld: "middag", naam: "Middagoorsig", tyd: "±11:50" },
   { veld: "aand", naam: "Dagopsomming", tyd: "±17:50" },
   { veld: "portefeulje", naam: "Portefeulje-opsomming", tyd: "±19:00 · jou houdings in rand" },
+  { veld: "skuiwers", naam: "Grootste bewegers", tyd: "±3%-skuiwe · met KI-nota" },
 ];
 
 export function TelegramKoppel() {
@@ -147,12 +148,6 @@ export function TelegramKoppel() {
             </button>
           </li>
         ))}
-        <li className="flex items-center justify-between py-2.5 opacity-50">
-          <span className="text-sm font-semibold">
-            Grootste bewegers <span className="font-normal text-ink/50">binnekort</span>
-          </span>
-          <span className="text-xs tracking-[0.14em]">BINNEKORT</span>
-        </li>
       </ul>
       <button
         onClick={ontkoppel}

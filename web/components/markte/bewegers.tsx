@@ -13,7 +13,13 @@ const AANSIGTE: { sleutel: Aansig; naam: string }[] = [
   { sleutel: "verloorders", naam: "Grootste Verloorders" },
 ];
 
-export function BewegersBord({ kwotasies }: { kwotasies: Kwotasie[] }) {
+export function BewegersBord({
+  kwotasies,
+  notas = {},
+}: {
+  kwotasies: Kwotasie[];
+  notas?: Record<string, string>;
+}) {
   const [aansig, setAansig] = useState<Aansig>("bewegers");
 
   const met = kwotasies.filter((k) => k.deltaPersent != null);
@@ -78,6 +84,11 @@ export function BewegersBord({ kwotasies }: { kwotasies: Kwotasie[] }) {
                     {d.toFixed(2)}%
                   </span>
                 </div>
+                {notas[k.simbool] ? (
+                  <p className="relative mt-1 pl-9 pr-2 text-[13px] leading-snug text-ink/70">
+                    {notas[k.simbool]}
+                  </p>
+                ) : null}
               </li>
             );
           })}
