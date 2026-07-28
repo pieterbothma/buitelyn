@@ -25,6 +25,7 @@ async function kryOorsig(): Promise<{
   bygewerk: string | null;
   oudioUrl: string | null;
   oudioDatum: string | null;
+  oudioEtiket: string;
 } | null> {
   if (!process.env.APHQ_SUPABASE_URL || !process.env.APHQ_SUPABASE_SERVICE_KEY) return null;
   try {
@@ -53,7 +54,12 @@ async function kryOorsig(): Promise<{
           month: "long",
         }).format(new Date(`${data.datum}T12:00:00Z`))
       : null;
-    return { teks: data.teks, bygewerk, oudioUrl: data.oudio_url ?? null, oudioDatum };
+    const oudioEtiket = data.oudio_url?.includes("-aand.mp3")
+      ? "LUISTER NA DIE DAGOPSOMMING"
+      : data.oudio_url?.includes("-middag.mp3")
+        ? "LUISTER NA DIE MIDDAGOORSIG"
+        : "LUISTER NA DIE OGGENDOORSIG";
+    return { teks: data.teks, bygewerk, oudioUrl: data.oudio_url ?? null, oudioDatum, oudioEtiket };
   } catch {
     return null;
   }
@@ -172,7 +178,7 @@ export default async function MarktePage() {
           {WYS_OUDIO && oorsig?.oudioUrl ? (
             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-2 border-ink bg-offwhite px-5 py-3">
               <p className="text-[11px] font-semibold tracking-[0.16em]">
-                LUISTER NA DIE JONGSTE OORSIG
+                {oorsig.oudioEtiket}
                 {oorsig.oudioDatum ? ` — ${oorsig.oudioDatum.toUpperCase()}` : ""}
                 <span aria-hidden className="ml-2 inline-block size-1.5 rounded-full bg-red align-middle" />
               </p>
