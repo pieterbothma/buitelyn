@@ -9,9 +9,9 @@ const UITGAWES: { veld: keyof Voorkeure; naam: string; tyd: string }[] = [
   { veld: "oggend", naam: "Oggendoorsig", tyd: "±06:50" },
   { veld: "middag", naam: "Middagoorsig", tyd: "±11:50" },
   { veld: "aand", naam: "Dagopsomming", tyd: "±17:50" },
-  { veld: "portefeulje", naam: "Portefeulje-opsomming", tyd: "±19:00 · jou houdings in rand" },
+  { veld: "portefeulje", naam: "Portefeulje-opsomming", tyd: "±19:00 · jou beleggings oorsig" },
   { veld: "skuiwers", naam: "Grootste bewegers", tyd: "±3%-skuiwe · met KI-nota" },
-  { veld: "sens", naam: "SENS oor jou aandele", tyd: "wanneer jou aandeel aankondig" },
+  { veld: "sens", naam: "SENS oor jou aandele", tyd: "aankondigings" },
 ];
 
 export function TelegramKoppel() {
