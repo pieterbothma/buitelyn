@@ -22,6 +22,7 @@ export async function verwerkTeksVirAudio(teks: string): Promise<string | null> 
   return skryfAfrikaans(
     `Verwerk hierdie teks sodat 'n stem dit natuurlik kan VOORLEES. Reëls:
 - Verwyder alles wat nie hoorbaar sin maak nie: URL's, markdown-tekens (#, *, _, >), emoji's, voetnotas, "teken in"-oproepe, tickers tussen hakies soos "(JSE:NPN ▲ 1,2%)".
+- Verwyder Substack-kopmetadata wat saamgekopieer word: die skrywer se naam as losstaande reël (bv. "André-Pierre du Plessis"), datumreëls, leestyd-aanduiders, "Share"/"Comment"/"Subscribe"-knoppieteks, en dubbele titel/onderskrif-reëls — die voorlesing begin by die eerste regte sin (die "Oor die volgende..."-opening mag bly, dis deel van die stem).
 - Verwyder die kursiewe eenreël-byskrifte wat direk onder storie-opskrifte staan (foto-onderskrif-grappies soos "*As jy dink jou Takealot-mandjie is vol, kyk net hier.*") — hulle hoort by beelde, nie by voorlesing nie. Dieselfde vir enige "kyk hier"/"sien hieronder"-verwysings na iets visueel.
 - Syfers en simbole in mensetaal: "R1,5 miljard" word "een komma vyf miljard rand"; "%" word "persent"; "$" word "dollar"; datums voluit.
 - Tickersimbole word maatskappyname; los vreemde afkortings uit of skryf voluit.
