@@ -8,7 +8,9 @@ import { kryAccount } from "@/lib/unipile";
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null);
   if (!body?.account_id) return NextResponse.json({ ok: false }, { status: 400 });
-  if (body.name !== (process.env.CRON_SECRET ?? "ap-hq")) {
+  // name = "<geheim>:<user_id>" — verifieer die geheim, onttrek die eienaar.
+  const [geheim, userId] = String(body.name ?? "").split(":");
+  if (geheim !== (process.env.CRON_SECRET ?? "ap-hq")) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
 
@@ -22,7 +24,12 @@ export async function POST(request: NextRequest) {
 
   const svc = supabaseService();
   await svc.from("email_accounts").upsert(
-    { account_id: body.account_id, provider: provider ?? null, epos: epos ?? null },
+    {
+      account_id: body.account_id,
+      provider: provider ?? null,
+      epos: epos ?? null,
+      user_id: userId || null,
+    },
     { onConflict: "account_id" }
   );
   return NextResponse.json({ ok: true });

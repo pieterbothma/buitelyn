@@ -15,8 +15,10 @@ export async function POST() {
   if (!user) return Response.json({ fout: "verbode" }, { status: 401 });
 
   const site = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ap-hq.vercel.app";
+  // Die gebruiker-id ry saam in die state sodat die notify-webhook die
+  // rekening aan sy eienaar kan koppel (e-pos is per gebruiker geskoop).
   const url = await createHostedAuthLink({
-    state: process.env.CRON_SECRET ?? "ap-hq",
+    state: `${process.env.CRON_SECRET ?? "ap-hq"}:${user.id}`,
     successRedirect: `${site}/epos?koppel=sukses`,
     failureRedirect: `${site}/epos?koppel=fout`,
     notifyUrl: `${site}/api/unipile/notify`,
