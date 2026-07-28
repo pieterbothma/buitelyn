@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+// (vraChat stuur konteks-vrae vanaf borde/nuus na die chat-paneel)
 import type { Kwotasie, ReeksPunt } from "@/lib/markets/source";
 import { ALLE_SIMBOLE, BORDE, naamVirSimbool } from "@/lib/markets/boards";
 import { Portefeulje, type Belegging } from "@/components/markte/portefeulje";
@@ -39,6 +40,11 @@ export function MarkteTerminal({ aanvanklik, nuus = [] }: { aanvanklik: Kwotasie
   const [reekse, setReekse] = useState<Record<string, ReeksPunt[]>>({});
   const [portefeulje, setPortefeulje] = useState<Belegging[]>([]);
   const [dophouSimbole, setDophouSimbole] = useState<string[]>([]);
+  const [eksterneVraag, setEksterneVraag] = useState<{ id: number; teks: string } | null>(null);
+
+  const vraChat = useCallback((teks: string) => {
+    setEksterneVraag({ id: Date.now(), teks });
+  }, []);
 
   /* Portfolio holdings outside the boards ride along as ?ekstra=; a change
      (new custom holding) refetches immediately instead of waiting a minute. */
@@ -163,8 +169,16 @@ export function MarkteTerminal({ aanvanklik, nuus = [] }: { aanvanklik: Kwotasie
                     </button>
                     {oop ? (
                       <div className="border-t border-ink/10 px-4 pb-3">
-                        <p className="pt-2 text-[11px] tracking-[0.14em] text-ink/50">
+                        <p className="flex items-baseline justify-between pt-2 text-[11px] tracking-[0.14em] text-ink/50">
                           AFGELOPE MAAND
+                          <button
+                            onClick={() =>
+                              vraChat(`Wat gaan aan met ${item.naam} (${item.simbool}) — hoe lyk vandag en die afgelope maand?`)
+                            }
+                            className="border border-ink/30 bg-paper px-2 py-1 text-xs font-semibold normal-case tracking-normal text-ink/70 hover:border-ink hover:bg-ink hover:text-offwhite"
+                          >
+                            Vra Buitelyn oor {item.naam} →
+                          </button>
                         </p>
                         {reekse[item.simbool] ? (
                           <Sparkline reeks={reekse[item.simbool]} />
@@ -180,12 +194,12 @@ export function MarkteTerminal({ aanvanklik, nuus = [] }: { aanvanklik: Kwotasie
           </section>
         ))}
 
-        <NuusBord items={nuus} />
+        <NuusBord items={nuus} onVra={vraChat} />
 
         <Omskakelaar usdZar={kaart.get("ZAR=X")?.prys ?? null} eurZar={kaart.get("EURZAR=X")?.prys ?? null} gbpZar={kaart.get("GBPZAR=X")?.prys ?? null} />
       </div>
 
-      <MarkteChat portefeulje={portefeulje} />
+      <MarkteChat portefeulje={portefeulje} eksterneVraag={eksterneVraag} />
     </div>
   );
 }

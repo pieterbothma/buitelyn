@@ -16,7 +16,13 @@ function wanneer(iso: string): string {
   return Date.now() - d.getTime() < 24 * 60 * 60 * 1000 ? tydFmt.format(d) : datumFmt.format(d);
 }
 
-export function NuusBord({ items }: { items: NuusItem[] }) {
+export function NuusBord({
+  items,
+  onVra,
+}: {
+  items: NuusItem[];
+  onVra?: (vraag: string) => void;
+}) {
   if (!items.length) return null;
   return (
     <section className="mb-6 border-2 border-ink bg-offwhite">
@@ -41,6 +47,19 @@ export function NuusBord({ items }: { items: NuusItem[] }) {
             </a>
             {i.opsomming ? (
               <p className="mt-1 text-sm leading-relaxed text-ink/70">{i.opsomming}</p>
+            ) : null}
+            {onVra && i.vrae?.length ? (
+              <p className="mt-1.5 flex flex-wrap gap-2">
+                {i.vrae.slice(0, 2).map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => onVra(v)}
+                    className="border border-ink/30 bg-paper px-2 py-1 text-xs font-semibold text-ink/70 hover:border-ink hover:bg-ink hover:text-offwhite"
+                  >
+                    {v}
+                  </button>
+                ))}
+              </p>
             ) : null}
           </li>
         ))}

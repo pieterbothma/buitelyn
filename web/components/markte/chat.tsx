@@ -51,12 +51,20 @@ const VOORSTELLE = [
   "Wat skryf Buitelyn oor markte?",
 ];
 
-export function MarkteChat({ portefeulje }: { portefeulje: Belegging[] }) {
+export function MarkteChat({
+  portefeulje,
+  eksterneVraag,
+}: {
+  portefeulje: Belegging[];
+  eksterneVraag?: { id: number; teks: string } | null;
+}) {
   const [boodskappe, setBoodskappe] = useState<Boodskap[]>([]);
   const [teks, setTeks] = useState("");
   const [besig, setBesig] = useState(false);
   const [af, setAf] = useState(false);
   const einde = useRef<HTMLDivElement>(null);
+  const paneel = useRef<HTMLElement>(null);
+  const laasteEksterne = useRef<number>(0);
 
   async function stuur(vraag: string) {
     if (!vraag.trim() || besig) return;
@@ -90,8 +98,21 @@ export function MarkteChat({ portefeulje }: { portefeulje: Belegging[] }) {
     }
   }
 
+  /* Konteks-vrae van buite (aandeel-knoppies, nuus-chips): stuur en bring
+     die paneel in sig — veral op mobiel waar die chat onder sit. */
+  useEffect(() => {
+    if (!eksterneVraag || eksterneVraag.id === laasteEksterne.current) return;
+    laasteEksterne.current = eksterneVraag.id;
+    stuur(eksterneVraag.teks);
+    paneel.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eksterneVraag]);
+
   return (
-    <aside className="flex max-h-[calc(100vh-8rem)] min-h-[480px] flex-col self-start border-2 border-ink bg-offwhite xl:sticky xl:top-6">
+    <aside
+      ref={paneel}
+      className="flex max-h-[calc(100vh-8rem)] min-h-[480px] flex-col self-start border-2 border-ink bg-offwhite xl:sticky xl:top-6"
+    >
       <h2 className="flex items-center gap-2 border-b-2 border-ink px-4 py-2.5 text-xs font-semibold tracking-[0.16em]">
         VRA BUITELYN
         <span aria-hidden className="size-1.5 rounded-full bg-red" />

@@ -6,6 +6,7 @@ export type NuusItem = {
   skakel: string;
   bron: string;
   opsomming: string;
+  vrae?: string[]; // klikbare vervolgvrae vir die chat
   gepubliseer: string; // ISO
 };
 
@@ -155,7 +156,7 @@ async function haalBronne(): Promise<RouItem[][]> {
   return resultate.map((r) => (r.status === "fulfilled" ? r.value : []));
 }
 
-type Vertaling = { opskrif: string; opsomming: string };
+type Vertaling = { opskrif: string; opsomming: string; vrae: string[] };
 
 async function skryfVertalings(items: RouItem[]): Promise<Vertaling[]> {
   const lys = items
@@ -171,7 +172,7 @@ async function skryfVertalings(items: RouItem[]): Promise<Vertaling[]> {
           {
             parts: [
               {
-                text: `Hier is ${items.length} finansiële nuusberigte (Engels). Vir elkeen, skryf:\n1. "opskrif" — 'n kort Afrikaanse nuusopskrif (vertaal die opskrif natuurlik, nie woord-vir-woord nie; hou name en syfers presies).\n2. "opsomming" — een-sin Afrikaanse opsomming in jou eie woorde (±18 woorde, feitelik, Buitelyn se stem: helder, geen clichés, geen aanhalings uit die bron).\nAntwoord as 'n JSON-lys van ${items.length} objekte {"opskrif": "...", "opsomming": "..."} in dieselfde volgorde.\n\n${lys}`,
+                text: `Hier is ${items.length} finansiële nuusberigte (Engels). Vir elkeen, skryf:\n1. "opskrif" — 'n kort Afrikaanse nuusopskrif (vertaal die opskrif natuurlik, nie woord-vir-woord nie; hou name en syfers presies).\n2. "opsomming" — een-sin Afrikaanse opsomming in jou eie woorde (±18 woorde, feitelik, Buitelyn se stem: helder, geen clichés, geen aanhalings uit die bron).\n3. "vrae" — presies 2 kort, kliekbare vervolgvrae in Afrikaans wat 'n leser oor dié storie aan 'n mark-assistent sou vra (bv. "Hoe raak dit die rand?"); elke vraag hoogstens 8 woorde, selfstandig verstaanbaar met die maatskappy/onderwerp by die naam genoem.\nAntwoord as 'n JSON-lys van ${items.length} objekte {"opskrif": "...", "opsomming": "...", "vrae": ["...", "..."]} in dieselfde volgorde.\n\n${lys}`,
               },
             ],
           },
@@ -184,7 +185,11 @@ async function skryfVertalings(items: RouItem[]): Promise<Vertaling[]> {
   const data = await res.json();
   const geparseer = JSON.parse(data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "[]");
   if (!Array.isArray(geparseer) || geparseer.length !== items.length) throw new Error("vertaling-vorm");
-  return geparseer.map((v) => ({ opskrif: String(v?.opskrif ?? ""), opsomming: String(v?.opsomming ?? "") }));
+  return geparseer.map((v) => ({
+    opskrif: String(v?.opskrif ?? ""),
+    opsomming: String(v?.opsomming ?? ""),
+    vrae: Array.isArray(v?.vrae) ? v.vrae.slice(0, 2).map(String) : [],
+  }));
 }
 
 /* Summaries are cached by article URL in the ap-hq Supabase, so Gemini only
@@ -203,12 +208,15 @@ export async function kryNuus(): Promise<NuusItem[]> {
     if (!items.length) return [];
     const { data: bestaande } = await sb
       .from("markte_nuus")
-      .select("skakel, opsomming, titel_af")
+      .select("skakel, opsomming, titel_af, vrae")
       .in("skakel", items.map((i) => i.skakel));
     const kaart = new Map(
       (bestaande ?? [])
-        .filter((r) => r.titel_af) // pre-titel_af rows regenerate lazily
-        .map((r) => [r.skakel as string, { opskrif: r.titel_af as string, opsomming: r.opsomming as string }])
+        .filter((r) => r.titel_af && r.vrae) // rye sonder vrae regenereer lui
+        .map((r) => [
+          r.skakel as string,
+          { opskrif: r.titel_af as string, opsomming: r.opsomming as string, vrae: (r.vrae as string[]) ?? [] },
+        ])
     );
 
     const nuwes = items.filter((i) => !kaart.has(i.skakel));
@@ -221,17 +229,18 @@ export async function kryNuus(): Promise<NuusItem[]> {
           titel_af: vertalings[n].opskrif,
           bron: i.bron,
           opsomming: vertalings[n].opsomming,
+          vrae: vertalings[n].vrae,
           gepubliseer: i.gepubliseer,
         }));
         await sb.from("markte_nuus").upsert(rye, { onConflict: "skakel" });
-        rye.forEach((r) => kaart.set(r.skakel, { opskrif: r.titel_af, opsomming: r.opsomming }));
+        rye.forEach((r) => kaart.set(r.skakel, { opskrif: r.titel_af, opsomming: r.opsomming, vrae: r.vrae }));
       } catch {
         /* wys sonder vertaling; volgende render probeer weer */
       }
     }
     return items.map(({ beskrywing: _b, ...i }) => {
       const v = kaart.get(i.skakel);
-      return { ...i, titel: v?.opskrif || i.titel, opsomming: v?.opsomming ?? "" };
+      return { ...i, titel: v?.opskrif || i.titel, opsomming: v?.opsomming ?? "", vrae: v?.vrae ?? [] };
     });
   } catch {
     return [];
