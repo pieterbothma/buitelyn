@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
           {
             parts: [
               {
-                text: `Dit is nou ${tydVanDag} (${uur}:30) op 'n ${weekdag} in Suid-Afrika. Skryf 'n kort Afrikaanse markoorsig (±110 woorde, een paragraaf, Buitelyn se stem: helder, bietjie speels, geen clichés) oor hoe die markdag TOT DUSVER verloop — pas jou verwysings by die tyd aan (vroegoggend: wat die dag inwag; middag: die dag se verloop; ná 17:00: hoe die JSE gesluit het). Fokus op die 2-3 interessantste bewegings (rand, JSE, goud, kripto). Geen opskrif, geen advies, geen plekhouers.\n\nSyfers: ${feite}`,
+                text: `Dit is nou ${tydVanDag} (${uur}:30) op 'n ${weekdag} in Suid-Afrika. Skryf 'n kort Afrikaanse markoorsig (±110 woorde, een paragraaf, Buitelyn se stem: helder, bietjie speels, geen clichés) oor hoe die markdag TOT DUSVER verloop — pas jou verwysings by die tyd aan (vroegoggend: wat die dag inwag; middag: die dag se verloop; ná 17:00: hoe die JSE gesluit het). Fokus op die 2-3 interessantste bewegings (rand, JSE, goud, kripto). Geen opskrif, geen advies, geen plekhouers. Skryf suiwer hedendaagse Afrikaans — NOOIT Nederlandse, Vlaamse of Duitse woorde nie (bv. 'achtbaan' is Nederlands). As jy twyfel of 'n woord regte Afrikaans is, gebruik eerder die Engelse leenwoord (bv. 'rollercoaster') of 'n gewone Afrikaanse alternatief.\n\nSyfers: ${feite}`,
               },
             ],
           },

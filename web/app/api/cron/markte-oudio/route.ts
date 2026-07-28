@@ -95,6 +95,7 @@ Reëls:
 - Syfers in mensetaal: nooit "+1,08%" nie — sê "net oor een persent sterker"; rond bedrae af ("sowat sestien rand sewentig teen die dollar"). Geen simbole, hakies of afkortings wat vreemd klink as dit gelees word nie.
 - Strooi 4-6 oudio-etikette uit hierdie palet op natuurlike plekke in: [energetic] [announcing] [thoughtful] [serious] [optimistic] [amused]. Op 'n af-dag mag een [sighs]. Etikette staan op hul eie voor die sin wat die toon kry.
 - Sluit af met [optimistic] en verwys luisteraars na buitelyn punt com slash markte, en 'n kort groet.
+- Skryf suiwer hedendaagse Afrikaans — NOOIT Nederlandse, Vlaamse of Duitse woorde nie (bv. 'achtbaan' is Nederlands). As jy twyfel of 'n woord regte Afrikaans is, gebruik eerder die Engelse leenwoord (bv. 'rollercoaster') of 'n gewone Afrikaanse alternatief.
 - Lengte: 120-160 woorde. Geen opskrifte, geen plekhouers. Antwoord NET met die skrip.
 
 Geskrewe oorsig:

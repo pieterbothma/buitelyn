@@ -8,7 +8,7 @@ export async function skryfAfrikaans(opdrag: string): Promise<string | null> {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: opdrag }] }],
+          contents: [{ parts: [{ text: "Skryf suiwer hedendaagse Afrikaans — NOOIT Nederlandse, Vlaamse of Duitse woorde nie (bv. 'achtbaan' is Nederlands). As jy twyfel of 'n woord regte Afrikaans is, gebruik eerder die Engelse leenwoord (bv. 'rollercoaster') of 'n gewone Afrikaanse alternatief.\n\n" + opdrag }] }],
           generationConfig: { temperature: 0.4 },
         }),
       }

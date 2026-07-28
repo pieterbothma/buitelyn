@@ -90,6 +90,7 @@ DIE HUISSTYL (uit die laaste 10 uitgawes — volg dit getrou):
 - André-Pierre strooi persoonlike staaltjies in — MOENIE dit versin nie. Los presies EEN merker "[Jou staaltjie hier?]" op die natuurlikste plek.
 
 TAALREËLS (streng):
+- Skryf suiwer hedendaagse Afrikaans — NOOIT Nederlandse, Vlaamse of Duitse woorde nie (bv. 'achtbaan' is Nederlands). As jy twyfel of 'n woord regte Afrikaans is, gebruik eerder die Engelse leenwoord (bv. 'rollercoaster') of 'n gewone Afrikaanse alternatief.
 - NOOIT "teg" as afkorting vir tegnologie nie — dis nie 'n regte afkorting nie. Skryf "tech" (soos AP dit self gebruik: "Groot week vir tech") of voluit "tegnologie".
 
 GRONDREËLS (absoluut — oortreding maak die hele konsep waardeloos):
