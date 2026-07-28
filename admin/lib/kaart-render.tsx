@@ -83,3 +83,38 @@ export async function renderKaartPng(stuk: KaartStuk, datum: string, portret: bo
   );
   return Buffer.from(await res.arrayBuffer());
 }
+
+/** Render 'n opskrif as deursigtige PNG in League Spartan (vir composiet
+ *  bo-op spotprente — regte tipografie i.p.v. AI-teks). */
+export async function renderOpskrifPng(teks: string, wydte: number, hoogte: number): Promise<Buffer> {
+  const bold = await readFile(path.join(process.cwd(), "assets/LeagueSpartan-700.ttf"));
+  const fontSize = teks.length > 34 ? Math.round(wydte / 16) : Math.round(wydte / 12);
+  const res = new ImageResponse(
+    (
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: `0 ${Math.round(wydte * 0.05)}px`,
+          fontFamily: "LeagueSpartan",
+          fontSize,
+          fontWeight: 700,
+          color: "#1A1A1A",
+          lineHeight: 1.05,
+          textAlign: "center",
+        }}
+      >
+        {teks}
+      </div>
+    ),
+    {
+      width: wydte,
+      height: hoogte,
+      fonts: [{ name: "LeagueSpartan", data: bold, weight: 700 }],
+    }
+  );
+  return Buffer.from(await res.arrayBuffer());
+}

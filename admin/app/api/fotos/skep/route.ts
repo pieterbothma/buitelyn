@@ -3,6 +3,7 @@ import sharp from "sharp";
 import path from "node:path";
 import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseService } from "@/lib/supabase/service";
+import { renderOpskrifPng } from "@/lib/kaart-render";
 
 export const maxDuration = 120; // beeldgenerering vat 30-60s
 
@@ -40,13 +41,12 @@ export async function POST(request: NextRequest) {
   /* Eie kaart = Buitelyn-spotprent: swart opskrif bo, spotprent daaronder,
      papier/ink/rooi-palet. Foto Idees stuur volledige prompts sonder dié
      sleutel en bly onaangeraak. */
+  /* Die AI teken NET die kuns; ons sit self die tipografie op: die prompt
+     reserveer 'n skoon boonste band (vir die opskrif in League Spartan) en
+     'n leë regs-onder-hoek (vir die logo). */
   const finalePrompt =
     opskrif !== undefined
-      ? `Single-panel editorial newspaper cartoon for a South African financial publication. ${
-          opskrif.trim()
-            ? `At the top: the bold black heading "${opskrif.trim()}" in a strong modern sans-serif (League Spartan style), exactly these words, correct spelling. Below it: `
-            : ""
-        }a witty, clever cartoon of ${prompt.trim()}. Clean ink-black linework with expressive characters, one single red accent color (#F03028) used sparingly, flat off-white paper background (#F7F6F2), subtle newspaper texture. No other text anywhere except the heading, no watermarks, no logos.`
+      ? `Single-panel editorial newspaper cartoon for a South African financial publication: a witty, clever cartoon of ${prompt.trim()}. Clean ink-black linework with expressive characters, one single red accent color (#F03028) used sparingly, flat off-white paper background (#F7F6F2), subtle newspaper texture. IMPORTANT composition constraints: keep the top 18% of the image completely empty plain paper background (headline space will be added later); keep the bottom-right corner (roughly 18% width, 12% height) empty plain paper (logo space). Absolutely no text, lettering, captions, watermarks or logos anywhere in the image.`
       : prompt.trim();
 
   const model = process.env.OPENAI_IMAGE_MODEL || "gpt-image-2";
@@ -64,32 +64,26 @@ export async function POST(request: NextRequest) {
   const b64: string | undefined = data?.data?.[0]?.b64_json;
   if (!b64) return NextResponse.json({ fout: "geen beeld terug nie" }, { status: 502 });
 
-  // Buitelyn-logo outomaties in die hoek (regs onder), ink of wit
+  // Composiet in een pas: opskrif in ons font in die boonste band + logo regs onder
   let beeld = Buffer.from(b64, "base64");
+  const [wydte, hoogte] = grootte.split("x").map(Number);
+  const lae: sharp.OverlayOptions[] = [];
+  if (opskrif !== undefined && opskrif.trim()) {
+    const bandHoogte = Math.round(hoogte * 0.16);
+    const opskrifPng = await renderOpskrifPng(opskrif.trim(), wydte, bandHoogte);
+    lae.push({ input: opskrifPng, top: Math.round(hoogte * 0.015), left: 0 });
+  }
   if (logo === "ink" || logo === "wit") {
-    const [wydte] = grootte.split("x").map(Number);
     const logoGrootte = Math.round(wydte * 0.12);
     const rand = Math.round(wydte * 0.03);
     const logoPng = await sharp(path.join(process.cwd(), `assets/logo-${logo}.png`))
       .resize(logoGrootte, logoGrootte)
       .png()
       .toBuffer();
-    beeld = await sharp(beeld)
-      .composite([{ input: logoPng, gravity: "southeast", top: undefined, left: undefined }])
-      .png()
-      .toBuffer();
-    // gravity southeast sit dit teen die rand — skuif effens in met 'n rand-buffer
-    const meta = await sharp(Buffer.from(b64, "base64")).metadata();
-    beeld = await sharp(Buffer.from(b64, "base64"))
-      .composite([
-        {
-          input: logoPng,
-          top: (meta.height ?? 1024) - logoGrootte - rand,
-          left: (meta.width ?? 1024) - logoGrootte - rand,
-        },
-      ])
-      .png()
-      .toBuffer();
+    lae.push({ input: logoPng, top: hoogte - logoGrootte - rand, left: wydte - logoGrootte - rand });
+  }
+  if (lae.length) {
+    beeld = await sharp(beeld).composite(lae).png().toBuffer();
   }
 
   const datum = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" }).format(
