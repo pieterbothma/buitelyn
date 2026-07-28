@@ -86,7 +86,9 @@ export async function POST(request: NextRequest) {
   const svc = supabaseService();
   const { error } = await svc.storage
     .from("konsep-fotos")
-    .upload(pad, beeld, { contentType: "image/png" });
+    .upload(pad, new Blob([new Uint8Array(beeld)], { type: "image/png" }), {
+      contentType: "image/png",
+    });
   if (error) return NextResponse.json({ fout: error.message }, { status: 500 });
 
   const url = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/konsep-fotos/${pad}`;
