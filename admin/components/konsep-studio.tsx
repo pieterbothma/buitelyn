@@ -1,12 +1,100 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import {
   kryFotoIdees,
   skepNuusbriefKonsep,
   stoorNuusbriefKonsep,
   type FotoIdee,
 } from "@/app/actions-nuusbrief";
+import { verwerkTeksVirAudio } from "@/app/actions-audio";
+
+function AudioModal({ bronTeks, toe }: { bronTeks: string; toe: () => void }) {
+  const [teks, setTeks] = useState<string | null>(null);
+  const [mp3, setMp3] = useState<string | null>(null);
+  const [besig, setBesig] = useState<"verwerk" | "genereer" | null>("verwerk");
+  const [fout, setFout] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const skoon = await verwerkTeksVirAudio(bronTeks);
+      setTeks(skoon ?? "");
+      if (!skoon) setFout("Kon nie verwerk nie — probeer weer.");
+      setBesig(null);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  async function genereer() {
+    if (!teks?.trim()) return;
+    setBesig("genereer");
+    setFout(null);
+    try {
+      const res = await fetch("/api/audio/generate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ titel: `Konsep-audio ${new Date().toLocaleDateString("af-ZA")}`, teks }),
+      });
+      const data = await res.json();
+      if (res.ok) setMp3(data.mp3);
+      else setFout(data.fout ?? "Kon nie genereer nie.");
+    } catch {
+      setFout("Netwerkfout.");
+    } finally {
+      setBesig(null);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/40 p-4" onClick={toe}>
+      <div
+        className="flex max-h-[85vh] w-full max-w-2xl flex-col border-2 border-ink bg-offwhite p-5"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h2 className="font-extrabold">Verwerk Teks vir Audio</h2>
+          <button onClick={toe} className="text-sm font-semibold text-ink/50 hover:text-ink">
+            Maak toe ✕
+          </button>
+        </div>
+        <p className="mt-1 text-xs text-ink/50">
+          Simbole, skakels en markdown is uitgehaal; syfers en uitsprake (rie-olie) is
+          leesbaar gemaak. Redigeer en genereer.
+        </p>
+        {teks === null ? (
+          <p className="mt-6 text-sm text-ink/60">Verwerk die konsep…</p>
+        ) : (
+          <>
+            <textarea
+              value={teks}
+              onChange={(e) => setTeks(e.target.value)}
+              rows={14}
+              className="mt-3 min-h-0 w-full flex-1 border-2 border-ink bg-paper p-3 text-sm leading-relaxed outline-none focus:border-red"
+            />
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <button
+                onClick={genereer}
+                disabled={besig !== null || !teks.trim()}
+                className="bg-ink px-5 py-2 text-sm font-semibold text-offwhite hover:bg-ink/85 disabled:opacity-50"
+              >
+                {besig === "genereer" ? "Genereer… (kan 'n minuut vat)" : "Genereer audio →"}
+              </button>
+              {fout ? <span className="text-sm font-semibold text-red">{fout}</span> : null}
+            </div>
+            {mp3 ? (
+              <div className="mt-3 border-2 border-green p-3">
+                <audio controls src={mp3} className="w-full" />
+                <a href={mp3} download className="mt-1.5 inline-block text-sm font-semibold underline">
+                  Laai MP3 af ↓
+                </a>
+              </div>
+            ) : null}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function FotoIdees({ bestaandeFotos, aktief }: { bestaandeFotos: string[]; aktief: boolean }) {
   const [idees, setIdees] = useState<FotoIdee[]>([]);
@@ -155,6 +243,7 @@ export function KonsepStudio({
 }) {
   const [teks, setTeks] = useState(aanvanklik);
   const [boodskap, setBoodskap] = useState<string | null>(null);
+  const [audioOop, setAudioOop] = useState(false);
   const [besig, begin] = useTransition();
 
   function genereer() {
@@ -215,12 +304,23 @@ export function KonsepStudio({
       </div>
 
       {teks ? (
+        <>
         <textarea
           value={teks}
           onChange={(e) => setTeks(e.target.value)}
           rows={28}
           className="mt-4 w-full border-2 border-ink bg-offwhite p-4 font-mono text-sm leading-relaxed outline-none focus:border-red"
         />
+        <div className="mt-2 flex justify-end">
+          <button
+            onClick={() => setAudioOop(true)}
+            className="border-2 border-ink bg-offwhite px-4 py-2 text-sm font-semibold hover:bg-paper"
+          >
+            Verwerk Teks vir Audio 🎙
+          </button>
+        </div>
+        {audioOop ? <AudioModal bronTeks={teks} toe={() => setAudioOop(false)} /> : null}
+        </>
       ) : (
         <p className="mt-4 max-w-lg text-sm text-ink/60">
           Die konsep word gebou uit die markte-pyplyn: die oggend se dagoorsig, die

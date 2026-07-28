@@ -1,12 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { verwerkTeksVirAudio } from "@/app/actions-audio";
 
 type Pos = { title: string; url: string; teks: string };
 
 export function AudioStudio({ posts }: { posts: Pos[] }) {
   const [gekies, setGekies] = useState<Pos | null>(null);
   const [teks, setTeks] = useState("");
+  const [eieTeks, setEieTeks] = useState("");
+  const [verwerkBesig, beginVerwerk] = useTransition();
+
+  function verwerk() {
+    if (!eieTeks.trim()) return;
+    beginVerwerk(async () => {
+      const skoon = await verwerkTeksVirAudio(eieTeks);
+      if (skoon) {
+        setGekies({ title: `Eie teks — ${new Date().toLocaleDateString("af-ZA")}`, url: "", teks: skoon });
+        setTeks(skoon);
+        setEieTeks("");
+        setStatus("idle");
+        setMp3(null);
+      }
+    });
+  }
   const [status, setStatus] = useState<"idle" | "besig" | "klaar" | "fout">("idle");
   const [mp3, setMp3] = useState<string | null>(null);
   const [fout, setFout] = useState("");
@@ -30,6 +47,29 @@ export function AudioStudio({ posts }: { posts: Pos[] }) {
   }
 
   return (
+    <div>
+      <div className="mb-6 border-2 border-ink bg-offwhite p-5">
+        <h2 className="font-extrabold">Verwerk teks vir Audio</h2>
+        <p className="mt-1 text-xs text-ink/50">
+          Plak enige teks — simbole, skakels en ander rommel word uitgehaal en syfers word
+          leesbaar gemaak; dan kan jy redigeer en genereer.
+        </p>
+        <textarea
+          value={eieTeks}
+          onChange={(e) => setEieTeks(e.target.value)}
+          rows={5}
+          placeholder="Plak jou teks hier…"
+          className="mt-3 w-full border-2 border-ink bg-paper p-3 text-sm outline-none focus:border-red"
+        />
+        <button
+          onClick={verwerk}
+          disabled={verwerkBesig || !eieTeks.trim()}
+          className="mt-2 bg-ink px-4 py-2 text-sm font-semibold text-offwhite hover:bg-ink/85 disabled:opacity-50"
+        >
+          {verwerkBesig ? "Verwerk…" : "Verwerk teks vir Audio →"}
+        </button>
+      </div>
+
     <div className="grid gap-6 xl:grid-cols-[320px_1fr]">
       <ul className="max-h-[70vh] divide-y divide-ink/10 self-start overflow-y-auto border-2 border-ink bg-offwhite">
         {posts.map((p) => (
@@ -70,7 +110,7 @@ export function AudioStudio({ posts }: { posts: Pos[] }) {
                 disabled={status === "besig"}
                 className="bg-ink px-6 py-2.5 text-sm font-semibold text-offwhite hover:bg-ink/85 disabled:opacity-50"
               >
-                {status === "besig" ? "Genereer… (kan 'n minuut vat)" : "Genereer oudio →"}
+                {status === "besig" ? "Genereer… (kan 'n minuut vat)" : "Genereer audio →"}
               </button>
               {status === "fout" ? <p className="text-sm font-semibold text-red">{fout}</p> : null}
             </div>
@@ -87,6 +127,7 @@ export function AudioStudio({ posts }: { posts: Pos[] }) {
           <p className="text-sm text-ink/50">Kies 'n nuusbrief links.</p>
         )}
       </div>
+    </div>
     </div>
   );
 }

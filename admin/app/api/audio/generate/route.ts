@@ -4,6 +4,33 @@ import { supabaseService } from "@/lib/supabase/service";
 
 export const maxDuration = 300;
 
+/* Selfde Afrikaans-truuk as die markte-briefing: warm-up-frase anker die
+   taal, en ons sny dit met die timestamps presies uit. */
+const WARMUP = "Ek praat Afrikaans. ";
+
+function snyMp3(mp3: Buffer, sekondes: number): Buffer {
+  let pos = 0;
+  if (mp3.length > 10 && mp3.toString("latin1", 0, 3) === "ID3") {
+    const g = ((mp3[6] & 0x7f) << 21) | ((mp3[7] & 0x7f) << 14) | ((mp3[8] & 0x7f) << 7) | (mp3[9] & 0x7f);
+    pos = 10 + g;
+  }
+  const BITRATES = [0, 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320];
+  const RATES = [44100, 48000, 32000];
+  let tyd = 0;
+  while (pos + 4 <= mp3.length) {
+    if (mp3[pos] !== 0xff || (mp3[pos + 1] & 0xe0) !== 0xe0) { pos++; continue; }
+    const bitrate = BITRATES[(mp3[pos + 2] >> 4) & 0x0f];
+    const rate = RATES[(mp3[pos + 2] >> 2) & 0x03];
+    if (!bitrate || !rate) { pos++; continue; }
+    const padding = (mp3[pos + 2] >> 1) & 0x01;
+    const raam = Math.floor((144 * bitrate * 1000) / rate) + padding;
+    if (tyd >= sekondes) return mp3.subarray(pos);
+    tyd += 1152 / rate;
+    pos += raam;
+  }
+  return mp3;
+}
+
 export async function POST(request: NextRequest) {
   const sb = await supabaseServer();
   const {
@@ -28,20 +55,36 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
 
-  const res = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-    method: "POST",
-    headers: { "xi-api-key": sleutel, "content-type": "application/json" },
-    body: JSON.stringify({
-      text: teks,
-      model_id: "eleven_multilingual_v2",
-      voice_settings: { stability: 0.5, similarity_boost: 0.75 },
-    }),
-  });
+  // v3 klink beste maar het 'n korter teksperk; langer stukke val terug na v2.
+  const model = teks.length <= 2800 ? "eleven_v3" : "eleven_multilingual_v2";
+  const res = await fetch(
+    `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/with-timestamps?output_format=mp3_44100_128`,
+    {
+      method: "POST",
+      headers: { "xi-api-key": sleutel, "content-type": "application/json" },
+      body: JSON.stringify({
+        text: WARMUP + teks,
+        model_id: model,
+        voice_settings: model === "eleven_v3" ? { stability: 0.5 } : { stability: 0.5, similarity_boost: 0.75 },
+      }),
+    }
+  );
   if (!res.ok) {
     const detail = await res.text();
     return NextResponse.json({ fout: `ElevenLabs ${res.status}: ${detail.slice(0, 200)}` }, { status: 502 });
   }
-  const mp3 = Buffer.from(await res.arrayBuffer());
+  const ttsData = (await res.json()) as {
+    audio_base64: string;
+    alignment?: { characters: string[]; character_start_times_seconds: number[] };
+  };
+  let mp3: Buffer = Buffer.from(ttsData.audio_base64, "base64");
+  const al = ttsData.alignment;
+  if (al) {
+    const vol = al.characters.join("");
+    const begin = vol.indexOf(teks.slice(0, 12));
+    const sny = begin > 0 ? al.character_start_times_seconds[begin] : al.character_start_times_seconds[WARMUP.length] ?? 0;
+    if (sny > 0.2) mp3 = snyMp3(mp3, Math.max(0, sny - 0.08));
+  }
 
   const svc = supabaseService();
   const pad = `${Date.now()}-${titel.toLowerCase().replace(/[^\w]+/g, "-").slice(0, 60)}.mp3`;
