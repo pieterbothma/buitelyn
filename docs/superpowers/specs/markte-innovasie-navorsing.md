@@ -24,7 +24,7 @@ Buitelyn /markte word die plek waar Afrikaanssprekendes elke dag hul geld verst�
 
 **Bou-plan:** Nuwe Supabase-tabel alerts (user, ticker, rigting, drempel); Vercel-webhook vir die bot; 15-min-cron hergebruik die Yahoo-klient. 2 dae insluitend dophoulys-UI; lopende koste: nul (Telegram gratis, Resend vry vlak).
 
-### 3. 'Luister: Vandag op die markte' — daaglikse Afrikaanse oudiobriefing
+### 3. ~~'Luister: Vandag op die markte'~~ — GEBOU 2026-07-28 — daaglikse Afrikaanse oudiobriefing
 
 **Wat:** Cron om 06:45: die bestaande Gemini-dagoorsig word deur ElevenLabs as 2–3 minute Afrikaanse oudio gelewer, MP3 in Supabase Storage, speelknoppie boaan /markte, dieselfde lêer na die Substack.
 
@@ -40,7 +40,7 @@ Buitelyn /markte word die plek waar Afrikaanssprekendes elke dag hul geld verst�
 
 **Bou-plan:** E-pos-templaat + cron wat per gebruiker portefeulje/dophoulys/nuus uit bestaande tabelle trek; opt-in-skakelaar in die profiel. 1–2 dae; Resend vry vlak dek ~3 000 e-posse/maand.
 
-### 5. Konteks-bewuste chat: 'Vra oor Sasol'-knoppies + vervolgvrae onder nuus
+### 5. ~~Konteks-bewuste chat~~ — GEBOU 2026-07-28: 'Vra oor Sasol'-knoppies + vervolgvrae onder nuus
 
 **Wat:** Elke aandeelkaart kry 'n knoppie wat VRA BUITELYN voorlaai met daardie ticker se kwotasie en reeks (TradingView Chart Copilot-patroon), en onder elke NUUS-opsomming genereer Gemini twee klikbare vervolgvrae ('Hoe raak dit die rand?') wat die chat oopmaak (Yahoo Scout-patroon).
 
