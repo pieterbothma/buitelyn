@@ -79,6 +79,9 @@ DIE HUISSTYL (uit die laaste 10 uitgawes — volg dit getrou):
 - Sluit met 'n kort "Hoe lyk die rand:"-tipe markblokkie (weef die syfers hieronder natuurlik in) en 'n een-sin-groet met 'n verwysing na buitelyn.com/markte.
 - André-Pierre strooi persoonlike staaltjies in — MOENIE dit versin nie. Los presies EEN merker "[Jou staaltjie hier?]" op die natuurlikste plek.
 
+TAALREËLS (streng):
+- NOOIT "teg" as afkorting vir tegnologie nie — dis nie 'n regte afkorting nie. Skryf "tech" (soos AP dit self gebruik: "Groot week vir tech") of voluit "tegnologie".
+
 Dagoorsig (agtergrond, moenie woordeliks kopieer nie): ${oorsig?.teks ?? "(nog nie beskikbaar nie)"}
 
 Syfers: ${syfers || "(nie beskikbaar nie)"}
