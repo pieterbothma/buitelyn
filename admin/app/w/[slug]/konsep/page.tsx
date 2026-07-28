@@ -29,6 +29,15 @@ export default async function NuusbriefKonsep({
     .eq("datum", datum)
     .maybeSingle();
 
+  const { data: fotoLys } = await sb.storage.from("konsep-fotos").list(datum, { limit: 30 });
+  const fotos = (fotoLys ?? [])
+    .filter((f) => f.name.endsWith(".png"))
+    .sort((a, b) => b.name.localeCompare(a.name))
+    .map(
+      (f) =>
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/konsep-fotos/${datum}/${f.name}`
+    );
+
   return (
     <Shell workspaces={(workspaces ?? []) as Workspace[]} active={active as Workspace}>
       <h1 className="text-3xl font-extrabold tracking-tight">Nuusbrief-konsep</h1>
@@ -37,7 +46,7 @@ export default async function NuusbriefKonsep({
         skakels, en live syfers. Jy redigeer en plak in Substack.
       </p>
       <div className="mt-6">
-        <KonsepStudio aanvanklik={konsep?.teks ?? ""} />
+        <KonsepStudio aanvanklik={konsep?.teks ?? ""} fotos={fotos} />
       </div>
     </Shell>
   );

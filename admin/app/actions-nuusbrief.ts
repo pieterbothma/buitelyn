@@ -118,6 +118,47 @@ Antwoord NET met die markdown-konsep.`
   return teks;
 }
 
+export type FotoIdee = { beskrywing: string; prompt: string };
+
+/** Gemini lees vandag se konsep en stel 4 beeld-idees voor: Afrikaanse
+ *  beskrywing vir AP + 'n Engelse prompt vir die beeldmodel. */
+export async function kryFotoIdees(): Promise<FotoIdee[]> {
+  const sb = await supabaseServer();
+  const {
+    data: { user },
+  } = await sb.auth.getUser();
+  if (!user) return [];
+
+  const { data: konsep } = await sb
+    .from("nuusbrief_konsepte")
+    .select("teks")
+    .eq("datum", vandagSAST())
+    .maybeSingle();
+  if (!konsep?.teks) return [];
+
+  const antwoord = await skryfAfrikaans(
+    `Hier is vandag se Buitelyn-nuusbriefkonsep. Stel presies 4 nuusbrief-illustrasie-idees voor wat by die stories pas — editoriale beeldmateriaal, nie stock-foto-clichés nie. Buitelyn se estetika: skoon, speels-ernstig, koerantagtig; geen teks in die beeld nie, geen logo's of regte mense se gesigte nie.
+
+Antwoord as SUIWER JSON (geen kodeblok nie): 'n lys van 4 objekte:
+- "beskrywing": een Afrikaanse sin wat vir André-Pierre sê wat die beeld wys
+- "prompt": 'n gedetailleerde ENGELSE prompt vir 'n beeldmodel (styl, komposisie, ligging, palet — noem "editorial newspaper illustration style, clean off-white background")
+
+Konsep:
+${konsep.teks.slice(0, 4000)}`
+  );
+  try {
+    const skoon = (antwoord ?? "").replace(/^```json?\n?|```$/g, "").trim();
+    const lys = JSON.parse(skoon);
+    if (!Array.isArray(lys)) return [];
+    return lys
+      .slice(0, 4)
+      .map((i) => ({ beskrywing: String(i?.beskrywing ?? ""), prompt: String(i?.prompt ?? "") }))
+      .filter((i) => i.beskrywing && i.prompt);
+  } catch {
+    return [];
+  }
+}
+
 export async function stoorNuusbriefKonsep(teks: string): Promise<void> {
   const sb = await supabaseServer();
   const {
