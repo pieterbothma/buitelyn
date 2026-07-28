@@ -88,21 +88,16 @@ export async function GET(request: NextRequest) {
       ]);
       const eie = new Set([...(houdings ?? []), ...(dop ?? [])].map((r) => `${r.user_id}:${r.simbool}`));
 
-      // Kompakte lys (Piet se keuse): die hele dag se skuiwers, gegroepeer —
-      // die KI-notas leef op die Bewegers-oortjie, nie in die boodskap nie.
-      const wenners = skuiwers.filter((k) => k.deltaPersent! > 0);
-      const verloorders = skuiwers.filter((k) => k.deltaPersent! < 0);
-      const reel = (k: (typeof skuiwers)[number], eieMerk: boolean) =>
-        `${k.deltaPersent! >= 0 ? "▲" : "▼"} ${htmlOntsnap(bewegersNaam(k.simbool))} ${k.deltaPersent! >= 0 ? "+" : "−"}${Math.abs(k.deltaPersent!).toFixed(2).replace(".", ",")}%${eieMerk ? " ⭐" : ""}`;
+      // Een blokkie per NUWE skuiwer (Piet se formaat):
+      //   Naam is aan die beweeg
+      //   ▲ +3,53%
       for (const g of intekenare) {
-        const blokke: string[] = [];
-        if (wenners.length) {
-          blokke.push(`<b>Grootste Wenners</b>\n${wenners.map((k) => reel(k, eie.has(`${g.user_id}:${k.simbool}`))).join("\n")}`);
-        }
-        if (verloorders.length) {
-          blokke.push(`<b>Grootste Verloorders</b>\n${verloorders.map((k) => reel(k, eie.has(`${g.user_id}:${k.simbool}`))).join("\n")}`);
-        }
-        const boodskap = [`🔴 <b>Groot skuiwers op die JSE</b>`, "", blokke.join("\n\n"), "", "Die hoekom: buitelyn.com/markte?blad=bewegers · ±15 min vertraag"].join("\n");
+        const blokke = geskryf.map((n) => {
+          const merk = eie.has(`${g.user_id}:${n.simbool}`) ? " ⭐" : "";
+          const pyl = n.delta >= 0 ? "▲ +" : "▼ −";
+          return `<b>${htmlOntsnap(n.naam)}</b> is aan die beweeg${merk}\n${pyl}${Math.abs(n.delta).toFixed(2).replace(".", ",")}%`;
+        });
+        const boodskap = [`🔴 ${blokke.join("\n\n")}`, "", "Die hoekom: buitelyn.com/markte?blad=bewegers · ±15 min vertraag"].join("\n");
         const res = await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
           method: "POST",
           headers: { "content-type": "application/json" },
