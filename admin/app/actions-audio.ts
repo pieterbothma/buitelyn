@@ -21,7 +21,8 @@ export async function verwerkTeksVirAudio(teks: string): Promise<string | null> 
 
   return skryfAfrikaans(
     `Verwerk hierdie teks sodat 'n stem dit natuurlik kan VOORLEES. Reëls:
-- Verwyder alles wat nie hoorbaar sin maak nie: URL's, markdown-tekens (#, *, _, >), emoji's, voetnotas, beeld-byskrifte, "teken in"-oproepe, tickers tussen hakies soos "(JSE:NPN ▲ 1,2%)".
+- Verwyder alles wat nie hoorbaar sin maak nie: URL's, markdown-tekens (#, *, _, >), emoji's, voetnotas, "teken in"-oproepe, tickers tussen hakies soos "(JSE:NPN ▲ 1,2%)".
+- Verwyder die kursiewe eenreël-byskrifte wat direk onder storie-opskrifte staan (foto-onderskrif-grappies soos "*As jy dink jou Takealot-mandjie is vol, kyk net hier.*") — hulle hoort by beelde, nie by voorlesing nie. Dieselfde vir enige "kyk hier"/"sien hieronder"-verwysings na iets visueel.
 - Syfers en simbole in mensetaal: "R1,5 miljard" word "een komma vyf miljard rand"; "%" word "persent"; "$" word "dollar"; datums voluit.
 - Tickersimbole word maatskappyname; los vreemde afkortings uit of skryf voluit.
 - Behou die skrywer se stem, volgorde en humor — dis dieselfde teks, net gereed vir die oor. Moenie opsom of inkort nie.
