@@ -40,7 +40,7 @@ export default async function Oudio({ params }: { params: Promise<{ slug: string
 
   return (
     <Shell workspaces={(workspaces ?? []) as Workspace[]} active={active as Workspace}>
-      <h1 className="text-3xl font-extrabold tracking-tight">Nuusbrief → Oudio</h1>
+      <h1 className="text-3xl font-extrabold tracking-tight">Nuusbrief → Audio</h1>
       <div className="mt-6">
         <AudioStudio posts={posts} />
       </div>

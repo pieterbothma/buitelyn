@@ -15,8 +15,8 @@ const GEREEDSKAP = [
   },
   {
     pad: "oudio",
-    naam: "Nuusbrief → Oudio",
-    wat: "Maak 'n ElevenLabs-oudio-weergawe van 'n nuusbrief-uitgawe.",
+    naam: "Nuusbrief → Audio",
+    wat: "Maak 'n ElevenLabs-audio-weergawe van 'n nuusbrief-uitgawe.",
   },
 ];
 

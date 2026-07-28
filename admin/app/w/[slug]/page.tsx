@@ -32,7 +32,7 @@ export default async function WorkspaceHome({
       <p className="mt-4 max-w-lg text-sm text-ink/60">
         Kies 'n module in die kantbalk — Pyplyn, Idees, Kliënte, Fakture
         {slug === "promenader" ? ", Stories" : ""}
-        {slug === "buitelyn" ? ", Nuusbrief → Oudio" : ""}. (Modules kom aanlyn soos
+        {slug === "buitelyn" ? ", Nuusbrief → Audio" : ""}. (Modules kom aanlyn soos
         ons M1–M6 aflewer.)
       </p>
       {slug === "afna" && active.skool_url ? (

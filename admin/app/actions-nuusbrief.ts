@@ -61,16 +61,25 @@ export async function skepNuusbriefKonsep(): Promise<string | null> {
   }).format(new Date());
 
   const teks = await skryfAfrikaans(
-    `Skryf 'n volledige Substack-nuusbrief-KONSEP vir Buitelyn (Afrikaanse sake-nuus; stem: helder, warm, bietjie speels, geen clichés) vir ${datumWoorde}. André-Pierre redigeer dit self, so dis 'n sterk eerste weergawe, nie 'n raamwerk nie.
+    `Skryf 'n Substack-nuusbrief-KONSEP vir Buitelyn vir ${datumWoorde}, in André-Pierre se presiese huisstyl (hy redigeer self — skryf 'n sterk eerste weergawe, nie 'n raamwerk nie).
 
-Struktuur (markdown):
-1. 'n Pakkende titel-reël (# opskrif) met een relevante emoji.
-2. 'n Kort intro-groet (2-3 sinne) wat die dag se markgevoel vasvang.
-3. **Die kern in 3** — die 3 belangrikste stories uit die nuuslys hieronder: elk 'n vetgedrukte opskriffie, 2-3 sinne in jou eie woorde, en die bronskakel op sy eie reël.
-4. **Op die markte** — een paragraaf uit die dagoorsig se gegewens, met die syfers natuurlik ingeweef (rand, Top 40, goud, Bitcoin).
-5. 'n Kort afsluiting met 'n verwysing na die volle terminal by buitelyn.com/markte en 'n groet.
+DIE HUISSTYL (uit die laaste 10 uitgawes — volg dit getrou):
+- TITEL: 2-3 kort onderwerpe met emoji's, speels, bv "🍑 Blatjang, ✈️ Boeing en 🤖 bots" of "De Beers, BYD & Bitcoin". Nooit 'n saai opsomming nie.
+- OPEN ALTYD met: "Oor die volgende X minute en Y sekondes:" (skat die leestyd uit die lengte, ±200 woorde per minuut) gevolg deur een knipoog-sin wat die 3 stories teaser-gewys opsom.
+- KIES NET DIE 3 SAPPIGSTE stories uit die nuuslys — nie almal nie. Elke storie kry:
+  - 'n kort, speelse opskrif (## ), bv "Kganyago hou koerse in die kraal" of "Boeing beter begin bou";
+  - direk daaronder 'n kursiewe eenreël-byskrif met droë humor (soos 'n foto-onderskrif), bv "*Ek en die Gov (nie in die kraal nie).*";
+  - 2-4 kort paragrawe met die kern;
+  - emoji-gemerkte vetgedrukte etikette vir die analise, bv "🍑 **Hoekom nou:**", "💣 **Wat dit beteken:**", "**Die Syfers:**";
+  - die bronskakel aan die einde van die storie op sy eie reël.
+- Maatskappye kry hul ticker inline waar syfers beskikbaar is: "Richemont (JSE:CFR ▲ 6,4%)".
+- VET belangrike syfers en bedrae. Kort sinne. Afrikaans met so nou en dan 'n Engelse frase ("so bear with me", "Hold my bubble tea", "the DL") — spaarsamig, nooit geforseerd nie.
+- Alledaagse SA-verwysings waar dit natuurlik pas (Checkers, Takealot, Uber Eats, die Paarl).
+- Oorgange soos "Maar eers …", "MEANWHILE:", "Gepraat van X, …".
+- Sluit met 'n kort "Hoe lyk die rand:"-tipe markblokkie (weef die syfers hieronder natuurlik in) en 'n een-sin-groet met 'n verwysing na buitelyn.com/markte.
+- André-Pierre strooi persoonlike staaltjies in — MOENIE dit versin nie. Los presies EEN merker "[Jou staaltjie hier?]" op die natuurlikste plek.
 
-Dagoorsig: ${oorsig?.teks ?? "(nog nie beskikbaar nie)"}
+Dagoorsig (agtergrond, moenie woordeliks kopieer nie): ${oorsig?.teks ?? "(nog nie beskikbaar nie)"}
 
 Syfers: ${syfers || "(nie beskikbaar nie)"}
 
