@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import sharp from "sharp";
+import sharp, { type OverlayOptions } from "sharp";
 import path from "node:path";
 import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseService } from "@/lib/supabase/service";
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
   // Composiet in een pas: opskrif in ons font in die boonste band + logo regs onder
   let beeld = Buffer.from(b64, "base64");
   const [wydte, hoogte] = grootte.split("x").map(Number);
-  const lae: sharp.OverlayOptions[] = [];
+  const lae: OverlayOptions[] = [];
   if (opskrif !== undefined && opskrif.trim()) {
     const bandHoogte = Math.round(hoogte * 0.16);
     const opskrifPng = await renderOpskrifPng(opskrif.trim(), wydte, bandHoogte);
