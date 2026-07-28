@@ -141,9 +141,38 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({ chat_id: chatId, action: "typing" }),
     }).catch(() => {});
     try {
+      // Volle Buitelyn-konteks vir dié gebruiker: portefeulje, dophoulys,
+      // en die jongste dagoorsig — die agent ken die res via sy tools.
+      const [{ data: houdings }, { data: dop }, { data: oorsig }] = await Promise.all([
+        sb
+          .from("portefeuljes")
+          .select("simbool, aantal, koopprys, geldeenheid")
+          .eq("user_id", koppeling.user_id),
+        sb.from("dophou").select("simbool, naam").eq("user_id", koppeling.user_id),
+        sb
+          .from("markte_oorsigte")
+          .select("teks")
+          .order("datum", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+      const konteks = [
+        "Jy antwoord in Telegram — hou dit kort (hoogstens 5 sinne), skoon teks sonder opmaak behalwe skakels as [naam](url).",
+        dop?.length
+          ? `Gebruiker se dophoulys: ${dop.map((d) => (d.naam ? `${d.naam} (${d.simbool})` : d.simbool)).join(", ")}.`
+          : null,
+        oorsig?.teks ? `Buitelyn se jongste dagoorsig (konteks, nie die gebruiker se woorde nie): ${oorsig.teks}` : null,
+      ]
+        .filter(Boolean)
+        .join("\n\n");
       const antwoord = await beantwoordMarkteVraag(geskiedenis, {
-        ekstraInstruksies:
-          "Jy antwoord in Telegram — hou dit kort (hoogstens 5 sinne), skoon teks sonder opmaak behalwe skakels as [naam](url).",
+        portefeulje: (houdings ?? []).map((h) => ({
+          simbool: h.simbool,
+          aantal: Number(h.aantal),
+          koopprys: Number(h.koopprys),
+          geldeenheid: h.geldeenheid ?? "ZAR",
+        })),
+        ekstraInstruksies: konteks,
       });
       await stuur(chatId, htmlVirTelegram(antwoord));
       const knip = (t: string) => t.slice(0, 1000);
