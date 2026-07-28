@@ -6,14 +6,16 @@ export const maxDuration = 120; // beeldgenerering vat 30-60s
 
 /* Genereer 'n nuusbrief-beeld met OpenAI se beeldmodel en stoor dit in die
    konsep-fotos-bucket. Val terug na gpt-image-1 as die nuwer model 4xx gee. */
-async function genereer(model: string, prompt: string) {
+const GROOTTES = new Set(["1536x1024", "1024x1024", "1024x1536"]);
+
+async function genereer(model: string, prompt: string, size: string) {
   return fetch("https://api.openai.com/v1/images/generations", {
     method: "POST",
     headers: {
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       "content-type": "application/json",
     },
-    body: JSON.stringify({ model, prompt, size: "1536x1024", quality: "medium" }),
+    body: JSON.stringify({ model, prompt, size, quality: "medium" }),
   });
 }
 
@@ -24,13 +26,14 @@ export async function POST(request: NextRequest) {
   } = await sb.auth.getUser();
   if (!user) return NextResponse.json({ fout: "verbode" }, { status: 401 });
 
-  const { prompt } = (await request.json()) as { prompt?: string };
+  const { prompt, size } = (await request.json()) as { prompt?: string; size?: string };
   if (!prompt?.trim()) return NextResponse.json({ fout: "leë prompt" }, { status: 400 });
+  const grootte = GROOTTES.has(size ?? "") ? size! : "1536x1024";
 
   const model = process.env.OPENAI_IMAGE_MODEL || "gpt-image-2";
-  let res = await genereer(model, prompt.trim());
+  let res = await genereer(model, prompt.trim(), grootte);
   if (!res.ok && res.status < 500 && model !== "gpt-image-1") {
-    res = await genereer("gpt-image-1", prompt.trim());
+    res = await genereer("gpt-image-1", prompt.trim(), grootte);
   }
   if (!res.ok) {
     return NextResponse.json(

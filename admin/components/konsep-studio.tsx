@@ -12,6 +12,7 @@ function FotoIdees({ bestaandeFotos }: { bestaandeFotos: string[] }) {
   const [idees, setIdees] = useState<FotoIdee[]>([]);
   const [fotos, setFotos] = useState<string[]>(bestaandeFotos);
   const [eiePrompt, setEiePrompt] = useState("");
+  const [grootte, setGrootte] = useState("1536x1024");
   const [besigMet, setBesigMet] = useState<string | null>(null);
   const [boodskap, setBoodskap] = useState<string | null>(null);
   const [ideesBesig, beginIdees] = useTransition();
@@ -32,7 +33,7 @@ function FotoIdees({ bestaandeFotos }: { bestaandeFotos: string[] }) {
       const res = await fetch("/api/fotos/skep", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ prompt, size: grootte }),
       });
       const data = await res.json();
       if (data.url) setFotos((f) => [data.url, ...f]);
@@ -55,6 +56,24 @@ function FotoIdees({ bestaandeFotos }: { bestaandeFotos: string[] }) {
       </p>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
+        <span className="flex border-2 border-ink">
+          {[
+            { w: "1536x1024", n: "Landskap" },
+            { w: "1024x1024", n: "Vierkant" },
+            { w: "1024x1536", n: "Portret" },
+          ].map((g) => (
+            <button
+              key={g.w}
+              type="button"
+              onClick={() => setGrootte(g.w)}
+              className={`px-3 py-1.5 text-xs font-semibold ${
+                grootte === g.w ? "bg-ink text-offwhite" : "bg-offwhite hover:bg-paper"
+              }`}
+            >
+              {g.n}
+            </button>
+          ))}
+        </span>
         <button
           onClick={haalIdees}
           disabled={ideesBesig}
