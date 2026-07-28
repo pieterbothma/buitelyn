@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { supabaseServer } from "@/lib/supabase/server";
+import { supabaseService } from "@/lib/supabase/service";
 import { skryfAfrikaans } from "@/lib/gemini";
 
 function vandagSAST(): string {
@@ -27,9 +28,10 @@ export async function skepNuusbriefKonsep(): Promise<string | null> {
   const vensterUre = dagSAST === 1 ? 72 : 18;
   const drempel = new Date(Date.now() - vensterUre * 60 * 60 * 1000).toISOString();
 
+  const svc = supabaseService();
   const [{ data: oorsig }, { data: nuus }] = await Promise.all([
-    sb.from("markte_oorsigte").select("teks").eq("datum", datum).maybeSingle(),
-    sb
+    svc.from("markte_oorsigte").select("teks").eq("datum", datum).maybeSingle(),
+    svc
       .from("markte_nuus")
       .select("titel_af, opsomming, bron, skakel, gepubliseer")
       .gte("gepubliseer", drempel)

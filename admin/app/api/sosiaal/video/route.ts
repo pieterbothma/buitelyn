@@ -20,9 +20,11 @@ export async function POST(request: NextRequest) {
   const datum = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" }).format(
     new Date()
   );
+  const svcLees = supabaseService();
   const [{ data: konsep }, { data: oorsig }] = await Promise.all([
     sb.from("nuusbrief_konsepte").select("teks").eq("datum", datum).maybeSingle(),
-    sb.from("markte_oorsigte").select("oudio_url").eq("datum", datum).maybeSingle(),
+    // markte_oorsigte is service-role-only (web-app se tabel)
+    svcLees.from("markte_oorsigte").select("oudio_url").eq("datum", datum).maybeSingle(),
   ]);
   if (!oorsig?.oudio_url)
     return NextResponse.json({ fout: "geen briefing-audio vir vandag nie" }, { status: 404 });
