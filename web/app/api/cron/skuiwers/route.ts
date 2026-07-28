@@ -55,10 +55,11 @@ export async function GET(request: NextRequest) {
         ],
         {
           ekstraInstruksies:
-            "Skryf EEN kort nota van hoogstens 3 sinne: wat het gebeur en hoekom, gegrond op kry_nuus en web-soektog. As jy geen duidelike maatskappy-spesifieke rede kry nie, sê eerlik dis waarskynlik 'n breër mark- of sektorbeweging — moenie 'n rede versin nie. Skoon teks, hoogstens een skakel as [bron](url). Moenie die persentasie herhaal nie — dit staan reeds by die naam.",
+            "Skryf presies EEN kort sin (±15 woorde) wat die rede vir die beweging gee, gegrond op kry_nuus en web-soektog — soos 'n koerant-onderskrif. Voorbeeld van die styl: 'Implats het Rustenburg se skagte tydelik gesluit ná veiligheidsinsidente.' As daar geen duidelike maatskappy-spesifieke rede is nie: 'Geen duidelike maatskappynuus nie — lyk na 'n breër sektorbeweging.' GEEN skakels, URL's, aanbiedinge, vrae of persentasies nie. Net die een sin.",
         }
       );
-      geskryf.push({ simbool: k.simbool, naam, delta: k.deltaPersent!, nota });
+      const kort = nota.length > 200 ? `${nota.slice(0, 200).replace(/[.,;\s]+\S*$/, "")}…` : nota;
+      geskryf.push({ simbool: k.simbool, naam, delta: k.deltaPersent!, nota: kort });
     } catch {
       /* volgende lopie probeer weer — geen ry gestoor nie */
     }

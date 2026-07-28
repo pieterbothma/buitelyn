@@ -5,6 +5,24 @@ import type { Kwotasie } from "@/lib/markets/source";
 import { bewegersNaam } from "@/lib/markets/boards";
 import { formatteerPrys, Pyl } from "@/components/markte/format";
 
+/* Ou notas kan [bron](url)-skakels bevat — render as ankers, moenie rou wys nie. */
+function Nota({ teks }: { teks: string }) {
+  const dele = teks.split(/(\[[^\]]+\]\(https?:\/\/[^\s)]+\))/g);
+  return (
+    <>
+      {dele.map((d, i) => {
+        const m = d.match(/^\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)$/);
+        if (!m) return <span key={i}>{d}</span>;
+        return (
+          <a key={i} href={m[2].replace(/[?&]utm_source=openai/, "")} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-red">
+            {m[1]}
+          </a>
+        );
+      })}
+    </>
+  );
+}
+
 type Aansig = "bewegers" | "wenners" | "verloorders";
 
 const AANSIGTE: { sleutel: Aansig; naam: string }[] = [
@@ -85,8 +103,8 @@ export function BewegersBord({
                   </span>
                 </div>
                 {notas[k.simbool] ? (
-                  <p className="relative mt-1 pl-9 pr-2 text-[13px] leading-snug text-ink/70">
-                    {notas[k.simbool]}
+                  <p className="relative mt-1 break-words pl-9 pr-2 text-[13px] leading-snug text-ink/70">
+                    <Nota teks={notas[k.simbool]} />
                   </p>
                 ) : null}
               </li>
