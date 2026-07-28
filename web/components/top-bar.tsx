@@ -6,7 +6,11 @@ export function TopBar() {
   return (
     <header className="relative border-b border-ink/15">
       <div className="mx-auto flex max-w-[1440px] items-center justify-between px-6 py-4 md:px-14">
-        <a href="#" className="flex items-center">
+        {/* Mobiel: logo → /markte (die werk-blad); desktop: tuisblad */}
+        <a href="/markte" className="flex items-center md:hidden">
+          <Image src="/logo-transparent.png" alt="Buitelyn" width={64} height={64} />
+        </a>
+        <a href="/" className="hidden items-center md:flex">
           <Image src="/logo-transparent.png" alt="Buitelyn" width={64} height={64} />
         </a>
         <div className="flex items-center gap-4 md:gap-6">
