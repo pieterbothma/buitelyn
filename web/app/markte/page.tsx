@@ -240,7 +240,22 @@ export default async function MarktePage({
           </div>
 
           {/* Oortjies */}
-          {/* Op mobiel dien die hamburger as oortjie-nav — die balk is net md+ */}
+          {/* Mobiel: rolbare pil-strook (soos die SENS-filters) */}
+          <nav className="-mx-1 mt-6 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:hidden">
+            {TABS.map((t) => (
+              <Link
+                key={t.sleutel}
+                href={t.sleutel === "tuis" ? "/markte" : `/markte?blad=${t.sleutel}`}
+                className={`shrink-0 whitespace-nowrap border-2 border-ink px-4 py-1.5 text-xs font-semibold tracking-[0.12em] ${
+                  tab === t.sleutel ? "bg-ink text-offwhite" : "bg-offwhite hover:bg-paper"
+                }`}
+              >
+                {t.naam.toUpperCase()}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Desktop: die vaste balk */}
           <nav className="mt-6 hidden flex-wrap border-2 border-ink bg-offwhite md:flex">
             {TABS.map((t) => (
               <Link
