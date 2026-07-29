@@ -47,7 +47,7 @@ export function SakgeldBlad({ syfers }: { syfers: SakgeldSyfer[] }) {
       </div>
 
       <p className="text-xs text-ink/50">
-        Kalkulators is skattings vir konteks — nie finansiële advies nie. Koerse en pryse:
+        Die sakrekenaars gee skattings vir konteks — nie finansiële advies nie. Koerse en pryse:
         SA Reserwebank en amptelike brandstofpryse.
       </p>
     </div>
@@ -119,7 +119,7 @@ function Verband({ prima }: { prima: number }) {
   const totaal = p * n;
   return (
     <Kalkulator
-      titel="VERBAND-KALKULATOR"
+      titel="VERBAND-SAKREKENAAR"
       kinders={
         <>
           <Veld etiket="Leningsbedrag (R)" waarde={bedrag} stel={setBedrag} />
@@ -146,7 +146,7 @@ function Petrol({ prys }: { prys: number }) {
   const maandKoste = ((Number(km) || 0) / 100) * (Number(verbruik) || 0) * prys;
   return (
     <Kalkulator
-      titel="PETROL-KALKULATOR"
+      titel="PETROL-SAKREKENAAR"
       kinders={
         <>
           <Veld etiket="Km per maand" waarde={km} stel={setKm} />
@@ -175,7 +175,7 @@ function Inflasie({ kpi }: { kpi: number }) {
   const nodig = b * Math.pow(1 + kpi / 100, j);
   return (
     <Kalkulator
-      titel="INFLASIE-KALKULATOR"
+      titel="INFLASIE-SAKREKENAAR"
       kinders={
         <>
           <Veld etiket="Bedrag vandag (R)" waarde={bedrag} stel={setBedrag} />
@@ -205,7 +205,7 @@ function Spaargroei() {
   const inbetaal = m * n;
   return (
     <Kalkulator
-      titel="SPAARGROEI-KALKULATOR"
+      titel="SPAARGROEI-SAKREKENAAR"
       kinders={
         <>
           <Veld etiket="Maandeliks (R)" waarde={maandeliks} stel={setMaandeliks} />
