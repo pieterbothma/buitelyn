@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 type Houding = { simbool: string; naam: string | null; aantal: number; koopprys: number; prys: number | null };
 type Ek = { nommer: number; naam: string; kontant: number; houdings: Houding[] };
-type RanglysRy = { posisie: number; nommer: number; naam: string; avatar: string | null; waarde: number; opbrengs: number; ek: boolean };
+type RanglysRy = { posisie: number; nommer: number; naam: string; avatar: string | null; waarde?: number; opbrengs: number; maande?: number; ek: boolean };
 type SoekResultaat = { simbool: string; naam: string };
 
 const fmtR = new Intl.NumberFormat("af-ZA", { maximumFractionDigits: 0 });
@@ -16,6 +16,8 @@ function nr(n: number): string {
 export function LigaBord({ profielNaam }: { profielNaam: string }) {
   const [ek, setEk] = useState<Ek | null | undefined>(undefined);
   const [ranglys, setRanglys] = useState<RanglysRy[]>([]);
+  const [kwartaal, setKwartaal] = useState<RanglysRy[]>([]);
+  const [jaar, setJaar] = useState<RanglysRy[]>([]);
   const [besig, setBesig] = useState(false);
   const [fout, setFout] = useState("");
 
@@ -26,6 +28,8 @@ export function LigaBord({ profielNaam }: { profielNaam: string }) {
         const d = await res.json();
         setEk(d.ek);
         setRanglys(d.ranglys);
+        setKwartaal(d.kwartaal ?? []);
+        setJaar(d.jaar ?? []);
       }
     } catch {
       /* volgende keer */
@@ -42,7 +46,7 @@ export function LigaBord({ profielNaam }: { profielNaam: string }) {
   return (
     <div className="grid gap-6 lg:grid-cols-2">
       <Portefeulje ek={ek} herlaai={laai} besig={besig} setBesig={setBesig} fout={fout} setFout={setFout} />
-      <Ranglys ranglys={ranglys} />
+      <Ranglys maand={ranglys} kwartaal={kwartaal} jaar={jaar} />
     </div>
   );
 }
@@ -302,11 +306,32 @@ function Portefeulje({
 
 /* ---------- ranglys ---------- */
 
-function Ranglys({ ranglys }: { ranglys: RanglysRy[] }) {
+function Ranglys({ maand, kwartaal, jaar }: { maand: RanglysRy[]; kwartaal: RanglysRy[]; jaar: RanglysRy[] }) {
+  const [periode, setPeriode] = useState<"maand" | "kwartaal" | "jaar">("maand");
+  const ranglys = periode === "maand" ? maand : periode === "kwartaal" ? kwartaal : jaar;
   return (
     <section className="border-2 border-ink bg-offwhite">
-      <h2 className="border-b-2 border-ink px-4 py-2 text-xs font-semibold tracking-[0.16em]">
-        RANGLYS — HIERDIE MAAND
+      <h2 className="flex items-center justify-between border-b-2 border-ink px-4 py-2 text-xs font-semibold tracking-[0.16em]">
+        RANGLYS
+        <span className="flex border border-ink/30 font-semibold normal-case tracking-normal">
+          {(
+            [
+              { w: "maand", n: "Maand" },
+              { w: "kwartaal", n: "Kwartaal" },
+              { w: "jaar", n: "Jaar" },
+            ] as const
+          ).map((o) => (
+            <button
+              key={o.w}
+              onClick={() => setPeriode(o.w)}
+              className={`px-2.5 py-0.5 text-xs font-semibold ${
+                periode === o.w ? "bg-ink text-offwhite" : "hover:bg-paper"
+              }`}
+            >
+              {o.n}
+            </button>
+          ))}
+        </span>
       </h2>
       <ul className="divide-y divide-ink/10">
         {ranglys.map((r) => (
@@ -324,7 +349,11 @@ function Ranglys({ ranglys }: { ranglys: RanglysRy[] }) {
               {r.naam} <span className="font-normal text-red">{nr(r.nommer)}</span>
               {r.ek ? <span className="ml-1 text-xs font-normal text-ink/50">(jy)</span> : null}
             </span>
-            <span className="text-sm tabular-nums text-ink/60">R {fmtR.format(r.waarde)}</span>
+            {r.waarde != null ? (
+              <span className="text-sm tabular-nums text-ink/60">R {fmtR.format(r.waarde)}</span>
+            ) : (
+              <span className="text-xs tabular-nums text-ink/40">{r.maande} mnd</span>
+            )}
             <span className={`w-20 text-right text-sm font-bold tabular-nums ${r.opbrengs >= 0 ? "text-green" : "text-red"}`}>
               {r.opbrengs >= 0 ? "+" : ""}
               {r.opbrengs.toFixed(2)}%

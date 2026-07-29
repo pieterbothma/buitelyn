@@ -61,6 +61,38 @@ export async function GET() {
     .sort((a, b) => b.waarde - a.waarde)
     .map((s, i) => ({ ...s, posisie: i + 1 }));
 
+  /* Kwartaal- en jaarstand: saamgestelde opbrengs oor gestoorde maand-uitslae
+     plus die lopende maand se live opbrengs — konsekwentheid wen die seisoen. */
+  const dagFmt = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" });
+  const [jaarNou, maandNou] = dagFmt.format(new Date()).split("-").map(Number);
+  const kwartaalBegin = Math.floor((maandNou - 1) / 3) * 3 + 1;
+  const maandeVan = (begin: number) =>
+    Array.from({ length: maandNou - begin }, (_, i) => `${jaarNou}-${String(begin + i).padStart(2, "0")}`);
+  const jaarMaande = maandeVan(1);
+  const kwartaalMaande = maandeVan(kwartaalBegin);
+  const { data: uitslae } = jaarMaande.length
+    ? await sb.from("liga_uitslae").select("maand, user_id, opbrengs_persent").in("maand", jaarMaande)
+    : { data: [] as { maand: string; user_id: string; opbrengs_persent: number }[] };
+  const liveOpbrengs = new Map(ranglys.map((r) => [spelers.find((s) => s.nommer === r.nommer)!.user_id, r.opbrengs]));
+
+  const seisoen = (maande: string[]) =>
+    spelers
+      .map((s) => {
+        const myne = (uitslae ?? []).filter((u) => u.user_id === s.user_id && maande.includes(u.maand));
+        let faktor = myne.reduce((f, u) => f * (1 + Number(u.opbrengs_persent) / 100), 1);
+        faktor *= 1 + (liveOpbrengs.get(s.user_id) ?? 0) / 100; // lopende maand tel saam
+        return {
+          nommer: s.nommer,
+          naam: s.naam,
+          avatar: avatars.get(s.user_id) ?? null,
+          opbrengs: (faktor - 1) * 100,
+          maande: myne.length + 1,
+          ek: s.user_id === user.id,
+        };
+      })
+      .sort((a, b) => b.opbrengs - a.opbrengs)
+      .map((r, i) => ({ ...r, posisie: i + 1 }));
+
   const ek = spelers.find((s) => s.user_id === user.id);
   const myHoudings = ek
     ? (houdings ?? [])
@@ -76,6 +108,8 @@ export async function GET() {
   return NextResponse.json({
     ek: ek ? { nommer: ek.nommer, naam: ek.naam, kontant: Number(ek.kontant), houdings: myHoudings } : null,
     ranglys,
+    kwartaal: seisoen(kwartaalMaande),
+    jaar: seisoen(jaarMaande),
   });
 }
 
