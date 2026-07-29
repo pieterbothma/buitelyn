@@ -35,7 +35,15 @@ function Sparkline({ reeks }: { reeks: ReeksPunt[] }) {
   );
 }
 
-export function MarkteTerminal({ aanvanklik, nuus = [] }: { aanvanklik: Kwotasie[]; nuus?: NuusItem[] }) {
+export function MarkteTerminal({
+  aanvanklik,
+  nuus = [],
+  aanvangVraag = null,
+}: {
+  aanvanklik: Kwotasie[];
+  nuus?: NuusItem[];
+  aanvangVraag?: string | null;
+}) {
   const [kwotasies, setKwotasies] = useState<Kwotasie[]>(aanvanklik);
   const [oopRy, setOopRy] = useState<string | null>(null);
   const [ryReeks, setRyReeks] = useState<Record<string, string>>({});
@@ -47,6 +55,11 @@ export function MarkteTerminal({ aanvanklik, nuus = [] }: { aanvanklik: Kwotasie
   const vraChat = useCallback((teks: string) => {
     setEksterneVraag({ id: Date.now(), teks });
   }, []);
+
+  // ?vra=-diepskakel (bv. vanaf die Portefeulje-oortjie) laai die chat dadelik
+  useEffect(() => {
+    if (aanvangVraag) setEksterneVraag({ id: Date.now(), teks: aanvangVraag });
+  }, [aanvangVraag]);
 
   /* Portfolio holdings outside the boards ride along as ?ekstra=; a change
      (new custom holding) refetches immediately instead of waiting a minute. */

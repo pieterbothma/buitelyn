@@ -9,6 +9,7 @@ import { TelegramKoppel } from "@/components/markte/telegram";
 import { BewegersBord } from "@/components/markte/bewegers";
 import { SensBord, type SensItem } from "@/components/markte/sens";
 import { LigaBord } from "@/components/markte/liga";
+import { PortefeuljeBlad, type BladHouding } from "@/components/markte/portefeulje-blad";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getQuotes } from "@/lib/markets/source";
 import { kryNuus } from "@/lib/markets/nuus";
@@ -110,6 +111,7 @@ async function kryOorsig(): Promise<{
 
 const TABS = [
   { sleutel: "tuis", naam: "Tuis" },
+  { sleutel: "portefeulje", naam: "Portefeulje" },
   { sleutel: "bewegers", naam: "Bewegers" },
   { sleutel: "liga", naam: "Beursliga" },
   { sleutel: "sens", naam: "SENS" },
@@ -120,9 +122,9 @@ type TabSleutel = (typeof TABS)[number]["sleutel"];
 export default async function MarktePage({
   searchParams,
 }: {
-  searchParams: Promise<{ blad?: string }>;
+  searchParams: Promise<{ blad?: string; vra?: string }>;
 }) {
-  const { blad } = await searchParams;
+  const { blad, vra } = await searchParams;
   const tab: TabSleutel = TABS.some((t) => t.sleutel === blad) ? (blad as TabSleutel) : "tuis";
   const sb = await supabaseServer();
   const {
@@ -182,7 +184,7 @@ export default async function MarktePage({
       ? getQuotes(BEWEGERS_SIMBOLE.map((i) => i.simbool))
       : Promise.resolve([]),
     tab === "bewegers" ? kryNotas() : Promise.resolve({}),
-    tab === "sens" ? krySens() : Promise.resolve([] as SensItem[]),
+    tab === "sens" || tab === "portefeulje" ? krySens() : Promise.resolve([] as SensItem[]),
   ]);
   let eieSimbole: string[] = [];
   if (tab === "sens") {
@@ -191,6 +193,32 @@ export default async function MarktePage({
       sb.from("dophou").select("simbool").eq("user_id", user.id),
     ]);
     eieSimbole = [...new Set([...(h ?? []), ...(d ?? [])].map((r) => r.simbool))];
+  }
+
+  // Portefeulje-oortjie: houdings + kwotasies (met FX en Top 40) + SENS + notas
+  let bladHoudings: BladHouding[] = [];
+  let bladKwotasies: Awaited<ReturnType<typeof getQuotes>> = [];
+  let bladNotas: Record<string, string> = {};
+  if (tab === "portefeulje") {
+    const { data: h } = await sb
+      .from("portefeuljes")
+      .select("simbool, naam, aantal, koopprys, geldeenheid")
+      .eq("user_id", user.id);
+    bladHoudings = (h ?? []).map((r) => ({
+      simbool: r.simbool,
+      naam: r.naam,
+      aantal: Number(r.aantal),
+      koopprys: Number(r.koopprys),
+      geldeenheid: r.geldeenheid ?? "ZAR",
+    }));
+    if (bladHoudings.length) {
+      [bladKwotasies, bladNotas] = await Promise.all([
+        getQuotes([
+          ...new Set([...bladHoudings.map((x) => x.simbool), "STX40.JO", "ZAR=X", "EURZAR=X", "GBPZAR=X"]),
+        ]),
+        kryNotas(),
+      ]);
+    }
   }
   const oop = jseIsOop();
   const dateline = new Intl.DateTimeFormat("af-ZA", {
@@ -265,6 +293,17 @@ export default async function MarktePage({
             ))}
           </nav>
 
+          {tab === "portefeulje" ? (
+            <div className="mt-6">
+              <PortefeuljeBlad
+                houdings={bladHoudings}
+                kwotasies={bladKwotasies}
+                sens={sensItems.filter((i) => i.kode && bladHoudings.some((h) => h.simbool === `${i.kode}.JO`))}
+                notas={bladNotas}
+              />
+            </div>
+          ) : null}
+
           {tab === "bewegers" ? (
             <div className="mt-6">
               <BewegersBord kwotasies={bewegers} notas={notas} />
@@ -318,7 +357,7 @@ export default async function MarktePage({
 
           {tab === "tuis" ? (
             <div className="mt-8">
-              <MarkteTerminal aanvanklik={kwotasies} nuus={nuus} />
+              <MarkteTerminal aanvanklik={kwotasies} nuus={nuus} aanvangVraag={vra === "portefeulje" ? "Hoe lyk my portefeulje vandag — enige groot bewegings of nuus oor my aandele?" : null} />
             </div>
           ) : null}
         </section>

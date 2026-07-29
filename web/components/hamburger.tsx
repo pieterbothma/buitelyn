@@ -22,6 +22,14 @@ function Ikoon({ naam }: { naam: string }) {
           <path d="m7 15 4-6 3 3 5-7" />
         </svg>
       );
+    case "portefeulje": // beursie
+      return (
+        <svg {...eienskappe}>
+          <rect x="3" y="7" width="18" height="13" rx="1" />
+          <path d="M16 7V5a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v2" />
+          <path d="M17 13h2" />
+        </svg>
+      );
     case "bewegers": // pyle op/af
       return (
         <svg {...eienskappe}>
@@ -76,6 +84,7 @@ function Ikoon({ naam }: { naam: string }) {
 
 const SKAKELS: { naam: string; href: string; ikoon: string; sub?: boolean; ekstern?: boolean }[] = [
   { naam: "Markte", href: "/markte", ikoon: "markte" },
+  { naam: "Portefeulje", href: "/markte?blad=portefeulje", ikoon: "portefeulje", sub: true },
   { naam: "Bewegers", href: "/markte?blad=bewegers", ikoon: "bewegers", sub: true },
   { naam: "Beursliga", href: "/markte?blad=liga", ikoon: "liga", sub: true },
   { naam: "SENS", href: "/markte?blad=sens", ikoon: "sens", sub: true },
