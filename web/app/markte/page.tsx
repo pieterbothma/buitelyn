@@ -10,6 +10,7 @@ import { BewegersBord } from "@/components/markte/bewegers";
 import { SensBord, type SensItem } from "@/components/markte/sens";
 import { LigaBord } from "@/components/markte/liga";
 import { PortefeuljeBlad, type BladHouding, type Waarskuwing, type Dividend } from "@/components/markte/portefeulje-blad";
+import { SakgeldBlad } from "@/components/markte/sakgeld-blad";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getQuotes } from "@/lib/markets/source";
 import { kryNuus } from "@/lib/markets/nuus";
@@ -133,6 +134,7 @@ const TABS = [
   { sleutel: "bewegers", naam: "Bewegers" },
   { sleutel: "liga", naam: "Beursliga" },
   { sleutel: "sens", naam: "SENS" },
+  { sleutel: "sakgeld", naam: "Sakgeld" },
   { sleutel: "telegram", naam: "Telegram" },
 ] as const;
 type TabSleutel = (typeof TABS)[number]["sleutel"];
@@ -203,7 +205,7 @@ export default async function MarktePage({
       : Promise.resolve([]),
     tab === "bewegers" ? kryNotas() : Promise.resolve({}),
     tab === "sens" || tab === "portefeulje" ? krySens() : Promise.resolve([] as SensItem[]),
-    tab === "tuis" ? krySakgeld() : Promise.resolve([] as SakgeldSyfer[]),
+    tab === "tuis" || tab === "sakgeld" ? krySakgeld() : Promise.resolve([] as SakgeldSyfer[]),
   ]);
   let eieSimbole: string[] = [];
   if (tab === "sens") {
@@ -374,6 +376,12 @@ export default async function MarktePage({
             </div>
           ) : null}
 
+          {tab === "sakgeld" ? (
+            <div className="mt-6">
+              <SakgeldBlad syfers={sakgeld} />
+            </div>
+          ) : null}
+
           {tab === "telegram" ? (
             <div className="mt-6">
               <TelegramKoppel />
@@ -408,7 +416,7 @@ export default async function MarktePage({
           ) : null}
 
           {tab === "tuis" && sakgeld.length ? (
-            <div className="mt-4 border-2 border-ink bg-offwhite px-5 py-3">
+            <Link href="/markte?blad=sakgeld" className="mt-4 block border-2 border-ink bg-offwhite px-5 py-3 hover:bg-paper">
               <p className="text-[11px] font-semibold tracking-[0.16em] text-ink/50">
                 SAKGELD
                 <span aria-hidden className="ml-2 inline-block size-1.5 rounded-full bg-red align-middle" />
@@ -424,7 +432,7 @@ export default async function MarktePage({
                   </span>
                 ))}
               </div>
-            </div>
+            </Link>
           ) : null}
 
           {tab === "tuis" ? (

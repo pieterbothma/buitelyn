@@ -56,6 +56,19 @@ function Ikoon({ naam }: { naam: string }) {
           <path d="M9 17h6" />
         </svg>
       );
+    case "sakgeld": // sakrekenaar
+      return (
+        <svg {...eienskappe}>
+          <rect x="5" y="2" width="14" height="20" rx="1" />
+          <path d="M8 6h8" />
+          <path d="M8 12h.01" />
+          <path d="M12 12h.01" />
+          <path d="M16 12h.01" />
+          <path d="M8 16h.01" />
+          <path d="M12 16h.01" />
+          <path d="M16 16h.01" />
+        </svg>
+      );
     case "telegram": // stuur-vliegtuigie
       return (
         <svg {...eienskappe}>
@@ -88,6 +101,7 @@ const SKAKELS: { naam: string; href: string; ikoon: string; sub?: boolean; ekste
   { naam: "Bewegers", href: "/markte?blad=bewegers", ikoon: "bewegers", sub: true },
   { naam: "Beursliga", href: "/markte?blad=liga", ikoon: "liga", sub: true },
   { naam: "SENS", href: "/markte?blad=sens", ikoon: "sens", sub: true },
+  { naam: "Sakgeld", href: "/markte?blad=sakgeld", ikoon: "sakgeld", sub: true },
   { naam: "Telegram", href: "/markte?blad=telegram", ikoon: "telegram", sub: true },
   { naam: "Winkel", href: "https://buitelyn-shop.fourthwall.com/", ikoon: "winkel", ekstern: true },
   { naam: "Nuusbrief", href: "https://buitelyn.substack.com/subscribe", ikoon: "nuusbrief", ekstern: true },
