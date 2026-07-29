@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { skepOorsig, stoorOorsig, type StudioOorsig } from "@/app/actions-oorsig";
 import { verwerkTeksVirAudio } from "@/app/actions-audio";
+import { useOutostoor, WeergawePaneel } from "@/components/outostoor";
 
 const datumFmt = new Intl.DateTimeFormat("af-ZA", {
   timeZone: "Africa/Johannesburg",
@@ -18,6 +19,7 @@ export function OorsigStudio({ argief, vandag }: { argief: StudioOorsig[]; vanda
   const [boodskap, setBoodskap] = useState("");
   const [audioTeks, setAudioTeks] = useState("");
   const [mp3, setMp3] = useState<string | null>(null);
+  const outoStatus = useOutostoor("oorsig", datum, teks, setTeks);
 
   const laaiDag = (d: string) => {
     setDatum(d);
@@ -113,7 +115,10 @@ export function OorsigStudio({ argief, vandag }: { argief: StudioOorsig[]; vanda
               </button>
             </>
           ) : null}
-          {boodskap ? <span className="text-sm text-ink/60">{boodskap}</span> : null}
+          <WeergawePaneel tipe="oorsig" datum={datum} opHerstel={setTeks} />
+          {boodskap || outoStatus ? (
+            <span className="text-sm text-ink/60">{boodskap || outoStatus}</span>
+          ) : null}
         </div>
 
         <textarea

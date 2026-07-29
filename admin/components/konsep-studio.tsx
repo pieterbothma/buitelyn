@@ -8,6 +8,7 @@ import {
   type FotoIdee,
 } from "@/app/actions-nuusbrief";
 import { verwerkTeksVirAudio } from "@/app/actions-audio";
+import { useOutostoor, WeergawePaneel } from "@/components/outostoor";
 
 function AudioModal({ bronTeks, toe }: { bronTeks: string; toe: () => void }) {
   const [teks, setTeks] = useState<string | null>(null);
@@ -245,6 +246,8 @@ export function KonsepStudio({
   const [boodskap, setBoodskap] = useState<string | null>(null);
   const [audioOop, setAudioOop] = useState(false);
   const [besig, begin] = useTransition();
+  const vandagSAST = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" }).format(new Date());
+  const outoStatus = useOutostoor("konsep", datum ?? vandagSAST, teks, setTeks);
 
   function genereer() {
     setBoodskap(null);
@@ -300,7 +303,10 @@ export function KonsepStudio({
             </button>
           </>
         ) : null}
-        {boodskap ? <span className="text-sm text-ink/60">{boodskap}</span> : null}
+        <WeergawePaneel tipe="konsep" datum={datum ?? vandagSAST} opHerstel={setTeks} />
+        {boodskap || outoStatus ? (
+          <span className="text-sm text-ink/60">{boodskap || outoStatus}</span>
+        ) : null}
       </div>
 
       {teks ? (
