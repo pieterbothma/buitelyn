@@ -45,16 +45,30 @@ const REEKSE = [
   { w: "1y", n: "1J" },
 ] as const;
 
+export type Waarskuwing = {
+  id: string;
+  simbool: string;
+  naam: string | null;
+  rigting: "bo" | "onder";
+  drempel: number;
+  afgevuur_at: string | null;
+  afgevuur_prys: number | null;
+};
+
 export function PortefeuljeBlad({
   houdings,
   kwotasies,
   sens,
   notas,
+  waarskuwings,
+  telegramGekoppel,
 }: {
   houdings: BladHouding[];
   kwotasies: Kwotasie[];
   sens: SensItem[];
   notas: Record<string, string>;
+  waarskuwings: Waarskuwing[];
+  telegramGekoppel: boolean;
 }) {
   const kaart = new Map(kwotasies.map((k) => [k.simbool, k]));
   const fx = new Map<string, number>(
@@ -355,6 +369,14 @@ export function PortefeuljeBlad({
         </div>
       </section>
 
+      <WaarskuwingsBord
+        waarskuwings={waarskuwings}
+        houdings={houdings}
+        kaart={kaart}
+        telegramGekoppel={telegramGekoppel}
+        herlaai={() => router.refresh()}
+      />
+
       <button
         onClick={() =>
           setVraag({
@@ -653,5 +675,138 @@ function HoudingAksies({
         </div>
       ) : null}
     </div>
+  );
+}
+
+/* ---------- pryswaarskuwings ---------- */
+
+function WaarskuwingsBord({
+  waarskuwings,
+  houdings,
+  kaart,
+  telegramGekoppel,
+  herlaai,
+}: {
+  waarskuwings: Waarskuwing[];
+  houdings: BladHouding[];
+  kaart: Map<string, Kwotasie>;
+  telegramGekoppel: boolean;
+  herlaai: () => void;
+}) {
+  const [simbool, setSimbool] = useState(houdings[0]?.simbool ?? "");
+  const [rigting, setRigting] = useState<"bo" | "onder">("onder");
+  const [drempel, setDrempel] = useState("");
+  const [besig, setBesig] = useState(false);
+
+  const kies = houdings.find((h) => h.simbool === simbool);
+  const huidige = simbool ? kaart.get(simbool) : null;
+
+  const voegBy = async () => {
+    const sb = supabaseBrowser();
+    const d = Number(drempel);
+    if (!sb || !simbool || !d) return;
+    setBesig(true);
+    try {
+      const { data } = await sb.auth.getUser();
+      if (!data.user) return;
+      await sb.from("prys_waarskuwings").insert({
+        user_id: data.user.id,
+        simbool,
+        naam: kies?.naam ?? null,
+        rigting,
+        drempel: d,
+      });
+      setDrempel("");
+      herlaai();
+    } finally {
+      setBesig(false);
+    }
+  };
+
+  const skrap = async (id: string) => {
+    const sb = supabaseBrowser();
+    if (!sb) return;
+    await sb.from("prys_waarskuwings").delete().eq("id", id);
+    herlaai();
+  };
+
+  return (
+    <section className="border-2 border-ink bg-offwhite">
+      <h2 className="border-b-2 border-ink px-4 py-2 text-xs font-semibold tracking-[0.16em]">
+        PRYSWAARSKUWINGS
+        <span aria-hidden className="ml-2 inline-block size-1.5 rounded-full bg-red align-middle" />
+      </h2>
+      {!telegramGekoppel ? (
+        <p className="border-b border-ink/15 bg-paper px-4 py-2 text-xs text-ink/60">
+          Koppel Telegram (Telegram-oortjie) sodat waarskuwings by jou uitkom.
+        </p>
+      ) : null}
+      <ul className="divide-y divide-ink/10">
+        {waarskuwings.map((w) => {
+          const geld = (kaart.get(w.simbool)?.geldeenheid ?? "ZAR") === "ZAR" ? "R" : kaart.get(w.simbool)?.geldeenheid ?? "";
+          return (
+            <li key={w.id} className={`flex items-baseline gap-3 px-4 py-2 text-sm ${w.afgevuur_at ? "opacity-50" : ""}`}>
+              <span className="min-w-0 flex-1 truncate">
+                <span className="font-semibold">{w.naam ?? w.simbool}</span> {w.rigting} {geld} {Number(w.drempel).toFixed(2)}
+                {w.afgevuur_at ? (
+                  <span className="ml-2 text-xs">
+                    ✓ afgevuur teen {geld} {Number(w.afgevuur_prys).toFixed(2)}
+                  </span>
+                ) : null}
+              </span>
+              <button
+                onClick={() => skrap(w.id)}
+                className="border border-ink/30 px-2 py-0.5 text-xs font-semibold text-ink/60 hover:border-red hover:text-red"
+              >
+                Skrap
+              </button>
+            </li>
+          );
+        })}
+        {waarskuwings.length === 0 ? (
+          <li className="px-4 py-3 text-sm text-ink/50">
+            Nog geen waarskuwings nie — stel een hieronder ("Naspers onder R800").
+          </li>
+        ) : null}
+      </ul>
+      <div className="flex flex-wrap items-center gap-2 border-t-2 border-ink px-4 py-3">
+        <select
+          value={simbool}
+          onChange={(e) => setSimbool(e.target.value)}
+          className="min-w-0 border-2 border-ink bg-paper px-2 py-2 text-sm outline-none"
+        >
+          {houdings.map((h) => (
+            <option key={h.simbool} value={h.simbool}>
+              {h.naam ?? h.simbool}
+            </option>
+          ))}
+        </select>
+        <span className="flex border-2 border-ink">
+          {(["onder", "bo"] as const).map((r) => (
+            <button
+              key={r}
+              onClick={() => setRigting(r)}
+              className={`px-3 py-2 text-sm font-bold ${rigting === r ? "bg-ink text-offwhite" : "bg-paper hover:bg-offwhite"}`}
+            >
+              {r}
+            </button>
+          ))}
+        </span>
+        <input
+          value={drempel}
+          onChange={(e) => setDrempel(e.target.value.replace(/[^\d.]/g, ""))}
+          placeholder={huidige ? `drempel (nou ${huidige.prys.toFixed(2)})` : "drempel"}
+          inputMode="decimal"
+          className="w-44 border-2 border-ink bg-paper px-3 py-2 text-sm tabular-nums outline-none focus:border-red"
+        />
+        <button
+          onClick={voegBy}
+          disabled={besig || !simbool || !Number(drempel)}
+          className="border-2 border-ink bg-ink px-4 py-2 text-sm font-bold text-offwhite hover:border-red hover:bg-red disabled:opacity-50"
+        >
+          + Stel
+        </button>
+      </div>
+    </section>
   );
 }

@@ -9,7 +9,7 @@ import { TelegramKoppel } from "@/components/markte/telegram";
 import { BewegersBord } from "@/components/markte/bewegers";
 import { SensBord, type SensItem } from "@/components/markte/sens";
 import { LigaBord } from "@/components/markte/liga";
-import { PortefeuljeBlad, type BladHouding } from "@/components/markte/portefeulje-blad";
+import { PortefeuljeBlad, type BladHouding, type Waarskuwing } from "@/components/markte/portefeulje-blad";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getQuotes } from "@/lib/markets/source";
 import { kryNuus } from "@/lib/markets/nuus";
@@ -199,6 +199,8 @@ export default async function MarktePage({
   let bladHoudings: BladHouding[] = [];
   let bladKwotasies: Awaited<ReturnType<typeof getQuotes>> = [];
   let bladNotas: Record<string, string> = {};
+  let bladWaarskuwings: Waarskuwing[] = [];
+  let bladTelegram = false;
   if (tab === "portefeulje") {
     const { data: h } = await sb
       .from("portefeuljes")
@@ -220,6 +222,16 @@ export default async function MarktePage({
         kryNotas(),
       ]);
     }
+    const [{ data: w }, { data: tg }] = await Promise.all([
+      sb
+        .from("prys_waarskuwings")
+        .select("id, simbool, naam, rigting, drempel, afgevuur_at, afgevuur_prys")
+        .eq("user_id", user.id)
+        .order("geskep_at", { ascending: false }),
+      sb.from("telegram_koppelinge").select("chat_id").eq("user_id", user.id).maybeSingle(),
+    ]);
+    bladWaarskuwings = (w ?? []) as Waarskuwing[];
+    bladTelegram = Boolean(tg?.chat_id);
   }
   const oop = jseIsOop();
   const dateline = new Intl.DateTimeFormat("af-ZA", {
@@ -301,6 +313,8 @@ export default async function MarktePage({
                 kwotasies={bladKwotasies}
                 sens={sensItems.filter((i) => i.kode && bladHoudings.some((h) => h.simbool === `${i.kode}.JO`))}
                 notas={bladNotas}
+                waarskuwings={bladWaarskuwings}
+                telegramGekoppel={bladTelegram}
               />
             </div>
           ) : null}
