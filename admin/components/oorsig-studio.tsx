@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { skepOorsig, stoorOorsig, type StudioOorsig } from "@/app/actions-oorsig";
+import { skepOorsig, stoorOorsig, kryOorsigVirDag, type StudioOorsig } from "@/app/actions-oorsig";
 import { verwerkTeksVirAudio } from "@/app/actions-audio";
 import { useOutostoor, WeergawePaneel } from "@/components/outostoor";
 
@@ -21,11 +21,14 @@ export function OorsigStudio({ argief, vandag }: { argief: StudioOorsig[]; vanda
   const [mp3, setMp3] = useState<string | null>(null);
   const outoStatus = useOutostoor("oorsig", datum, teks, setTeks);
 
-  const laaiDag = (d: string) => {
+  const laaiDag = async (d: string) => {
+    if (d === datum) return; // moenie die huidige redigeerder oorskryf nie
     setDatum(d);
-    setTeks(argief.find((a) => a.datum === d)?.teks ?? "");
     setAudioTeks("");
     setMp3(null);
+    setBoodskap("Laai…");
+    const vars = await kryOorsigVirDag(d); // vars uit die DB — die prop is dalk verouderd
+    setTeks(vars ?? argief.find((a) => a.datum === d)?.teks ?? "");
     setBoodskap("");
   };
 
@@ -174,7 +177,16 @@ export function OorsigStudio({ argief, vandag }: { argief: StudioOorsig[]; vanda
       <aside className="border-2 border-ink bg-offwhite">
         <h2 className="border-b-2 border-ink px-4 py-2 text-xs font-semibold tracking-[0.14em]">ARGIEF</h2>
         <ul className="divide-y divide-ink/10">
-          {[vandag, ...argief.map((a) => a.datum).filter((d) => d !== vandag)].map((d) => (
+          {(() => {
+            // laaste 10 dae altyd klikbaar, plus enige ouer gestoorde dae
+            const dae = Array.from({ length: 10 }, (_, i) => {
+              const t = new Date(`${vandag}T12:00:00Z`);
+              t.setUTCDate(t.getUTCDate() - i);
+              return t.toISOString().slice(0, 10);
+            });
+            for (const a of argief) if (!dae.includes(a.datum)) dae.push(a.datum);
+            return dae;
+          })().map((d) => (
             <li key={d}>
               <button
                 onClick={() => laaiDag(d)}

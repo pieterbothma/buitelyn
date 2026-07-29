@@ -132,6 +132,13 @@ export async function kryOorsigte(): Promise<StudioOorsig[]> {
   return (data ?? []) as StudioOorsig[];
 }
 
+export async function kryOorsigVirDag(datum: string): Promise<string | null> {
+  if (!(await aangemeld())) return null;
+  const sb = await supabaseServer();
+  const { data } = await sb.from("studio_oorsigte").select("teks").eq("datum", datum).maybeSingle();
+  return data?.teks ?? null;
+}
+
 export async function stoorOorsig(teks: string, datum?: string): Promise<void> {
   if (!(await aangemeld())) return;
   const sb = await supabaseServer();
