@@ -26,8 +26,8 @@ export function SakgeldBlad({ syfers }: { syfers: SakgeldSyfer[] }) {
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
         {syfers.map((s) => (
           <div key={s.sleutel} className="border-2 border-ink bg-offwhite px-4 py-3">
-            <p className="text-[11px] font-semibold tracking-[0.12em] text-ink/50">{s.naam.toUpperCase()}</p>
-            <p className="mt-1 text-2xl font-extrabold tabular-nums tracking-tight">
+            <p className="text-sm font-extrabold tracking-[0.06em]">{s.naam.toUpperCase()}</p>
+            <p className="mt-1 text-3xl font-extrabold tabular-nums tracking-tight">
               {s.eenheid === "R/l" ? `R ${Number(s.waarde).toFixed(2)}` : `${Number(s.waarde).toFixed(s.sleutel === "kpi" || s.sleutel === "ppi" ? 1 : 2)}%`}
               {s.eenheid === "R/l" ? <span className="text-sm font-normal text-ink/50">/liter</span> : null}
             </p>
