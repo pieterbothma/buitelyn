@@ -133,7 +133,7 @@ const TABS = [
   { sleutel: "portefeulje", naam: "Portefeulje" },
   { sleutel: "bewegers", naam: "Bewegers" },
   { sleutel: "liga", naam: "Beursliga" },
-  { sleutel: "sakgeld", naam: "Sakrekenaar" },
+  { sleutel: "sakgeld", naam: "Sakgeld" },
   { sleutel: "sens", naam: "SENS" },
   { sleutel: "telegram", naam: "Telegram" },
 ] as const;

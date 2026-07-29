@@ -100,7 +100,7 @@ const SKAKELS: { naam: string; href: string; ikoon: string; sub?: boolean; ekste
   { naam: "Portefeulje", href: "/markte?blad=portefeulje", ikoon: "portefeulje", sub: true },
   { naam: "Bewegers", href: "/markte?blad=bewegers", ikoon: "bewegers", sub: true },
   { naam: "Beursliga", href: "/markte?blad=liga", ikoon: "liga", sub: true },
-  { naam: "Sakrekenaar", href: "/markte?blad=sakgeld", ikoon: "sakgeld", sub: true },
+  { naam: "Sakgeld", href: "/markte?blad=sakgeld", ikoon: "sakgeld", sub: true },
   { naam: "SENS", href: "/markte?blad=sens", ikoon: "sens", sub: true },
   { naam: "Telegram", href: "/markte?blad=telegram", ikoon: "telegram", sub: true },
   { naam: "Winkel", href: "https://buitelyn-shop.fourthwall.com/", ikoon: "winkel", ekstern: true },
