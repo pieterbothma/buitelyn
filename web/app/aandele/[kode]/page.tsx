@@ -161,8 +161,8 @@ export default async function AandeelBlad({ params }: { params: Promise<{ kode: 
               {[
                 ["PRYS NOU", `${geld} ${k.prys.toFixed(2)}`],
                 ["VANDAG", k.deltaPersent != null ? `${k.deltaPersent >= 0 ? "+" : ""}${k.deltaPersent.toFixed(2)}%` : "—"],
-                ["52-WEEK HOOG", `${geld} ${hoog52.toFixed(2)}`],
-                ["52-WEEK LAAG", `${geld} ${laag52.toFixed(2)}`],
+                ["52-WEEK HOOGTEPUNT", `${geld} ${hoog52.toFixed(2)}`],
+                ["52-WEEK LAAGTEPUNT", `${geld} ${laag52.toFixed(2)}`],
               ].map(([n, v]) => (
                 <div key={n} className="border-2 border-ink bg-offwhite px-3 py-2">
                   <p className="text-[10px] font-semibold tracking-[0.12em] text-ink/50">{n}</p>
