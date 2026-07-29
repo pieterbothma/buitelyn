@@ -8,6 +8,7 @@ import { AandeelGrafiek } from "@/components/aandele/grafiek";
 import { AANDELE, kryAandeel, tickerAlias } from "@/lib/aandele";
 import { getQuotes, getSeries } from "@/lib/markets/source";
 import { Pyl } from "@/components/markte/format";
+import { MarktePromo } from "@/components/aandele/markte-promo";
 
 /* Publieke SEO-blaaie: vooraf gebou, elke 15 min hergeldig (pas by die
    datavertraging), Google sien 'n volledige bediener-gerenderde blad. */
@@ -31,18 +32,13 @@ export async function generateMetadata({ params }: { params: Promise<{ kode: str
   const a = kryAandeel(kode);
   if (!a) return {};
   const kort = a.simbool.replace(".JO", "");
-  const { data: profiel } = await service().from("aandeel_profiele").select("beeld_url").eq("slug", a.slug).maybeSingle();
   const titel = `${a.naam} (${kort}) Aandeelprys en Grafiek${a.land === "za" ? " – JSE" : ""} | Buitelyn`;
   const beskrywing = `Die ${a.naam}-aandeelprys vandag (±15 min vertraag), grafiek oor tyd, maatskappyprofiel${a.land === "za" ? ", SENS-aankondigings" : ""} en dividende — alles in Afrikaans op Buitelyn.`;
   return {
     title: titel,
     description: beskrywing,
     alternates: { canonical: `https://www.buitelyn.com/aandele/${a.slug}`, languages: { af: `https://www.buitelyn.com/aandele/${a.slug}` } },
-    openGraph: {
-      title: titel,
-      description: beskrywing,
-      ...(profiel?.beeld_url ? { images: [{ url: profiel.beeld_url }] } : {}),
-    },
+    openGraph: { title: titel, description: beskrywing },
   };
 }
 
@@ -61,10 +57,10 @@ export default async function AandeelBlad({ params }: { params: Promise<{ kode: 
   const sb = service();
 
   const jseKode = a.land === "za" ? kort : null;
-  const [kwotasies, reeks, { data: profiel }, { data: sens }, { data: dividende }, { data: nota }] = await Promise.all([
+  const [kwotasies, reeks, { data: profiel }, { data: sens }, { data: dividende }, { data: nota }, { data: nuus }] = await Promise.all([
     getQuotes([a.simbool]),
     getSeries(a.simbool, "1y"),
-    sb.from("aandeel_profiele").select("profiel_teks, beeld_url").eq("slug", a.slug).maybeSingle(),
+    sb.from("aandeel_profiele").select("profiel_teks").eq("slug", a.slug).maybeSingle(),
     jseKode
       ? sb.from("sens_aankondigings").select("sens_id, tyd, titel, tipe, opsomming, skakel").eq("kode", jseKode).order("tyd", { ascending: false }).limit(6)
       : Promise.resolve({ data: [] }),
@@ -72,6 +68,12 @@ export default async function AandeelBlad({ params }: { params: Promise<{ kode: 
       ? sb.from("dividend_kalender").select("bedrag_sent, ldt, betaaldatum").eq("kode", jseKode).order("ldt", { ascending: false }).limit(3)
       : Promise.resolve({ data: [] }),
     sb.from("skuiwer_notas").select("nota, datum").eq("simbool", a.simbool).order("datum", { ascending: false }).limit(1).maybeSingle(),
+    sb
+      .from("markte_nuus")
+      .select("titel_af, opsomming, bron, skakel, gepubliseer")
+      .or(`titel_af.ilike.%${a.naam.split(" ")[0]}%,opsomming.ilike.%${a.naam.split(" ")[0]}%`)
+      .order("gepubliseer", { ascending: false })
+      .limit(4),
   ]);
 
   const k = kwotasies[0];
@@ -106,14 +108,6 @@ export default async function AandeelBlad({ params }: { params: Promise<{ kode: 
     },
   ];
 
-  const GEREEDSKAP = [
-    { naam: "Jou portefeulje, live in rand", wat: "Volg jou aandele (ook oorsese) met waarde-oor-tyd-grafieke, toewysing en wins/verlies — alles outomaties in rand omgereken." },
-    { naam: "Grootste Bewegers met 'n rede", wat: "Elke groot JSE-skuif kry 'n KI-nota wat sê hóékom — gegrond op regte nuus, nie raaiwerk nie." },
-    { naam: "SENS in Afrikaans", wat: "Elke JSE-aankondiging in een verstaanbare Afrikaanse sin, met jou eie aandele gemerk." },
-    { naam: "Die Beursliga", wat: "R100 000 denkbeeldige geld, net JSE-aandele, maandelikse ranglys — kry jou blywende lidnommer." },
-    { naam: "Telegram-klankgrepe en waarskuwings", wat: "Drie markte-oorsigte per dag as klank, pryswaarskuwings, dividend-herinneringe en 'n slim bot wat jou vrae antwoord." },
-    { naam: "Sakgeld-sakrekenaars", wat: "Verband, petrol, inflasie en spaargroei — voorafgelaai met vandag se amptelike koerse." },
-  ];
 
   return (
     <>
@@ -178,11 +172,7 @@ export default async function AandeelBlad({ params }: { params: Promise<{ kode: 
             </p>
           ) : null}
 
-          {/* profiel + beeld */}
-          {profiel?.beeld_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={profiel.beeld_url} alt={`Illustrasie van ${a.naam} se besigheid`} className="mt-6 w-full border-2 border-ink" />
-          ) : null}
+          {/* profiel */}
           {profiel?.profiel_teks ? (
             <section className="mt-6">
               <h2 className="text-xl font-extrabold tracking-tight">Oor {a.naam}</h2>
@@ -204,6 +194,26 @@ export default async function AandeelBlad({ params }: { params: Promise<{ kode: 
                     {d.bedrag_sent ? <span className="font-bold">{Number(d.bedrag_sent) >= 100 ? `R ${(Number(d.bedrag_sent) / 100).toFixed(2)}` : `${Number(d.bedrag_sent).toFixed(0)}c`} per aandeel</span> : null}
                     {d.ldt ? <span className="text-ink/70">LDT {fmtDatum.format(new Date(`${d.ldt}T12:00:00Z`))}</span> : null}
                     {d.betaaldatum ? <span className="text-ink/70">betaal {fmtDatum.format(new Date(`${d.betaaldatum}T12:00:00Z`))}</span> : null}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ) : null}
+
+          {/* in die nuus */}
+          {nuus?.length ? (
+            <section className="mt-8">
+              <h2 className="text-xl font-extrabold tracking-tight">In die nuus</h2>
+              <ul className="mt-2 divide-y divide-ink/10 border-2 border-ink bg-offwhite">
+                {nuus.map((n) => (
+                  <li key={n.skakel} className="px-4 py-2.5">
+                    <p className="text-xs tracking-[0.1em] text-ink/40">
+                      {n.bron.toUpperCase()} · {fmtDatum.format(new Date(n.gepubliseer))}
+                    </p>
+                    <a href={n.skakel} target="_blank" rel="noreferrer" className="mt-0.5 block text-sm font-bold leading-snug underline-offset-4 hover:underline">
+                      {n.titel_af}
+                    </a>
+                    {n.opsomming ? <p className="mt-0.5 text-sm leading-snug text-ink/70">{n.opsomming}</p> : null}
                   </li>
                 ))}
               </ul>
@@ -244,27 +254,7 @@ export default async function AandeelBlad({ params }: { params: Promise<{ kode: 
             </p>
           </section>
 
-          {/* markte-promo */}
-          <section className="mt-10 border-2 border-ink bg-offwhite">
-            <h2 className="border-b-2 border-ink px-5 py-3 text-sm font-extrabold tracking-[0.1em]">
-              MEER OP BUITELYN MARKTE
-              <span aria-hidden className="ml-2 inline-block size-1.5 rounded-full bg-red align-middle" />
-            </h2>
-            <div className="grid gap-x-6 gap-y-4 px-5 py-4 md:grid-cols-2">
-              {GEREEDSKAP.map((g) => (
-                <div key={g.naam}>
-                  <p className="text-sm font-bold">{g.naam}</p>
-                  <p className="mt-0.5 text-sm leading-snug text-ink/70">{g.wat}</p>
-                </div>
-              ))}
-            </div>
-            <div className="border-t border-ink/15 px-5 py-4">
-              <Link href="/markte" className="inline-block border-2 border-ink bg-ink px-5 py-2.5 text-sm font-bold text-offwhite hover:border-red hover:bg-red">
-                Maak gratis 'n Buitelyn-rekening oop →
-              </Link>
-              <span className="ml-3 text-xs text-ink/50">Gratis — net 'n e-posadres nodig.</span>
-            </div>
-          </section>
+          <MarktePromo />
 
           <p className="mt-6 text-xs leading-relaxed text-ink/50">
             Pryse ±15 minute vertraag. Buitelyn gee inligting en konteks, nie finansiële advies
