@@ -25,12 +25,12 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col">
         {children}
         {/* Google Analytics (gtag.js) */}
-        <Script src="https://www.googletagmanager.com/gtag/js?id=G-TWST67V3TT" strategy="afterInteractive" />
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-07EE2VL33P" strategy="afterInteractive" />
         <Script id="google-analytics" strategy="afterInteractive">
           {`window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-TWST67V3TT');`}
+            gtag('config', 'G-07EE2VL33P');`}
         </Script>
       </body>
     </html>
