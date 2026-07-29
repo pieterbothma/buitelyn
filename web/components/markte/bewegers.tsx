@@ -50,6 +50,18 @@ export function BewegersBord({
   const top = gesorteer.slice(0, 15);
   const maks = Math.max(...top.map((k) => Math.abs(k.deltaPersent!)), 0.1);
 
+  // Sessie-etiket: voor opening wys Yahoo nog gister se sessie — sê dit eerlik
+  const sastDag = (d: Date) =>
+    new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" }).format(d);
+  const nuutste = kwotasies.reduce<string | null>(
+    (m, k) => (k.tyd && (!m || k.tyd > m) ? k.tyd : m),
+    null
+  );
+  const isVandag = nuutste ? sastDag(new Date(nuutste)) === sastDag(new Date()) : true;
+  const sessieDatum = nuutste
+    ? new Intl.DateTimeFormat("af-ZA", { timeZone: "Africa/Johannesburg", weekday: "long", day: "numeric", month: "long" }).format(new Date(nuutste))
+    : "";
+
   return (
     <div>
       {/* Mobiel: onder mekaar (volwydte); md+: langs mekaar */}
@@ -66,6 +78,13 @@ export function BewegersBord({
           </button>
         ))}
       </div>
+
+      {!isVandag && sessieDatum ? (
+        <p className="mt-4 flex items-center gap-2 border-2 border-ink bg-paper px-4 py-2 text-[11px] font-semibold tracking-[0.14em] text-ink/60">
+          <span aria-hidden className="size-1.5 rounded-full bg-red" />
+          GISTER SE SLUITING — {sessieDatum.toUpperCase()} · VANDAG SE BEWEGINGS WYS VANAF 09:00
+        </p>
+      ) : null}
 
       <div className="mt-4 border-2 border-ink bg-offwhite">
         <ul className="divide-y divide-ink/10">
@@ -122,7 +141,7 @@ export function BewegersBord({
         </ul>
       </div>
       <p className="mt-2 text-xs text-ink/50">
-        JSE-hoofname · % teenoor gister se sluiting · data ±15 min vertraag
+        JSE-hoofname · % teenoor die vorige sluiting · data ±15 min vertraag
       </p>
     </div>
   );

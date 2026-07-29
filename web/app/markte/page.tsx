@@ -31,8 +31,15 @@ async function kryNotas(): Promise<Record<string, string>> {
     const sb = createClient(process.env.APHQ_SUPABASE_URL, process.env.APHQ_SUPABASE_SERVICE_KEY, {
       auth: { persistSession: false },
     });
-    const datum = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" }).format(new Date());
-    const { data } = await sb.from("skuiwer_notas").select("simbool, nota").eq("datum", datum);
+    const dagFmt = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" });
+    const vandag = dagFmt.format(new Date());
+    const gister = dagFmt.format(new Date(Date.now() - 24 * 60 * 60 * 1000));
+    // albei dae, oudste eerste — vandag s'n oorskryf gister s'n per simbool
+    const { data } = await sb
+      .from("skuiwer_notas")
+      .select("simbool, nota, datum")
+      .in("datum", [gister, vandag])
+      .order("datum", { ascending: true });
     return Object.fromEntries((data ?? []).map((r) => [r.simbool, r.nota]));
   } catch {
     return {};
