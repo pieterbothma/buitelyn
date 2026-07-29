@@ -93,6 +93,12 @@ export async function GET(request: NextRequest) {
       : uitgawe === "middag"
         ? "dit is die middaguitgawe — hoe die dag tot dusver verloop"
         : "dit is die aanduitgawe ná JSE-sluiting — hoe die dag geëindig het";
+  const slotGroet =
+    uitgawe === "oggend"
+      ? "sê iets soos 'ons praat weer vanmiddag' — NIE 'tot môre' nie, daar kom nog uitgawes vandag"
+      : uitgawe === "middag"
+        ? "sê iets soos 'ons praat weer ná sluitingstyd' — NIE 'tot môre' nie, die dagopsomming kom nog vanaand"
+        : "'tot môre' is hier gepas — dit is die laaste uitgawe van die dag";
 
   /* Gemini herskryf die geskrewe oorsig as 'n gesproke skrip: syfers in
      mensetaal (nie "+1,08%" nie) en ElevenLabs v3-oudio-etikette vir toon. */
@@ -112,7 +118,7 @@ Reëls:
 - Begin met [energetic] ${groet} en 'n verwysing na ${datumWoorde}; ${invalshoek}.
 - Syfers in mensetaal: nooit "+1,08%" nie — sê "net oor een persent sterker"; rond bedrae af ("sowat sestien rand sewentig teen die dollar"). Geen simbole, hakies of afkortings wat vreemd klink as dit gelees word nie.
 - Strooi 4-6 oudio-etikette uit hierdie palet op natuurlike plekke in: [energetic] [announcing] [thoughtful] [serious] [optimistic] [amused]. Op 'n af-dag mag een [sighs]. Etikette staan op hul eie voor die sin wat die toon kry.
-- Sluit af met [optimistic] en verwys luisteraars na buitelyn punt com slash markte, en 'n kort groet.
+- Sluit af met [optimistic] en verwys luisteraars na buitelyn punt com slash markte; ${slotGroet}.
 - Skryf suiwer hedendaagse Afrikaans — NOOIT Nederlandse, Vlaamse of Duitse woorde nie (bv. 'achtbaan' is Nederlands). As jy twyfel of 'n woord regte Afrikaans is, gebruik eerder die Engelse leenwoord (bv. 'rollercoaster') of 'n gewone Afrikaanse alternatief.
 - Lengte: 120-160 woorde. Geen opskrifte, geen plekhouers. Antwoord NET met die skrip.
 
