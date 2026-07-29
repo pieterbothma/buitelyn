@@ -141,6 +141,57 @@ export async function GET(request: NextRequest) {
   const { error } = await sb.from("sens_aankondigings").upsert(rye, { onConflict: "sens_id" });
   if (error) return NextResponse.json({ fout: error.message }, { status: 500 });
 
+  // Dividend-items: onttrek gestruktureerde datums/bedrag vir die kalender
+  const dividende = rye
+    .map((r, n) => ({ r, teks: tekste[n] }))
+    .filter((x) => x.r.tipe === "dividend" && x.teks);
+  if (dividende.length) {
+    try {
+      const dPrompt = `Hier is ${dividende.length} JSE-dividend-aankondigings. Onttrek vir ELKE item:
+- "bedrag_sent": die dividend in SENT per aandeel (bv. 190 vir 190 sent; as net rand gegee, skakel om; null as onduidelik)
+- "ldt": laaste dag om te verhandel ("last day to trade", LDT) as YYYY-MM-DD (null as afwesig)
+- "betaaldatum": betaaldatum ("payment date") as YYYY-MM-DD (null as afwesig)
+Antwoord SLEGS met 'n JSON-lys van presies ${dividende.length} objekte in volgorde.
+
+${dividende.map((x, n) => `--- ITEM ${n + 1}: ${x.r.maatskappy}\n${x.teks.slice(0, 3000)}`).join("\n\n")}`;
+      const dRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: dPrompt }] }],
+            generationConfig: { temperature: 0, responseMimeType: "application/json" },
+          }),
+        }
+      );
+      if (dRes.ok) {
+        const dData = await dRes.json();
+        const uit = JSON.parse(dData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "[]") as {
+          bedrag_sent: number | null;
+          ldt: string | null;
+          betaaldatum: string | null;
+        }[];
+        const geldig = /^\d{4}-\d{2}-\d{2}$/;
+        const kalenderRye = dividende
+          .map((x, n) => ({
+            sens_id: x.r.sens_id,
+            kode: x.r.kode!,
+            maatskappy: x.r.maatskappy,
+            bedrag_sent: typeof uit[n]?.bedrag_sent === "number" ? uit[n].bedrag_sent : null,
+            ldt: uit[n]?.ldt && geldig.test(uit[n].ldt!) ? uit[n].ldt : null,
+            betaaldatum: uit[n]?.betaaldatum && geldig.test(uit[n].betaaldatum!) ? uit[n].betaaldatum : null,
+          }))
+          .filter((r) => r.ldt || r.betaaldatum || r.bedrag_sent);
+        if (kalenderRye.length) {
+          await sb.from("dividend_kalender").upsert(kalenderRye, { onConflict: "sens_id" });
+        }
+      }
+    } catch {
+      /* kalender is opsioneel — SENS-vloei mag nie breek nie */
+    }
+  }
+
   // Bot: eie-aandeel-kennisgewings (kode → .JO-simbool in portefeulje/dophou)
   let gestuur = 0;
   if (process.env.TELEGRAM_BOT_TOKEN) {

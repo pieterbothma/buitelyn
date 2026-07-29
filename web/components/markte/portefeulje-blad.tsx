@@ -45,6 +45,14 @@ const REEKSE = [
   { w: "1y", n: "1J" },
 ] as const;
 
+export type Dividend = {
+  kode: string;
+  maatskappy: string;
+  bedrag_sent: number | null;
+  ldt: string | null;
+  betaaldatum: string | null;
+};
+
 export type Waarskuwing = {
   id: string;
   simbool: string;
@@ -62,6 +70,7 @@ export function PortefeuljeBlad({
   notas,
   waarskuwings,
   telegramGekoppel,
+  dividende,
 }: {
   houdings: BladHouding[];
   kwotasies: Kwotasie[];
@@ -69,6 +78,7 @@ export function PortefeuljeBlad({
   notas: Record<string, string>;
   waarskuwings: Waarskuwing[];
   telegramGekoppel: boolean;
+  dividende: Dividend[];
 }) {
   const kaart = new Map(kwotasies.map((k) => [k.simbool, k]));
   const fx = new Map<string, number>(
@@ -368,6 +378,37 @@ export function PortefeuljeBlad({
           <VoegBy klaar={() => router.refresh()} />
         </div>
       </section>
+
+      {dividende.length ? (
+        <section className="border-2 border-ink bg-offwhite">
+          <h2 className="border-b-2 border-ink px-4 py-2 text-xs font-semibold tracking-[0.16em]">
+            KOMENDE DIVIDENDE
+            <span aria-hidden className="ml-2 inline-block size-1.5 rounded-full bg-green align-middle" />
+          </h2>
+          <ul className="divide-y divide-ink/10">
+            {dividende.map((d, i) => {
+              const h = houdings.find((x) => x.simbool === `${d.kode}.JO`);
+              const beraam = h && d.bedrag_sent ? (d.bedrag_sent / 100) * h.aantal : null;
+              const datumF = (x: string) =>
+                new Intl.DateTimeFormat("af-ZA", { timeZone: "Africa/Johannesburg", day: "numeric", month: "short" }).format(new Date(`${x}T12:00:00Z`));
+              return (
+                <li key={i} className="px-4 py-2.5">
+                  <div className="flex flex-wrap items-baseline gap-x-3 text-sm">
+                    <span className="font-semibold">{maakDivNaam(d.maatskappy)}</span>
+                    {d.bedrag_sent ? <span className="tabular-nums text-ink/70">{d.bedrag_sent >= 100 ? `R ${(d.bedrag_sent / 100).toFixed(2)}` : `${d.bedrag_sent.toFixed(0)}c`} per aandeel</span> : null}
+                    {beraam ? <span className="font-bold tabular-nums text-green">± {rand(beraam)} vir jou</span> : null}
+                  </div>
+                  <p className="mt-0.5 text-xs text-ink/60">
+                    {d.ldt ? `LDT ${datumF(d.ldt)} — laaste dag om te koop vir dié dividend` : ""}
+                    {d.ldt && d.betaaldatum ? " · " : ""}
+                    {d.betaaldatum ? `betaal ${datumF(d.betaaldatum)}` : ""}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      ) : null}
 
       <WaarskuwingsBord
         waarskuwings={waarskuwings}
@@ -676,6 +717,14 @@ function HoudingAksies({
       ) : null}
     </div>
   );
+}
+
+function maakDivNaam(naam: string): string {
+  return naam
+    .toLowerCase()
+    .replace(/\b(limited|ltd)\b\.?/g, "")
+    .trim()
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 /* ---------- pryswaarskuwings ---------- */

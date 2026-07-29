@@ -9,7 +9,7 @@ import { TelegramKoppel } from "@/components/markte/telegram";
 import { BewegersBord } from "@/components/markte/bewegers";
 import { SensBord, type SensItem } from "@/components/markte/sens";
 import { LigaBord } from "@/components/markte/liga";
-import { PortefeuljeBlad, type BladHouding, type Waarskuwing } from "@/components/markte/portefeulje-blad";
+import { PortefeuljeBlad, type BladHouding, type Waarskuwing, type Dividend } from "@/components/markte/portefeulje-blad";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getQuotes } from "@/lib/markets/source";
 import { kryNuus } from "@/lib/markets/nuus";
@@ -201,6 +201,7 @@ export default async function MarktePage({
   let bladNotas: Record<string, string> = {};
   let bladWaarskuwings: Waarskuwing[] = [];
   let bladTelegram = false;
+  let bladDividende: Dividend[] = [];
   if (tab === "portefeulje") {
     const { data: h } = await sb
       .from("portefeuljes")
@@ -232,6 +233,22 @@ export default async function MarktePage({
     ]);
     bladWaarskuwings = (w ?? []) as Waarskuwing[];
     bladTelegram = Boolean(tg?.chat_id);
+    if (bladHoudings.length && process.env.APHQ_SUPABASE_URL && process.env.APHQ_SUPABASE_SERVICE_KEY) {
+      const svc = createClient(process.env.APHQ_SUPABASE_URL, process.env.APHQ_SUPABASE_SERVICE_KEY, {
+        auth: { persistSession: false },
+      });
+      const kodes = bladHoudings.filter((h) => h.simbool.endsWith(".JO")).map((h) => h.simbool.replace(".JO", ""));
+      if (kodes.length) {
+        const vandag = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" }).format(new Date());
+        const { data: div } = await svc
+          .from("dividend_kalender")
+          .select("kode, maatskappy, bedrag_sent, ldt, betaaldatum")
+          .in("kode", kodes)
+          .or(`ldt.gte.${vandag},betaaldatum.gte.${vandag}`)
+          .order("ldt", { ascending: true });
+        bladDividende = (div ?? []) as Dividend[];
+      }
+    }
   }
   const oop = jseIsOop();
   const dateline = new Intl.DateTimeFormat("af-ZA", {
@@ -315,6 +332,7 @@ export default async function MarktePage({
                 notas={bladNotas}
                 waarskuwings={bladWaarskuwings}
                 telegramGekoppel={bladTelegram}
+                dividende={bladDividende}
               />
             </div>
           ) : null}
