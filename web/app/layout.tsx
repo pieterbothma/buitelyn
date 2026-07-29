@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { League_Spartan } from "next/font/google";
 import "./globals.css";
 
@@ -21,7 +22,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="af" className={`${spartan.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        {/* Google Analytics (gtag.js) */}
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-TWST67V3TT" strategy="afterInteractive" />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-TWST67V3TT');`}
+        </Script>
+      </body>
     </html>
   );
 }
