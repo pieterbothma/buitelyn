@@ -54,10 +54,14 @@ export async function GET(request: NextRequest) {
     .eq("portefeulje", true);
   if (!koppelinge?.length) return NextResponse.json({ ok: true, gestuur: 0, rede: "geen intekenare" });
 
-  const { data: houdings } = await sb
-    .from("portefeuljes")
-    .select("user_id, simbool, naam, aantal, koopprys, geldeenheid")
-    .in("user_id", koppelinge.map((k) => k.user_id));
+  const [{ data: houdings }, { data: ligaSpelers }, { data: ligaHoudings }] = await Promise.all([
+    sb
+      .from("portefeuljes")
+      .select("user_id, simbool, naam, aantal, koopprys, geldeenheid")
+      .in("user_id", koppelinge.map((k) => k.user_id)),
+    sb.from("liga_spelers").select("user_id, nommer, kontant"),
+    sb.from("liga_houdings").select("user_id, simbool, aantal, koopprys"),
+  ]);
   if (!houdings?.length) return NextResponse.json({ ok: true, gestuur: 0, rede: "geen houdings" });
 
   const perGebruiker = new Map<string, Houding[]>();
@@ -67,8 +71,13 @@ export async function GET(request: NextRequest) {
     perGebruiker.set(h.user_id, lys);
   }
 
-  // Een kwotasie-haal vir alle simbole + FX-pare
-  const simbole = [...new Set(houdings.map((h) => h.simbool.toUpperCase()))];
+  // Een kwotasie-haal vir alle simbole + FX-pare (Beursliga s'n ry saam)
+  const simbole = [
+    ...new Set([
+      ...houdings.map((h) => h.simbool.toUpperCase()),
+      ...(ligaHoudings ?? []).map((h) => h.simbool.toUpperCase()),
+    ]),
+  ];
   const fxPare = ["ZAR=X", "EURZAR=X", "GBPZAR=X", "HKD=X"];
   const kwotasies = await getQuotes([...simbole, ...fxPare]);
   const kaart = new Map<string, Kwotasie>(kwotasies.map((k) => [k.simbool, k]));
@@ -132,6 +141,27 @@ export async function GET(request: NextRequest) {
       "",
       ...reels,
       onbekend.length ? `\nGeen kwotasie vir: ${onbekend.join(", ")}` : null,
+      ...((): string[] => {
+        const sp = (ligaSpelers ?? []).find((l) => l.user_id === k.user_id);
+        if (!sp) return [];
+        const waardes = (ligaSpelers ?? []).map((l) => {
+          const myne = (ligaHoudings ?? []).filter((h) => h.user_id === l.user_id);
+          return {
+            user_id: l.user_id,
+            waarde:
+              Number(l.kontant) +
+              myne.reduce((t, h) => t + (kaart.get(h.simbool.toUpperCase())?.prys ?? Number(h.koopprys)) * Number(h.aantal), 0),
+          };
+        });
+        waardes.sort((a, b) => b.waarde - a.waarde);
+        const myWaarde = waardes.find((w) => w.user_id === k.user_id)!;
+        const plek = waardes.indexOf(myWaarde) + 1;
+        const opbrengs = ((myWaarde.waarde - 100000) / 100000) * 100;
+        return [
+          "",
+          `🏆 Beursliga #${String(sp.nommer).padStart(2, "0")}: ${rand(myWaarde.waarde)} (${opbrengs >= 0 ? "+" : ""}${opbrengs.toFixed(2).replace(".", ",")}%) · plek ${plek} van ${waardes.length}`,
+        ];
+      })(),
       "",
       "Volle terminal: buitelyn.com/markte · data ±15 min vertraag",
     ]

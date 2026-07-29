@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { supabaseServer } from "@/lib/supabase/server";
-import { getQuotes } from "@/lib/markets/source";
+import { getQuotes, getSeries } from "@/lib/markets/source";
 import { isGeldigeSimbool } from "@/lib/markets/boards";
 
 export const dynamic = "force-dynamic";
@@ -41,6 +41,7 @@ export async function GET() {
   const simbole = [...new Set((houdings ?? []).map((h) => h.simbool))];
   const kwotasies = simbole.length ? await getQuotes(simbole) : [];
   const prys = new Map(kwotasies.map((k) => [k.simbool, k.prys]));
+  const dagDelta = new Map(kwotasies.map((k) => [k.simbool, k.deltaPersent]));
   const avatars = new Map((profiele ?? []).map((p) => [p.user_id, p.avatar_url]));
 
   const ranglys = spelers
@@ -56,6 +57,14 @@ export async function GET() {
         waarde,
         opbrengs: ((waarde - BEGIN_KONTANT) / BEGIN_KONTANT) * 100,
         ek: s.user_id === user.id,
+        houdings: myne
+          .map((h) => ({
+            simbool: h.simbool,
+            naam: h.naam,
+            aantal: Number(h.aantal),
+            waarde: (prys.get(h.simbool) ?? Number(h.koopprys)) * Number(h.aantal),
+          }))
+          .sort((a, b) => b.waarde - a.waarde),
       };
     })
     .sort((a, b) => b.waarde - a.waarde)
@@ -105,11 +114,56 @@ export async function GET() {
           prys: prys.get(h.simbool) ?? null,
         }))
     : [];
+  /* Maand-grafiek: snapshotte van dié maand + vandag se live punt per speler. */
+  const maandBegin = `${jaarNou}-${String(maandNou).padStart(2, "0")}-01`;
+  const vandagDatum = dagFmt.format(new Date());
+  const [{ data: snapshotte }, { data: transaksies }] = await Promise.all([
+    sb.from("liga_snapshotte").select("datum, user_id, waarde").gte("datum", maandBegin).order("datum"),
+    sb.from("liga_transaksies").select("user_id, aksie, simbool, naam, aantal, prys, tyd").order("tyd", { ascending: false }).limit(15),
+  ]);
+  const spelerVan = new Map(spelers.map((s) => [s.user_id, s]));
+  const grafiek = spelers.map((s) => {
+    const punte = (snapshotte ?? [])
+      .filter((r) => r.user_id === s.user_id && r.datum < vandagDatum)
+      .map((r) => ({ datum: r.datum, waarde: Number(r.waarde) }));
+    const live = ranglys.find((r) => r.nommer === s.nommer);
+    if (live) punte.push({ datum: vandagDatum, waarde: live.waarde });
+    return { nommer: s.nommer, naam: s.naam, ek: s.user_id === user.id, punte };
+  });
+
+  /* Benchmark: Top 40 (STX40) se maand-tot-datum-% oor dieselfde rondte. */
+  let benchmark: number | null = null;
+  try {
+    const reeks = await getSeries("STX40.JO", "1mo");
+    const maandPunte = reeks.filter(
+      (r) => dagFmt.format(new Date(r.t * 1000)) >= maandBegin
+    );
+    if (maandPunte.length > 1) {
+      benchmark = ((maandPunte[maandPunte.length - 1].p - maandPunte[0].p) / maandPunte[0].p) * 100;
+    }
+  } catch {
+    /* bly null */
+  }
+
   return NextResponse.json({
     ek: ek ? { nommer: ek.nommer, naam: ek.naam, kontant: Number(ek.kontant), houdings: myHoudings } : null,
     ranglys,
     kwartaal: seisoen(kwartaalMaande),
     jaar: seisoen(jaarMaande),
+    grafiek,
+    benchmark,
+    transaksies: (transaksies ?? []).map((t) => {
+      const sp = spelerVan.get(t.user_id);
+      return {
+        nommer: sp?.nommer ?? 0,
+        speler: sp?.naam ?? "?",
+        aksie: t.aksie,
+        naam: t.naam ?? t.simbool,
+        aantal: Number(t.aantal),
+        prys: Number(t.prys),
+        tyd: t.tyd,
+      };
+    }),
   });
 }
 
@@ -191,13 +245,14 @@ export async function POST(request: NextRequest) {
         { onConflict: "user_id,simbool" }
       );
       await sb.from("liga_spelers").update({ kontant: Number(speler.kontant) - koste }).eq("user_id", user.id);
+      await sb.from("liga_transaksies").insert({ user_id: user.id, aksie: "koop", simbool, naam: body.aandeelNaam?.slice(0, 60) ?? simbool, aantal, prys });
       return NextResponse.json({ ok: true, prys, koste });
     }
 
     // verkoop
     const { data: houding } = await sb
       .from("liga_houdings")
-      .select("aantal")
+      .select("aantal, naam")
       .eq("user_id", user.id)
       .eq("simbool", simbool)
       .maybeSingle();
@@ -212,6 +267,7 @@ export async function POST(request: NextRequest) {
     }
     const { data: speler2 } = await sb.from("liga_spelers").select("kontant").eq("user_id", user.id).single();
     await sb.from("liga_spelers").update({ kontant: Number(speler2!.kontant) + prys * aantal }).eq("user_id", user.id);
+    await sb.from("liga_transaksies").insert({ user_id: user.id, aksie: "verkoop", simbool, naam: houding.naam ?? simbool, aantal, prys });
     return NextResponse.json({ ok: true, prys, opbrengs: prys * aantal });
   }
 
