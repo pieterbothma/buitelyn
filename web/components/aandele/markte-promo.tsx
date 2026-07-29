@@ -152,12 +152,12 @@ export function MarktePromo() {
             Die JSE sluit vandag effens hoër met Naspers wat 4% klim; die rand hou stand teen
             sestien rand sewentig, en goud blink weer…
           </p>
-          <div className="mt-1.5 flex items-center gap-2 border border-ink/20 bg-offwhite px-2 py-1">
-            <span aria-hidden className="flex size-4 items-center justify-center rounded-full bg-ink text-[7px] text-offwhite">▶</span>
-            <span className="h-1 flex-1 rounded-full bg-ink/15">
-              <span className="block h-1 w-1/3 rounded-full bg-red" />
+          <div className="mt-1.5 flex items-center gap-2 border border-ink/20 bg-offwhite px-2 py-1.5">
+            <span aria-hidden className="flex size-4 shrink-0 items-center justify-center rounded-full bg-ink pl-px text-[6px] leading-none text-offwhite">▶</span>
+            <span className="relative h-1 flex-1 overflow-hidden rounded-full bg-ink/15">
+              <span className="absolute inset-y-0 left-0 w-1/3 bg-red" />
             </span>
-            <span className="text-[8px] tabular-nums text-ink/50">1:04 / 2:48</span>
+            <span className="shrink-0 text-[8px] leading-none tabular-nums text-ink/50">1:04 / 2:48</span>
           </div>
           <div className="mt-1.5 space-y-1 border-t border-ink/10 pt-1.5">
             <p className="text-[9px] tracking-[0.1em] text-ink/40">MONEYWEB · 14:02</p>
@@ -200,9 +200,11 @@ export function MarktePromo() {
             <div className="w-fit max-w-[92%] border-2 border-ink bg-white px-2 py-1 text-[10px] leading-snug">
               🔴 <span className="font-bold">Goeiemôre, Suid-Afrika!</span>
               <span className="mt-1 flex items-center gap-1.5">
-                <span aria-hidden className="flex size-3.5 items-center justify-center rounded-full bg-ink text-[6px] text-offwhite">▶</span>
-                <span className="h-0.5 w-20 rounded-full bg-ink/20" />
-                <span className="text-[8px] text-ink/50">2:48</span>
+                <span aria-hidden className="flex size-3.5 shrink-0 items-center justify-center rounded-full bg-ink pl-px text-[5px] leading-none text-offwhite">▶</span>
+                <span className="relative h-1 w-20 overflow-hidden rounded-full bg-ink/15">
+                  <span className="absolute inset-y-0 left-0 w-1/4 bg-red" />
+                </span>
+                <span className="text-[8px] leading-none tabular-nums text-ink/50">2:48</span>
               </span>
             </div>
             <div className="w-fit max-w-[92%] border-2 border-ink bg-white px-2 py-1 text-[10px] leading-snug">
