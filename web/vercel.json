@@ -39,6 +39,10 @@
     {
       "path": "/api/cron/dividend-herinnering",
       "schedule": "0 5 * * 1-5"
+    },
+    {
+      "path": "/api/cron/sakgeld",
+      "schedule": "30 4 * * *"
     }
   ],
   "regions": [

@@ -64,6 +64,24 @@ async function krySens(): Promise<SensItem[]> {
   }
 }
 
+export type SakgeldSyfer = { sleutel: string; naam: string; waarde: number; eenheid: string; datum_effektief: string | null };
+
+async function krySakgeld(): Promise<SakgeldSyfer[]> {
+  if (!process.env.APHQ_SUPABASE_URL || !process.env.APHQ_SUPABASE_SERVICE_KEY) return [];
+  try {
+    const sb = createClient(process.env.APHQ_SUPABASE_URL, process.env.APHQ_SUPABASE_SERVICE_KEY, {
+      auth: { persistSession: false },
+    });
+    const { data } = await sb
+      .from("sakgeld_syfers")
+      .select("sleutel, naam, waarde, eenheid, datum_effektief");
+    const orde = ["repo", "prima", "kpi", "petrol95", "diesel", "ppi"];
+    return ((data ?? []) as SakgeldSyfer[]).sort((a, b) => orde.indexOf(a.sleutel) - orde.indexOf(b.sleutel));
+  } catch {
+    return [];
+  }
+}
+
 async function kryOorsig(): Promise<{
   teks: string;
   bygewerk: string | null;
@@ -176,7 +194,7 @@ export default async function MarktePage({
   const naam = rouNaam ? rouNaam.charAt(0).toUpperCase() + rouNaam.slice(1) : "";
 
   // Haal net wat die aktiewe oortjie nodig het
-  const [kwotasies, oorsig, nuus, bewegers, notas, sensItems] = await Promise.all([
+  const [kwotasies, oorsig, nuus, bewegers, notas, sensItems, sakgeld] = await Promise.all([
     tab === "tuis" ? getQuotes(ALLE_SIMBOLE) : Promise.resolve([]),
     tab === "tuis" ? kryOorsig() : Promise.resolve(null),
     tab === "tuis" ? kryNuus() : Promise.resolve([]),
@@ -185,6 +203,7 @@ export default async function MarktePage({
       : Promise.resolve([]),
     tab === "bewegers" ? kryNotas() : Promise.resolve({}),
     tab === "sens" || tab === "portefeulje" ? krySens() : Promise.resolve([] as SensItem[]),
+    tab === "tuis" ? krySakgeld() : Promise.resolve([] as SakgeldSyfer[]),
   ]);
   let eieSimbole: string[] = [];
   if (tab === "sens") {
@@ -385,6 +404,26 @@ export default async function MarktePage({
               </p>
               {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
               <audio controls preload="none" src={oorsig.oudioUrl} className="h-9 min-w-64 max-w-md flex-1" />
+            </div>
+          ) : null}
+
+          {tab === "tuis" && sakgeld.length ? (
+            <div className="mt-4 border-2 border-ink bg-offwhite px-5 py-3">
+              <p className="text-[11px] font-semibold tracking-[0.16em] text-ink/50">
+                SAKGELD
+                <span aria-hidden className="ml-2 inline-block size-1.5 rounded-full bg-red align-middle" />
+                <span className="ml-3 font-normal">DIE SYFERS WAT JOU BEURSIE RAAK</span>
+              </p>
+              <div className="mt-2 flex flex-wrap gap-x-6 gap-y-1.5">
+                {sakgeld.map((r) => (
+                  <span key={r.sleutel} className="text-sm">
+                    <span className="text-ink/60">{r.naam}:</span>{" "}
+                    <span className="font-bold tabular-nums">
+                      {r.eenheid === "R/l" ? `R ${Number(r.waarde).toFixed(2)}/l` : `${Number(r.waarde).toFixed(r.sleutel === "kpi" || r.sleutel === "ppi" ? 1 : 2)}%`}
+                    </span>
+                  </span>
+                ))}
+              </div>
             </div>
           ) : null}
 
