@@ -369,6 +369,12 @@ export function PortefeuljeBlad({
     </div>
 
     <MarkteChat
+      voorstelle={[
+        "Verduidelik my portefeulje se dag",
+        "Watter van my aandele het die meeste beweeg, en hoekom?",
+        "Enige nuus of SENS oor my aandele?",
+        "Hoe gekonsentreer is my portefeulje?",
+      ]}
       portefeulje={houdings.map((h) => ({
         simbool: h.simbool,
         naam: h.naam ?? undefined,

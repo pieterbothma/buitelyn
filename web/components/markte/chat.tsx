@@ -54,9 +54,11 @@ const VOORSTELLE = [
 export function MarkteChat({
   portefeulje,
   eksterneVraag,
+  voorstelle = VOORSTELLE,
 }: {
   portefeulje: Belegging[];
   eksterneVraag?: { id: number; teks: string } | null;
+  voorstelle?: string[];
 }) {
   const [boodskappe, setBoodskappe] = useState<Boodskap[]>([]);
   const [teks, setTeks] = useState("");
@@ -133,7 +135,7 @@ export function MarkteChat({
               se nuusbriewe.
             </p>
             <div className="flex flex-wrap gap-2 pt-1">
-              {VOORSTELLE.map((v) => (
+              {voorstelle.map((v) => (
                 <button
                   key={v}
                   onClick={() => stuur(v)}
