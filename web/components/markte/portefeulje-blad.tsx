@@ -2,11 +2,15 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { MarkteChat } from "@/components/markte/chat";
+import { supabaseBrowser } from "@/lib/supabase/client";
 import type { Kwotasie, ReeksPunt } from "@/lib/markets/source";
 import { Pyl } from "@/components/markte/format";
 import type { SensItem } from "@/components/markte/sens";
 
 export type BladHouding = {
+  id: string;
   simbool: string;
   naam: string | null;
   aantal: number;
@@ -58,8 +62,17 @@ export function PortefeuljeBlad({
   );
 
   const [range, setRange] = useState<(typeof REEKSE)[number]["w"]>("1mo");
+  const [vraag, setVraag] = useState<{ id: number; teks: string } | null>(null);
   const [reekse, setReekse] = useState<Record<string, ReeksPunt[]>>({});
   const [oopRy, setOopRy] = useState<string | null>(null);
+  const router = useRouter();
+
+  const verwyder = async (id: string) => {
+    const sb = supabaseBrowser();
+    if (!sb) return;
+    await sb.from("portefeuljes").delete().eq("id", id);
+    router.refresh();
+  };
 
   // waardasie per houding
   const rye = houdings.map((h) => {
@@ -153,18 +166,19 @@ export function PortefeuljeBlad({
           <span aria-hidden className="ml-2 inline-block size-1.5 rounded-full bg-red align-middle" />
         </p>
         <p className="mt-2 text-sm leading-relaxed text-ink/70">
-          Voeg jou aandele by onder MY PORTEFEULJE op die Tuis-oortjie — dan kry jy hier die
-          volle prentjie: waarde oor tyd, toewysing, en alles wat ons oor jou aandele weet.
+          Voeg jou eerste aandeel hieronder by — dan kry jy hier die volle prentjie: waarde
+          oor tyd, toewysing, en alles wat ons oor jou aandele weet.
         </p>
-        <Link href="/markte" className="mt-4 inline-block border-2 border-ink bg-ink px-4 py-2 text-sm font-bold text-offwhite hover:border-red hover:bg-red">
-          Na Tuis →
-        </Link>
+        <div className="mt-4">
+          <VoegBy klaar={() => router.refresh()} />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="grid items-start gap-8 xl:grid-cols-[3fr_2fr]">
+    <div className="min-w-0 space-y-6">
       {/* opsomming-kop */}
       <section className="border-2 border-ink bg-offwhite px-5 py-4">
         <p className="text-xs font-semibold tracking-[0.16em] text-ink/50">TOTALE WAARDE</p>
@@ -318,20 +332,46 @@ export function PortefeuljeBlad({
                         ))}
                       </ul>
                     ) : null}
+                    <button
+                      onClick={() => verwyder(r.id)}
+                      className="mt-2 border border-ink/30 px-2 py-0.5 text-xs font-semibold text-ink/60 hover:border-red hover:text-red"
+                    >
+                      Verwyder uit portefeulje
+                    </button>
                   </div>
                 ) : null}
               </li>
             );
           })}
         </ul>
+        <div className="border-t-2 border-ink px-4 py-3">
+          <VoegBy klaar={() => router.refresh()} />
+        </div>
       </section>
 
-      <Link
-        href="/markte?vra=portefeulje"
-        className="inline-block border-2 border-ink bg-ink px-4 py-2 text-sm font-bold text-offwhite hover:border-red hover:bg-red"
+      <button
+        onClick={() =>
+          setVraag({
+            id: Date.now(),
+            teks: "Hoe lyk my portefeulje vandag — enige groot bewegings of nuus oor my aandele?",
+          })
+        }
+        className="inline-block border-2 border-ink bg-ink px-4 py-2 text-sm font-bold text-offwhite hover:border-red hover:bg-red xl:hidden"
       >
-        Vra Buitelyn oor my portefeulje →
-      </Link>
+        Vra Buitelyn oor my portefeulje ↓
+      </button>
+    </div>
+
+    <MarkteChat
+      portefeulje={houdings.map((h) => ({
+        simbool: h.simbool,
+        naam: h.naam ?? undefined,
+        aantal: h.aantal,
+        koopprys: h.koopprys,
+        geldeenheid: h.geldeenheid,
+      }))}
+      eksterneVraag={vraag}
+    />
     </div>
   );
 }
@@ -374,5 +414,127 @@ function MiniSparkline({ reeks }: { reeks: ReeksPunt[] }) {
         strokeWidth="2"
       />
     </svg>
+  );
+}
+
+/* ---------- voeg 'n aandeel by (skryf direk na die DB, verfris die blad) ---------- */
+
+function VoegBy({ klaar }: { klaar: () => void }) {
+  const [soek, setSoek] = useState("");
+  const [resultate, setResultate] = useState<{ simbool: string; naam: string }[]>([]);
+  const [keuse, setKeuse] = useState<{ simbool: string; naam: string } | null>(null);
+  const [aantal, setAantal] = useState("");
+  const [koopprys, setKoopprys] = useState("");
+  const [geldeenheid, setGeldeenheid] = useState("ZAR");
+  const [besig, setBesig] = useState(false);
+
+  useEffect(() => {
+    const q = soek.trim();
+    if (q.length < 2 || keuse) {
+      setResultate([]);
+      return;
+    }
+    const id = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/markte/soek?q=${encodeURIComponent(q)}`);
+        if (res.ok) setResultate(((await res.json()).resultate as { simbool: string; naam: string }[]).slice(0, 6));
+      } catch {
+        /* stil */
+      }
+    }, 300);
+    return () => clearTimeout(id);
+  }, [soek, keuse]);
+
+  const voegBy = async () => {
+    const sb = supabaseBrowser();
+    if (!sb || !keuse) return;
+    const a = Number(aantal);
+    const p = Number(koopprys);
+    if (!a || !p) return;
+    setBesig(true);
+    try {
+      const { data } = await sb.auth.getUser();
+      if (!data.user) return;
+      await sb.from("portefeuljes").insert({
+        user_id: data.user.id,
+        simbool: keuse.simbool,
+        naam: keuse.naam ?? null,
+        aantal: a,
+        koopprys: p,
+        geldeenheid,
+      });
+      setKeuse(null);
+      setSoek("");
+      setAantal("");
+      setKoopprys("");
+      klaar();
+    } finally {
+      setBesig(false);
+    }
+  };
+
+  return (
+    <div className="relative">
+      <div className="flex flex-wrap gap-2">
+        <input
+          value={keuse ? `${keuse.naam} (${keuse.simbool})` : soek}
+          onChange={(e) => {
+            setKeuse(null);
+            setSoek(e.target.value);
+          }}
+          placeholder="Soek aandeel of tikker…"
+          className="min-w-0 flex-1 basis-full border-2 border-ink bg-paper px-3 py-2 text-sm outline-none focus:border-red sm:basis-auto"
+        />
+        <input
+          value={aantal}
+          onChange={(e) => setAantal(e.target.value.replace(/[^\d.]/g, ""))}
+          placeholder="Aantal"
+          inputMode="decimal"
+          className="w-24 border-2 border-ink bg-paper px-3 py-2 text-sm tabular-nums outline-none focus:border-red"
+        />
+        <select
+          value={geldeenheid}
+          onChange={(e) => setGeldeenheid(e.target.value)}
+          className="border-2 border-ink bg-paper px-2 py-2 text-sm outline-none"
+        >
+          <option value="ZAR">R</option>
+          <option value="USD">$</option>
+          <option value="EUR">€</option>
+          <option value="GBP">£</option>
+        </select>
+        <input
+          value={koopprys}
+          onChange={(e) => setKoopprys(e.target.value.replace(/[^\d.]/g, ""))}
+          placeholder="Koopprys per aandeel"
+          inputMode="decimal"
+          className="w-40 border-2 border-ink bg-paper px-3 py-2 text-sm tabular-nums outline-none focus:border-red"
+        />
+        <button
+          onClick={voegBy}
+          disabled={besig || !keuse || !Number(aantal) || !Number(koopprys)}
+          className="border-2 border-ink bg-ink px-4 py-2 text-sm font-bold text-offwhite hover:border-red hover:bg-red disabled:opacity-50"
+        >
+          + Voeg by
+        </button>
+      </div>
+      {resultate.length ? (
+        <ul className="absolute inset-x-0 top-full z-10 border-2 border-t-0 border-ink bg-offwhite">
+          {resultate.map((r) => (
+            <li key={r.simbool}>
+              <button
+                onClick={() => {
+                  setKeuse(r);
+                  setResultate([]);
+                }}
+                className="flex w-full items-baseline justify-between px-3 py-2 text-left text-sm hover:bg-paper"
+              >
+                <span className="font-semibold">{r.naam}</span>
+                <span className="text-xs text-ink/50">{r.simbool}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
   );
 }

@@ -202,9 +202,10 @@ export default async function MarktePage({
   if (tab === "portefeulje") {
     const { data: h } = await sb
       .from("portefeuljes")
-      .select("simbool, naam, aantal, koopprys, geldeenheid")
+      .select("id, simbool, naam, aantal, koopprys, geldeenheid")
       .eq("user_id", user.id);
     bladHoudings = (h ?? []).map((r) => ({
+      id: r.id,
       simbool: r.simbool,
       naam: r.naam,
       aantal: Number(r.aantal),
