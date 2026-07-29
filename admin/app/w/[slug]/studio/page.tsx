@@ -9,6 +9,11 @@ export const dynamic = "force-dynamic";
    /markte-pyplyn en die show groei — nuwe features kry hier 'n kaart. */
 const GEREEDSKAP = [
   {
+    pad: "oorsig",
+    naam: "Oorsigte",
+    wat: "Die oggend-oorsig volgens AP se resep — JSE-skuiwe met 'n rede, Bitcoin en Ethereum in dollar, groen of rooi in Amerika. Teks én audio.",
+  },
+  {
     pad: "konsep",
     naam: "Nuusbrief-konsep",
     wat: "Gemini skryf 'n Substack-konsep uit die markte-pyplyn — dagoorsig, top-nuus met skakels, live syfers. Redigeer en plak.",

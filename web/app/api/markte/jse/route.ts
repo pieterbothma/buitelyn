@@ -6,7 +6,11 @@ import { JSE_UITGEBREID } from "@/lib/markets/boards";
    gekas (elke Yahoo-haal het sy eie 60s ISR-kas), dus een stel oproepe
    per minuut ongeag hoeveel lesers die popup oopmaak. */
 export async function GET() {
-  const kwotasies = await getQuotes(JSE_UITGEBREID.map((i) => i.simbool));
+  const name = new Map(JSE_UITGEBREID.map((i) => [i.simbool, i.naam]));
+  const kwotasies = (await getQuotes(JSE_UITGEBREID.map((i) => i.simbool))).map((k) => ({
+    ...k,
+    naam: name.get(k.simbool) ?? k.simbool,
+  }));
   return NextResponse.json(
     { kwotasies },
     { headers: { "cache-control": "public, s-maxage=60, stale-while-revalidate=120" } }
