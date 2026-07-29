@@ -225,7 +225,7 @@ export function MarktePromo() {
           <div className="mt-1.5 space-y-1">
             {[
               ["1", "A", "Appel", "#01", "+4,45%", true],
-              ["2", "P", "Piet die Bul", "#02", "+2,10%", true],
+              ["2", "P", "Piet", "#02", "+2,10%", true],
               ["3", "S", "Sanet", "#07", "−0,80%", false],
             ].map(([pos, av, naam, nr, d, op]) => (
               <p key={naam as string} className="flex items-center gap-1.5 text-[10px] tabular-nums">
