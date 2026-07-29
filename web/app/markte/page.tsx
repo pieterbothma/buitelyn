@@ -133,8 +133,8 @@ const TABS = [
   { sleutel: "portefeulje", naam: "Portefeulje" },
   { sleutel: "bewegers", naam: "Bewegers" },
   { sleutel: "liga", naam: "Beursliga" },
-  { sleutel: "sens", naam: "SENS" },
   { sleutel: "sakgeld", naam: "Sakgeld" },
+  { sleutel: "sens", naam: "SENS" },
   { sleutel: "telegram", naam: "Telegram" },
 ] as const;
 type TabSleutel = (typeof TABS)[number]["sleutel"];
