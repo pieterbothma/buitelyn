@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    /* Klient-kas vir dinamiese blaaie: oortjie-spring op /markte hergebruik
+       'n onlangse render (30s) i.p.v. 'n volle bediener-rondrit elke klik. */
+    staleTimes: {
+      dynamic: 30,
+      static: 180,
+    },
+  },
   turbopack: {
     root: __dirname,
   },
