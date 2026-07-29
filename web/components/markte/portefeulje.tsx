@@ -329,7 +329,7 @@ export function Portefeulje({
         <input
           value={aantal}
           onChange={(e) => setAantal(e.target.value)}
-          placeholder="Aantal"
+          placeholder="Aantal aandele"
           className="w-24 border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
         />
         <div className="flex">

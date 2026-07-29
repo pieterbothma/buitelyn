@@ -494,15 +494,15 @@ function VoegBy({ klaar }: { klaar: () => void }) {
             setKeuse(null);
             setSoek(e.target.value);
           }}
-          placeholder="Soek aandeel of tikker…"
+          placeholder="Soek aandeel of tikker (bv. Santam, AAPL)…"
           className="min-w-0 flex-1 basis-full border-2 border-ink bg-paper px-3 py-2 text-sm outline-none focus:border-red sm:basis-auto"
         />
         <input
           value={aantal}
           onChange={(e) => setAantal(e.target.value.replace(/[^\d.]/g, ""))}
-          placeholder="Aantal"
+          placeholder="Aantal aandele"
           inputMode="decimal"
-          className="w-24 border-2 border-ink bg-paper px-3 py-2 text-sm tabular-nums outline-none focus:border-red"
+          className="w-32 border-2 border-ink bg-paper px-3 py-2 text-sm tabular-nums outline-none focus:border-red"
         />
         <select
           value={geldeenheid}
@@ -627,7 +627,7 @@ function HoudingAksies({
           <input
             value={aantal}
             onChange={(e) => setAantal(e.target.value.replace(/[^\d.]/g, ""))}
-            placeholder={modus === "koopby" ? "Hoeveel bykoop?" : "Aantal"}
+            placeholder={modus === "koopby" ? "Hoeveel aandele bykoop?" : "Aantal aandele"}
             inputMode="decimal"
             className="w-32 border-2 border-ink bg-paper px-2 py-1.5 text-sm tabular-nums outline-none focus:border-red"
           />
