@@ -74,6 +74,13 @@ export function PortefeuljeBlad({
     router.refresh();
   };
 
+  const werkBy = async (id: string, aantal: number, koopprys: number) => {
+    const sb = supabaseBrowser();
+    if (!sb) return;
+    await sb.from("portefeuljes").update({ aantal, koopprys }).eq("id", id);
+    router.refresh();
+  };
+
   // waardasie per houding
   const rye = houdings.map((h) => {
     const k = kaart.get(h.simbool);
@@ -332,12 +339,11 @@ export function PortefeuljeBlad({
                         ))}
                       </ul>
                     ) : null}
-                    <button
-                      onClick={() => verwyder(r.id)}
-                      className="mt-2 border border-ink/30 px-2 py-0.5 text-xs font-semibold text-ink/60 hover:border-red hover:text-red"
-                    >
-                      Verwyder uit portefeulje
-                    </button>
+                    <HoudingAksies
+                      houding={r}
+                      opWerkBy={(a, k) => werkBy(r.id, a, k)}
+                      opVerwyder={() => verwyder(r.id)}
+                    />
                   </div>
                 ) : null}
               </li>
@@ -534,6 +540,111 @@ function VoegBy({ klaar }: { klaar: () => void }) {
             </li>
           ))}
         </ul>
+      ) : null}
+    </div>
+  );
+}
+
+/* ---------- koop by / wysig / verwyder in die oop ry ---------- */
+
+function HoudingAksies({
+  houding,
+  opWerkBy,
+  opVerwyder,
+}: {
+  houding: BladHouding;
+  opWerkBy: (aantal: number, koopprys: number) => Promise<void>;
+  opVerwyder: () => void;
+}) {
+  const [modus, setModus] = useState<"" | "koopby" | "wysig">("");
+  const [aantal, setAantal] = useState("");
+  const [prys, setPrys] = useState("");
+  const [besig, setBesig] = useState(false);
+
+  const maakOop = (m: "koopby" | "wysig") => {
+    setModus(m);
+    if (m === "wysig") {
+      setAantal(String(houding.aantal));
+      setPrys(String(houding.koopprys));
+    } else {
+      setAantal("");
+      setPrys("");
+    }
+  };
+
+  const a = Number(aantal) || 0;
+  const p = Number(prys) || 0;
+  // koop by: geweegde gemiddelde koopprys oor die ou én nuwe aandele
+  const nuweAantal = modus === "koopby" ? houding.aantal + a : a;
+  const nuweKoopprys =
+    modus === "koopby" && nuweAantal > 0
+      ? (houding.koopprys * houding.aantal + p * a) / nuweAantal
+      : p;
+
+  const stoor = async () => {
+    if (!a || !p || nuweAantal <= 0) return;
+    setBesig(true);
+    try {
+      await opWerkBy(nuweAantal, nuweKoopprys);
+      setModus("");
+    } finally {
+      setBesig(false);
+    }
+  };
+
+  const geldTeken = houding.geldeenheid === "ZAR" ? "R" : houding.geldeenheid;
+
+  return (
+    <div className="mt-2">
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => maakOop("koopby")}
+          className={`border px-2 py-0.5 text-xs font-semibold ${modus === "koopby" ? "border-ink bg-ink text-offwhite" : "border-ink/30 text-ink/60 hover:border-ink hover:text-ink"}`}
+        >
+          Koop by
+        </button>
+        <button
+          onClick={() => maakOop("wysig")}
+          className={`border px-2 py-0.5 text-xs font-semibold ${modus === "wysig" ? "border-ink bg-ink text-offwhite" : "border-ink/30 text-ink/60 hover:border-ink hover:text-ink"}`}
+        >
+          Wysig
+        </button>
+        <button
+          onClick={opVerwyder}
+          className="border border-ink/30 px-2 py-0.5 text-xs font-semibold text-ink/60 hover:border-red hover:text-red"
+        >
+          Verwyder
+        </button>
+      </div>
+      {modus ? (
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <input
+            value={aantal}
+            onChange={(e) => setAantal(e.target.value.replace(/[^\d.]/g, ""))}
+            placeholder={modus === "koopby" ? "Hoeveel bykoop?" : "Aantal"}
+            inputMode="decimal"
+            className="w-32 border-2 border-ink bg-paper px-2 py-1.5 text-sm tabular-nums outline-none focus:border-red"
+          />
+          <input
+            value={prys}
+            onChange={(e) => setPrys(e.target.value.replace(/[^\d.]/g, ""))}
+            placeholder={modus === "koopby" ? `Prys per aandeel (${geldTeken})` : `Koopprys (${geldTeken})`}
+            inputMode="decimal"
+            className="w-44 border-2 border-ink bg-paper px-2 py-1.5 text-sm tabular-nums outline-none focus:border-red"
+          />
+          <button
+            onClick={stoor}
+            disabled={besig || !a || !p}
+            className="border-2 border-ink bg-ink px-3 py-1.5 text-xs font-bold text-offwhite hover:border-red hover:bg-red disabled:opacity-50"
+          >
+            {besig ? "Stoor…" : "Stoor"}
+          </button>
+          {modus === "koopby" && a > 0 && p > 0 ? (
+            <span className="text-xs tabular-nums text-ink/60">
+              → {nuweAantal} aandele teen gem. {geldTeken} {nuweKoopprys.toFixed(2)}
+            </span>
+          ) : null}
+        </div>
       ) : null}
     </div>
   );
