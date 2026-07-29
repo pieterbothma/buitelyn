@@ -27,9 +27,14 @@ export async function GET(request: NextRequest) {
   });
   const datum = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" }).format(new Date());
 
-  // 1. Skuiwers bo die drempel
+  // 1. Skuiwers bo die drempel — NET kwotasies uit vandag se sessie.
+  //    Net ná opening (±15 min vertraag) wys Yahoo nog gister se sessie;
+  //    daardie bewegings is gister s'n en mag nie as vandag herontdek word nie.
   const kwotasies = await getQuotes(JSE_UITGEBREID.map((i) => i.simbool));
+  const dagFmt = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" });
+  const vandagSast = dagFmt.format(new Date());
   const skuiwers = kwotasies
+    .filter((k) => k.tyd && dagFmt.format(new Date(k.tyd)) === vandagSast)
     .filter((k) => k.deltaPersent != null && Math.abs(k.deltaPersent) >= DREMPEL)
     .sort((a, b) => Math.abs(b.deltaPersent!) - Math.abs(a.deltaPersent!));
   if (!skuiwers.length) return NextResponse.json({ ok: true, notas: 0, rede: "geen skuiwers" });
