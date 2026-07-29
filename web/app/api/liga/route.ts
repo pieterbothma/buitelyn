@@ -124,6 +124,7 @@ export async function POST(request: NextRequest) {
     simbool?: string;
     aandeelNaam?: string;
     aantal?: number;
+    bedrag?: number; // koop in rand — ons reken die aantal uit
   };
 
   if (body.aksie === "sluit_aan") {
@@ -144,12 +145,15 @@ export async function POST(request: NextRequest) {
   }
 
   const simbool = (body.simbool ?? "").toUpperCase();
-  const aantal = Math.floor(Number(body.aantal) || 0);
+  let aantal = Math.floor(Number(body.aantal) || 0);
+  const bedrag = Number(body.bedrag) || 0;
   if (body.aksie === "koop" || body.aksie === "verkoop") {
     if (!simbool.endsWith(".JO") || !isGeldigeSimbool(simbool)) {
       return NextResponse.json({ fout: "net JSE-aandele (.JO) in die Beursliga" }, { status: 400 });
     }
-    if (aantal < 1) return NextResponse.json({ fout: "ongeldige aantal" }, { status: 400 });
+    if (aantal < 1 && !(body.aksie === "koop" && bedrag > 0)) {
+      return NextResponse.json({ fout: "ongeldige aantal" }, { status: 400 });
+    }
     const { data: speler } = await sb.from("liga_spelers").select("kontant").eq("user_id", user.id).maybeSingle();
     if (!speler) return NextResponse.json({ fout: "sluit eers aan" }, { status: 400 });
     const [kwotasie] = await getQuotes([simbool]);
@@ -157,6 +161,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ fout: "geen prys beskikbaar nie — probeer weer" }, { status: 502 });
     }
     const prys = kwotasie.prys;
+    if (body.aksie === "koop" && aantal < 1) {
+      aantal = Math.floor(bedrag / prys);
+      if (aantal < 1) {
+        return NextResponse.json(
+          { fout: `te min vir een aandeel — ${simbool.replace(".JO", "")} kos R ${prys.toFixed(2)}` },
+          { status: 400 }
+        );
+      }
+    }
 
     if (body.aksie === "koop") {
       const koste = prys * aantal;

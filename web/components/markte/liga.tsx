@@ -163,7 +163,29 @@ function Portefeulje({
   const [soek, setSoek] = useState("");
   const [resultate, setResultate] = useState<SoekResultaat[]>([]);
   const [keuse, setKeuse] = useState<SoekResultaat | null>(null);
-  const [aantal, setAantal] = useState("");
+  const [modus, setModus] = useState<"rand" | "aandele">("rand");
+  const [invoer, setInvoer] = useState("");
+  const [keusePrys, setKeusePrys] = useState<number | null>(null);
+
+  // prys vir die voorskou sodra 'n aandeel gekies is
+  useEffect(() => {
+    if (!keuse) {
+      setKeusePrys(null);
+      return;
+    }
+    let aktief = true;
+    fetch(`/api/markte/quotes?ekstra=${encodeURIComponent(keuse.simbool)}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!aktief || !d) return;
+        const k = (d.kwotasies as { simbool: string; prys: number }[]).find((x) => x.simbool === keuse.simbool);
+        setKeusePrys(k?.prys ?? null);
+      })
+      .catch(() => {});
+    return () => {
+      aktief = false;
+    };
+  }, [keuse]);
 
   useEffect(() => {
     const q = soek.trim();
@@ -185,14 +207,19 @@ function Portefeulje({
     return () => clearTimeout(id);
   }, [soek, keuse]);
 
-  const doen = async (aksie: "koop" | "verkoop", simbool: string, naam: string, hoeveel: number) => {
+  const doen = async (
+    aksie: "koop" | "verkoop",
+    simbool: string,
+    naam: string,
+    opsies: { aantal?: number; bedrag?: number }
+  ) => {
     setBesig(true);
     setFout("");
     try {
       const res = await fetch("/api/liga", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ aksie, simbool, aandeelNaam: naam, aantal: hoeveel }),
+        body: JSON.stringify({ aksie, simbool, aandeelNaam: naam, ...opsies }),
       });
       const d = await res.json();
       if (!res.ok) {
@@ -201,12 +228,22 @@ function Portefeulje({
       }
       setKeuse(null);
       setSoek("");
-      setAantal("");
+      setInvoer("");
       herlaai();
     } finally {
       setBesig(false);
     }
   };
+
+  const getal = Number(invoer) || 0;
+  const voorskou =
+    keuse && keusePrys && getal > 0
+      ? modus === "rand"
+        ? `≈ ${Math.floor(getal / keusePrys)} aandele teen R ${keusePrys.toFixed(2)}`
+        : `= R ${fmtR.format(getal * keusePrys)} teen R ${keusePrys.toFixed(2)}`
+      : keuse && keusePrys
+        ? `prys: R ${keusePrys.toFixed(2)}`
+        : null;
 
   const waarde = ek.kontant + ek.houdings.reduce((t, h) => t + (h.prys ?? h.koopprys) * h.aantal, 0);
 
@@ -238,7 +275,7 @@ function Portefeulje({
                   {delta.toFixed(1)}%
                 </span>
                 <button
-                  onClick={() => doen("verkoop", h.simbool, h.naam ?? h.simbool, h.aantal)}
+                  onClick={() => doen("verkoop", h.simbool, h.naam ?? h.simbool, { aantal: h.aantal })}
                   disabled={besig}
                   className="border border-ink/30 px-2 py-0.5 text-xs font-semibold hover:border-red hover:text-red disabled:opacity-50"
                 >
@@ -253,7 +290,7 @@ function Portefeulje({
         </ul>
 
         <div className="relative mt-3">
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <input
               value={keuse ? `${keuse.naam} (${keuse.simbool})` : soek}
               onChange={(e) => {
@@ -261,23 +298,45 @@ function Portefeulje({
                 setSoek(e.target.value);
               }}
               placeholder="Soek 'n JSE-aandeel…"
-              className="min-w-0 flex-1 border-2 border-ink bg-paper px-3 py-2 text-sm outline-none focus:border-red"
+              className="min-w-0 flex-1 basis-full border-2 border-ink bg-paper px-3 py-2 text-sm outline-none focus:border-red sm:basis-auto"
             />
+            <span className="flex border-2 border-ink">
+              {(
+                [
+                  { w: "rand", n: "R" },
+                  { w: "aandele", n: "aandele" },
+                ] as const
+              ).map((o) => (
+                <button
+                  key={o.w}
+                  onClick={() => setModus(o.w)}
+                  className={`px-3 py-2 text-sm font-bold ${
+                    modus === o.w ? "bg-ink text-offwhite" : "bg-paper hover:bg-offwhite"
+                  }`}
+                >
+                  {o.n}
+                </button>
+              ))}
+            </span>
             <input
-              value={aantal}
-              onChange={(e) => setAantal(e.target.value.replace(/\D/g, ""))}
-              placeholder="Aantal"
+              value={invoer}
+              onChange={(e) => setInvoer(e.target.value.replace(/\D/g, ""))}
+              placeholder={modus === "rand" ? "Bedrag in R" : "Aantal aandele"}
               inputMode="numeric"
-              className="w-24 border-2 border-ink bg-paper px-3 py-2 text-sm tabular-nums outline-none focus:border-red"
+              className="w-32 border-2 border-ink bg-paper px-3 py-2 text-sm tabular-nums outline-none focus:border-red"
             />
             <button
-              onClick={() => keuse && doen("koop", keuse.simbool, keuse.naam, Number(aantal))}
-              disabled={besig || !keuse || !Number(aantal)}
+              onClick={() =>
+                keuse &&
+                doen("koop", keuse.simbool, keuse.naam, modus === "rand" ? { bedrag: getal } : { aantal: getal })
+              }
+              disabled={besig || !keuse || !getal}
               className="border-2 border-ink bg-ink px-4 py-2 text-sm font-bold text-offwhite hover:border-red hover:bg-red disabled:opacity-50"
             >
               Koop
             </button>
           </div>
+          {voorskou ? <p className="mt-1.5 text-xs tabular-nums text-ink/60">{voorskou}</p> : null}
           {resultate.length ? (
             <ul className="absolute inset-x-0 top-full z-10 border-2 border-t-0 border-ink bg-offwhite">
               {resultate.map((r) => (
