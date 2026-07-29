@@ -1,18 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
 import { TopBar } from "@/components/top-bar";
 import { Footer } from "@/components/footer";
 import { AandeelGrafiek } from "@/components/aandele/grafiek";
-import { AANDELE, kryAandeel } from "@/lib/aandele";
+import { AANDELE, kryAandeel, tickerAlias } from "@/lib/aandele";
 import { getQuotes, getSeries } from "@/lib/markets/source";
 import { Pyl } from "@/components/markte/format";
 
 /* Publieke SEO-blaaie: vooraf gebou, elke 15 min hergeldig (pas by die
    datavertraging), Google sien 'n volledige bediener-gerenderde blad. */
 export const revalidate = 900;
-export const dynamicParams = false;
+/* dynamicParams bly aan sodat ou ticker-slugs (bv. /aandele/sol) permanent
+   na die naam-slug kan herlei in plaas van 404. */
+export const dynamicParams = true;
 
 export function generateStaticParams() {
   return AANDELE.map((a) => ({ kode: a.slug }));
@@ -48,8 +50,13 @@ const fmtDatum = new Intl.DateTimeFormat("af-ZA", { timeZone: "Africa/Johannesbu
 
 export default async function AandeelBlad({ params }: { params: Promise<{ kode: string }> }) {
   const { kode } = await params;
-  const a = kryAandeel(kode);
-  if (!a) notFound();
+  let a = kryAandeel(kode);
+  if (!a) {
+    const alias = tickerAlias(kode);
+    if (alias) permanentRedirect(`/aandele/${alias.slug}`);
+    notFound();
+  }
+  a = a!;
   const kort = a.simbool.replace(".JO", "");
   const sb = service();
 
