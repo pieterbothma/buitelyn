@@ -25,6 +25,7 @@ const WYS_OUDIO = true;
 export const metadata: Metadata = {
   title: "Markte — Buitelyn",
   description: "JSE, rand, kommoditeite en kripto — live, met Buitelyn se KI-markassistent.",
+  robots: { index: false }, // gegateer — die publieke /aandele-blaaie dra die SEO
 };
 
 async function kryNotas(): Promise<Record<string, string>> {

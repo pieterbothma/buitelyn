@@ -43,6 +43,10 @@
     {
       "path": "/api/cron/sakgeld",
       "schedule": "30 4 * * *"
+    },
+    {
+      "path": "/api/cron/aandele-profiele",
+      "schedule": "5 * * * *"
     }
   ],
   "regions": [

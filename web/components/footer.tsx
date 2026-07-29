@@ -6,6 +6,9 @@ export function Footer() {
           © Buitelyn {new Date().getFullYear()}
           <span aria-hidden className="size-1.5 rounded-full bg-red" />
         </p>
+        <a href="/aandele" className="text-sm font-semibold underline-offset-4 hover:underline">
+          Aandeelpryse
+        </a>
         <a
           href="https://buitelyn.substack.com"
           target="_blank"
