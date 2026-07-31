@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import { TopBar } from "@/components/top-bar";
 import { Footer } from "@/components/footer";
@@ -17,7 +18,10 @@ import { kryNuus } from "@/lib/markets/nuus";
 import { ALLE_SIMBOLE, BEWEGERS_SIMBOLE, jseIsOop } from "@/lib/markets/boards";
 
 /* Gegateer: die hek lees die sessie-koekie, dus moet die blad dinamies
-   render — die data-fetches onder het steeds hul eie fetch-cache. */
+   render. Die fetch-kas werk wel hier (gemeet op 16.2), maar dit help net
+   die HTTP-oproepe — die Supabase-navrae onder was per-versoek, en op 'n
+   koue venster het die render tot 2,5s se netwerk in serie betaal voordat
+   een greep HTML gestroom het. */
 export const dynamic = "force-dynamic";
 
 const WYS_OUDIO = true;
@@ -129,6 +133,28 @@ async function kryOorsig(): Promise<{
   }
 }
 
+/* Alles hieronder is IDENTIES vir elke gebruiker, so dit hoort nie op 'n
+   per-versoek pad nie. Een besoeker per venster betaal die netwerkkoste;
+   die res kry 'n enkele kas-opsoek. Persoonlike data (portefeulje, dophou,
+   waarskuwings, profiel) bly doelbewus ongekas en live.
+   Vensters volg elke bron se cron: oorsig loop uurliks, SENS elke 30 min,
+   nuus elke 15 min, sakgeld daagliks. */
+const gekasdeOorsig = unstable_cache(kryOorsig, ["markte-oorsig"], { revalidate: 300 });
+const gekasdeSens = unstable_cache(krySens, ["markte-sens"], { revalidate: 300 });
+const gekasdeSakgeld = unstable_cache(krySakgeld, ["markte-sakgeld"], { revalidate: 1800 });
+const gekasdeNotas = unstable_cache(kryNotas, ["markte-skuiwer-notas"], { revalidate: 300 });
+const gekasdeNuus = unstable_cache(kryNuus, ["markte-nuus"], { revalidate: 300 });
+
+/* Kwotasies is reeds fetch-gekas, maar dis 23 (Tuis) tot 107 (Bewegers)
+   aparte kas-opsoeke per render — op Vercel is elkeen 'n netwerkrondte.
+   Dié wrapper maak dit een. Net vir die vaste borde: die portefeulje se
+   simbole is per gebruiker en sou die kas-sleutels onbegrens laat groei. */
+const gekasdeBordKwotasies = unstable_cache(
+  (simbole: string[]) => getQuotes(simbole),
+  ["markte-bord-kwotasies"],
+  { revalidate: 60 }
+);
+
 const TABS = [
   { sleutel: "tuis", naam: "Tuis" },
   { sleutel: "portefeulje", naam: "Portefeulje" },
@@ -198,15 +224,15 @@ export default async function MarktePage({
 
   // Haal net wat die aktiewe oortjie nodig het
   const [kwotasies, oorsig, nuus, bewegers, notas, sensItems, sakgeld] = await Promise.all([
-    tab === "tuis" ? getQuotes(ALLE_SIMBOLE) : Promise.resolve([]),
-    tab === "tuis" ? kryOorsig() : Promise.resolve(null),
-    tab === "tuis" ? kryNuus() : Promise.resolve([]),
+    tab === "tuis" ? gekasdeBordKwotasies(ALLE_SIMBOLE) : Promise.resolve([]),
+    tab === "tuis" ? gekasdeOorsig() : Promise.resolve(null),
+    tab === "tuis" ? gekasdeNuus() : Promise.resolve([]),
     tab === "bewegers"
-      ? getQuotes(BEWEGERS_SIMBOLE.map((i) => i.simbool))
+      ? gekasdeBordKwotasies(BEWEGERS_SIMBOLE.map((i) => i.simbool))
       : Promise.resolve([]),
-    tab === "bewegers" ? kryNotas() : Promise.resolve({}),
-    tab === "sens" || tab === "portefeulje" ? krySens() : Promise.resolve([] as SensItem[]),
-    tab === "tuis" || tab === "sakgeld" ? krySakgeld() : Promise.resolve([] as SakgeldSyfer[]),
+    tab === "bewegers" ? gekasdeNotas() : Promise.resolve({}),
+    tab === "sens" || tab === "portefeulje" ? gekasdeSens() : Promise.resolve([] as SensItem[]),
+    tab === "tuis" || tab === "sakgeld" ? gekasdeSakgeld() : Promise.resolve([] as SakgeldSyfer[]),
   ]);
   let eieSimbole: string[] = [];
   if (tab === "sens") {
@@ -242,7 +268,7 @@ export default async function MarktePage({
         getQuotes([
           ...new Set([...bladHoudings.map((x) => x.simbool), "STX40.JO", "ZAR=X", "EURZAR=X", "GBPZAR=X"]),
         ]),
-        kryNotas(),
+        gekasdeNotas(),
       ]);
     }
     const [{ data: w }, { data: tg }] = await Promise.all([

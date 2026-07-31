@@ -1,5 +1,25 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { parseNuusFeed, voegSaam, type RouItem } from "./nuus";
+
+/* Vals Supabase: net genoeg ketting vir kryNuus se twee leesnavrae. */
+const supabaseAntwoorde = { rou: [] as unknown[], vertaal: [] as unknown[] };
+const upsertSpioen = vi.fn();
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: () => ({
+    from: (tabel: string) => {
+      const leeg = tabel === "markte_nuus_rou" ? supabaseAntwoorde.rou : supabaseAntwoorde.vertaal;
+      const ketting = {
+        select: () => ketting,
+        gte: () => ketting,
+        order: () => ketting,
+        limit: () => Promise.resolve({ data: leeg }),
+        in: () => Promise.resolve({ data: leeg }),
+        upsert: (rye: unknown) => (upsertSpioen(rye), Promise.resolve({ error: null })),
+      };
+      return ketting;
+    },
+  }),
+}));
 
 function rss(items: string): string {
   return `<?xml version="1.0"?><rss version="2.0"><channel><title>Toets</title>${items}</channel></rss>`;
@@ -30,6 +50,51 @@ describe("parseNuusFeed", () => {
 
   it("returns [] for non-RSS input", () => {
     expect(parseNuusFeed("<html>sad panda</html>", "Yahoo")).toEqual([]);
+  });
+});
+
+/* Die render-pad mag NOOIT op 'n LLM wag nie: skryfVertalings het vroeër
+   binne kryNuus geloop, met 'n 30s-timeout op /markte se kritieke pad. */
+describe("kryNuus se render-pad", () => {
+  let fetchSpioen: ReturnType<typeof vi.fn>;
+
+  beforeEach(() => {
+    supabaseAntwoorde.rou = [];
+    supabaseAntwoorde.vertaal = []; // niks vooraf vertaal nie — die ergste geval
+    upsertSpioen.mockClear();
+    process.env.APHQ_SUPABASE_URL = "https://toets.supabase.co";
+    process.env.APHQ_SUPABASE_SERVICE_KEY = "toets-sleutel";
+    process.env.GEMINI_API_KEY = "toets-gemini";
+    fetchSpioen = vi.fn(async () =>
+      new Response(
+        rss(item("Rand firms against dollar", "https://bd.co/1", "Fri, 31 Jul 2026 06:00:00 +0000", "The rand gained.")),
+        { status: 200, headers: { "content-type": "application/xml" } }
+      )
+    );
+    vi.stubGlobal("fetch", fetchSpioen);
+  });
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("roep nooit Gemini aan nie, selfs wanneer elke item onvertaal is", async () => {
+    const { kryNuus } = await import("./nuus");
+    await kryNuus();
+    const geroep = fetchSpioen.mock.calls.map((c) => String(c[0]));
+    expect(geroep.filter((u) => u.includes("generativelanguage.googleapis.com"))).toEqual([]);
+  });
+
+  it("wys die oorspronklike opskrif wanneer 'n vertaling nog nie bestaan nie", async () => {
+    const { kryNuus } = await import("./nuus");
+    const items = await kryNuus();
+    expect(items).toHaveLength(1);
+    expect(items[0].titel).toBe("Rand firms against dollar");
+    expect(items[0].opsomming).toBe("");
+  });
+
+  it("skryf niks — genereer en stoor is die cron se werk", async () => {
+    const { kryNuus } = await import("./nuus");
+    await kryNuus();
+    expect(upsertSpioen).not.toHaveBeenCalled();
   });
 });
 

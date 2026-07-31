@@ -192,52 +192,54 @@ async function skryfVertalings(items: RouItem[]): Promise<Vertaling[]> {
   }));
 }
 
-/* Summaries are cached by article URL in the ap-hq Supabase, so Gemini only
-   ever writes each article once no matter how often the page revalidates. */
+function diens() {
+  return createClient(process.env.APHQ_SUPABASE_URL!, process.env.APHQ_SUPABASE_SERVICE_KEY!, {
+    auth: { persistSession: false },
+  });
+}
+
+/* Die bord se keuse van 10 items — live RSS plus die daemon se geskraapte
+   rye. Gedeel deur die render (lees) en die cron (skryf) sodat albei oor
+   presies dieselfde stel items praat. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function versamelItems(sb: any): Promise<RouItem[]> {
+  const bronLyste = await haalBronne();
+  const geskraap = await haalGeskraap(sb).catch(() => [] as RouItem[]);
+  return voegSaam([...bronLyste, geskraap]);
+}
+
+type Vertaalry = { opskrif: string; opsomming: string; vrae: string[] };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function leesVertalings(sb: any, skakels: string[]): Promise<Map<string, Vertaalry>> {
+  const { data } = await sb
+    .from("markte_nuus")
+    .select("skakel, opsomming, titel_af, vrae")
+    .in("skakel", skakels);
+  return new Map(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ((data ?? []) as any[])
+      .filter((r) => r.titel_af && r.vrae) // rye sonder vrae regenereer lui
+      .map((r) => [
+        r.skakel as string,
+        { opskrif: r.titel_af as string, opsomming: r.opsomming as string, vrae: (r.vrae as string[]) ?? [] },
+      ])
+  );
+}
+
+/* LEES-ALLEEN — hierdie loop op /markte se kritieke pad. Dit haal nooit 'n
+   LLM aan nie en skryf nooit: 'n onvertaalde item wys sy oorspronklike
+   opskrif tot /api/cron/nuus hom opvang. Die Gemini-oproep het vroeër hier
+   binne gesit met 'n 30s-timeout — dit was die blad se stadigste laaie. */
 export async function kryNuus(): Promise<NuusItem[]> {
   try {
-    const bronLyste = await haalBronne();
     if (!process.env.APHQ_SUPABASE_URL || !process.env.APHQ_SUPABASE_SERVICE_KEY) {
-      return voegSaam(bronLyste).map(({ beskrywing: _b, ...i }) => ({ ...i, opsomming: "" }));
+      return voegSaam(await haalBronne()).map(({ beskrywing: _b, ...i }) => ({ ...i, opsomming: "" }));
     }
-    const sb = createClient(process.env.APHQ_SUPABASE_URL, process.env.APHQ_SUPABASE_SERVICE_KEY, {
-      auth: { persistSession: false },
-    });
-    const geskraap = await haalGeskraap(sb).catch(() => [] as RouItem[]);
-    const items = voegSaam([...bronLyste, geskraap]);
+    const sb = diens();
+    const items = await versamelItems(sb);
     if (!items.length) return [];
-    const { data: bestaande } = await sb
-      .from("markte_nuus")
-      .select("skakel, opsomming, titel_af, vrae")
-      .in("skakel", items.map((i) => i.skakel));
-    const kaart = new Map(
-      (bestaande ?? [])
-        .filter((r) => r.titel_af && r.vrae) // rye sonder vrae regenereer lui
-        .map((r) => [
-          r.skakel as string,
-          { opskrif: r.titel_af as string, opsomming: r.opsomming as string, vrae: (r.vrae as string[]) ?? [] },
-        ])
-    );
-
-    const nuwes = items.filter((i) => !kaart.has(i.skakel));
-    if (nuwes.length) {
-      try {
-        const vertalings = await skryfVertalings(nuwes);
-        const rye = nuwes.map((i, n) => ({
-          skakel: i.skakel,
-          titel: i.titel,
-          titel_af: vertalings[n].opskrif,
-          bron: i.bron,
-          opsomming: vertalings[n].opsomming,
-          vrae: vertalings[n].vrae,
-          gepubliseer: i.gepubliseer,
-        }));
-        await sb.from("markte_nuus").upsert(rye, { onConflict: "skakel" });
-        rye.forEach((r) => kaart.set(r.skakel, { opskrif: r.titel_af, opsomming: r.opsomming, vrae: r.vrae }));
-      } catch {
-        /* wys sonder vertaling; volgende render probeer weer */
-      }
-    }
+    const kaart = await leesVertalings(sb, items.map((i) => i.skakel));
     return items.map(({ beskrywing: _b, ...i }) => {
       const v = kaart.get(i.skakel);
       return { ...i, titel: v?.opskrif || i.titel, opsomming: v?.opsomming ?? "", vrae: v?.vrae ?? [] };
@@ -245,4 +247,33 @@ export async function kryNuus(): Promise<NuusItem[]> {
   } catch {
     return [];
   }
+}
+
+/* SKRYF — net vir /api/cron/nuus. Vertaal wat nog nie in markte_nuus is
+   nie; opsommings bly vir altyd per URL gekas, so elke artikel kos Gemini
+   presies een keer. */
+export async function vertaalNuweNuus(): Promise<{ gevind: number; vertaal: number }> {
+  if (!process.env.APHQ_SUPABASE_URL || !process.env.APHQ_SUPABASE_SERVICE_KEY) {
+    return { gevind: 0, vertaal: 0 };
+  }
+  const sb = diens();
+  const items = await versamelItems(sb);
+  if (!items.length) return { gevind: 0, vertaal: 0 };
+  const kaart = await leesVertalings(sb, items.map((i) => i.skakel));
+  const nuwes = items.filter((i) => !kaart.has(i.skakel));
+  if (!nuwes.length) return { gevind: items.length, vertaal: 0 };
+
+  const vertalings = await skryfVertalings(nuwes);
+  const rye = nuwes.map((i, n) => ({
+    skakel: i.skakel,
+    titel: i.titel,
+    titel_af: vertalings[n].opskrif,
+    bron: i.bron,
+    opsomming: vertalings[n].opsomming,
+    vrae: vertalings[n].vrae,
+    gepubliseer: i.gepubliseer,
+  }));
+  const { error } = await sb.from("markte_nuus").upsert(rye, { onConflict: "skakel" });
+  if (error) throw new Error(error.message);
+  return { gevind: items.length, vertaal: rye.length };
 }

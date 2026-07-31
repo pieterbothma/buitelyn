@@ -25,6 +25,10 @@
       "schedule": "*/30 4-16 * * 1-5"
     },
     {
+      "path": "/api/cron/nuus",
+      "schedule": "*/15 4-19 * * *"
+    },
+    {
       "path": "/api/cron/liga-maand",
       "schedule": "0 3 1 * *"
     },
