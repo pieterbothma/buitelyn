@@ -1,8 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { isKruiper, besoekerHash, dagSleutelVan } from "./sponsor-klik";
 
 const CHROME = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36";
 const IPHONE = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1";
+
+// Vaste toets-sout — lank genoeg om die MIN_SOUT_LENGTE-vereiste te bevredig,
+// sodat die bestaande stabiliteit-/rotasie-toetse steeds deterministies bly.
+const TOETS_SOUT = "toets-sout-vir-eenheidstoetse-nie-vir-produksie";
 
 describe("isKruiper", () => {
   it("verwerp bekende kruipers — 'n syfer met Googlebot in is waardeloos", () => {
@@ -33,6 +37,20 @@ describe("isKruiper", () => {
 });
 
 describe("besoekerHash", () => {
+  const OORSPRONKLIKE_SOUT = process.env.KLIK_SOUT;
+
+  beforeEach(() => {
+    process.env.KLIK_SOUT = TOETS_SOUT;
+  });
+
+  afterEach(() => {
+    if (OORSPRONKLIKE_SOUT === undefined) {
+      delete process.env.KLIK_SOUT;
+    } else {
+      process.env.KLIK_SOUT = OORSPRONKLIKE_SOUT;
+    }
+  });
+
   it("is stabiel vir dieselfde besoeker op dieselfde dag", async () => {
     const a = await besoekerHash("41.13.9.2", CHROME, "2026-07-31");
     const b = await besoekerHash("41.13.9.2", CHROME, "2026-07-31");
@@ -55,6 +73,16 @@ describe("besoekerHash", () => {
     const h = await besoekerHash("41.13.9.2", CHROME, "2026-07-31");
     expect(h).not.toContain("41.13.9.2");
     expect(h).toMatch(/^[a-f0-9]{32}$/);
+  });
+
+  it("gooi 'n fout as KLIK_SOUT nie gestel is nie — stille terugval sou die hash omkeerbaar maak", async () => {
+    delete process.env.KLIK_SOUT;
+    await expect(besoekerHash("41.13.9.2", CHROME, "2026-07-31")).rejects.toThrow();
+  });
+
+  it("gooi 'n fout as KLIK_SOUT te kort is om 'n geheim te wees", async () => {
+    process.env.KLIK_SOUT = "kort";
+    await expect(besoekerHash("41.13.9.2", CHROME, "2026-07-31")).rejects.toThrow();
   });
 });
 
