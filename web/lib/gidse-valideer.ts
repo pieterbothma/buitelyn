@@ -1,5 +1,5 @@
-import { AANDELE } from "./aandele";
-import type { Gids } from "./gidse";
+import { AANDELE } from "./aandele.ts";
+import type { Gids } from "./gidse.ts";
 
 export type GidsInhoud = {
   titel: string;
