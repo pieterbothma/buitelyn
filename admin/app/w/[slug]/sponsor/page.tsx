@@ -26,6 +26,12 @@ export default async function SponsorKlikke({ params }: { params: Promise<{ slug
   // (of die tabel nog leeg/nie-bestaande is), is 'n persentasie-verandering
   // sinneloos — wys dan liewer niks as 'n misleidende syfer.
   const verskil = v.vorigeTotaal ? Math.round(((v.totaal - v.vorigeTotaal) / v.vorigeTotaal) * 100) : null;
+  // "Nog geen klikke dié maand nie" is dubbelsinnig: dit kan 'n stil maand
+  // wees, óf dit kan beteken dat NIKS OOIT gelog is nie (bv. KLIK_SOUT
+  // ontbreek in produksie, of die migrasie is nie toegepas nie) — die presiese
+  // stilte wat die syfer vir EasyEquities ondermyn. Die alle-tyd-telling
+  // onderskei die twee gevalle eerlik.
+  const nogNooitGelog = v.alleTydTotaal === 0;
   const csv = [
     "gids,plek,tydstempel",
     ...v.rou.map((r) => [r.gids, r.plek, r.geskep_at].map(csvVeld).join(",")),
@@ -40,18 +46,31 @@ export default async function SponsorKlikke({ params }: { params: Promise<{ slug
         is opsetlik konserwatief sodat dit in &apos;n gesprek staan.
       </p>
 
+      {v.fout && (
+        <div className="mt-6 max-w-xl border-2 border-red bg-red/5 p-4 text-sm text-red">
+          Kon nie die sponsor-klikke betroubaar laai nie — 'n databasis-navraag het
+          gefaal. Die syfers hieronder mag onvolledig wees; moenie dit met EasyEquities
+          deel voordat dit reggestel is nie.
+        </div>
+      )}
+
       <div className="mt-6 max-w-md border-2 border-ink bg-offwhite p-5">
         <p className="text-xs font-semibold tracking-[0.16em] text-ink/50">{v.maand.toUpperCase()}</p>
         <p className="mt-1 text-4xl font-extrabold tabular-nums">{v.totaal.toLocaleString("af-ZA")}</p>
-        {verskil !== null ? (
+        {nogNooitGelog ? (
+          <p className="mt-1 text-sm font-semibold text-red">
+            Nog geen klik is nog OOIT gelog nie. Dit is nie noodwendig 'n stil maand nie —
+            dit kan beteken die sponsor_klikke-tabel se migrasie is nie toegepas nie, of
+            KLIK_SOUT is nie in hierdie omgewing gestel nie. Gaan dit na voordat hierdie
+            syfer met EasyEquities gedeel word.
+          </p>
+        ) : verskil !== null ? (
           <p className={`mt-1 text-sm font-semibold ${verskil >= 0 ? "text-green" : "text-red"}`}>
             {verskil >= 0 ? "▲" : "▼"} {Math.abs(verskil)}% teenoor verlede maand ({v.vorigeTotaal})
           </p>
         ) : (
           <p className="mt-1 text-sm text-ink/50">
-            {v.totaal === 0
-              ? "Nog geen klikke ontvang nie — dalk is die tabel nog nie aktief nie, of die maand het pas begin."
-              : "Nog geen data vir verlede maand om mee te vergelyk nie."}
+            Nog geen data vir verlede maand om mee te vergelyk nie.
           </p>
         )}
       </div>

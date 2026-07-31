@@ -100,6 +100,14 @@ describe("/uit/[sponsor]", () => {
     expect(ingevoeg).toHaveLength(0);
   });
 
+  it("herlei nog steeds vir 'n onbekende gids-slug, maar log dit NIE — dit sou die (besoeker_hash, gids)-ontdubbeling omseil", async () => {
+    const { GET } = await import("./[sponsor]/route");
+    const res = await GET(versoek("https://www.buitelyn.com/uit/easyequities?g=stuur-my-vullis-in-die-csv&p=inlyn", CHROME), ctx("easyequities"));
+    expect(res.status).toBe(307);
+    await naWerk;
+    expect(ingevoeg).toHaveLength(0);
+  });
+
   it("herlei steeds na die borg al gooi besoekerHash 'n fout, en rapporteer die fout eerder as om dit te sluk", async () => {
     // Simuleer die presiese produksie-gevaar: KLIK_SOUT ontbreek, so
     // besoekerHash() gooi 'n fout. Die besoeker mag dit nooit voel nie —

@@ -25,7 +25,7 @@ export function SponsorVermelding({
         <a
           href={klikUrl("easyequities", gids.slug, plek)}
           target="_blank"
-          rel="sponsored noopener noreferrer"
+          rel="sponsored noopener"
           className="font-semibold underline underline-offset-4 hover:text-red"
         >
           {s.naam} besoek &rarr;

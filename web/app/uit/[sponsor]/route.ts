@@ -2,6 +2,7 @@ import { NextResponse, after, type NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { SPONSORS, bestemmingMetUtm, type Plek, type SponsorSleutel } from "@/lib/sponsor";
 import { besoekerHash, dagSleutelVan, isKruiper } from "@/lib/sponsor-klik";
+import { GIDSE } from "@/lib/gidse";
 
 /* Elke borg-klik loop hierdeur sodat Buitelyn sy eie, verdedigbare telling het.
    Die besoeker word ONMIDDELLIK herlei; die log gebeur ná die antwoord met
@@ -22,8 +23,13 @@ export async function GET(request: NextRequest, ctx: { params: Promise<{ sponsor
 
   const antwoord = NextResponse.redirect(bestemmingMetUtm(sleutel, gids), 307);
 
+  // `g` is attacker-gekose vry teks in die versoek-URL. Sonder hierdie toets
+  // omseil enige onbekende gids-slug die (besoeker_hash, gids)-ontdubbeling
+  // heeltemal — elke unieke `g`-waarde is 'n nuwe ry — en beland vullis-teks
+  // regstreeks in die CSV wat vir EasyEquities uitgevoer word.
+  const gidsBestaan = GIDSE.some((g) => g.slug === gids);
   const logbaar =
-    Boolean(gids) && Boolean(plek) && !isKruiper(ua) &&
+    gidsBestaan && Boolean(plek) && !isKruiper(ua) &&
     Boolean(process.env.APHQ_SUPABASE_URL) && Boolean(process.env.APHQ_SUPABASE_SERVICE_KEY);
   if (!logbaar) return antwoord;
 
