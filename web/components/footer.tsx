@@ -9,6 +9,9 @@ export function Footer() {
         <a href="/aandele" className="text-sm font-semibold underline-offset-4 hover:underline">
           Aandeelpryse
         </a>
+        <a href="/gidse" className="text-sm font-semibold underline-offset-4 hover:underline">
+          Gidse
+        </a>
         <a
           href="https://buitelyn.substack.com"
           target="_blank"

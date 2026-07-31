@@ -254,6 +254,20 @@ export default async function AandeelBlad({ params }: { params: Promise<{ kode: 
             </p>
           </section>
 
+          {/* Twee-rigting skakels: die gidse maak van 52 los prysblaaie een
+              onderwerp-groep, wat Google as gesag oor die onderwerp lees. */}
+          <section className="mt-8 border-t-2 border-ink pt-5">
+            <h2 className="text-xs font-semibold tracking-[0.16em] text-ink/50">NUUT HIER?</h2>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link href="/gidse/hoe-om-aandele-te-koop" className="border-2 border-ink px-3 py-1.5 text-sm font-semibold hover:bg-paper">
+                Hoe om aandele te koop &rarr;
+              </Link>
+              <Link href="/gidse/wat-is-n-dividend" className="border-2 border-ink px-3 py-1.5 text-sm font-semibold hover:bg-paper">
+                Wat is &apos;n dividend? &rarr;
+              </Link>
+            </div>
+          </section>
+
           <MarktePromo />
 
           <p className="mt-6 text-xs leading-relaxed text-ink/50">
