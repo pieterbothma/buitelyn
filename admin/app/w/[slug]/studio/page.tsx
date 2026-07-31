@@ -33,6 +33,11 @@ const GEREEDSKAP = [
     naam: "Grafiek-bouer",
     wat: "Publikasie-gereed grafieke: vergelyk aandele (%), prys oor tyd, of staaf 'n periode se wenners — in Buitelyn se raam.",
   },
+  {
+    pad: "sponsor",
+    naam: "Sponsor-klikke",
+    wat: "Hoeveel lesers die gidse na EasyEquities stuur — bediener-kant getel, bots uitgesluit, met 'n CSV vir die borgskap-gesprek.",
+  },
 ];
 
 export default async function Studio({ params }: { params: Promise<{ slug: string }> }) {
