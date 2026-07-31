@@ -60,4 +60,21 @@ describe("valideerGids", () => {
     expect(valideerGids(null, beginner).length).toBeGreaterThan(0);
     expect(valideerGids("nee", beginner).length).toBeGreaterThan(0);
   });
+
+  it("verwerp 'n gegenereerde titel wat self imperatief is", () => {
+    const stout = geldig({ titel: "Koop nou jou eerste aandeel" });
+    expect(valideerGids(stout, beginner).join(" ")).toMatch(/imperatief|koop/i);
+  });
+
+  it("aanvaar die wettige infinitiefkonstruksie in 'n titel", () => {
+    const goed = geldig({ titel: "Hoe om aandele te koop" });
+    expect(valideerGids(goed, beginner)).toEqual([]);
+  });
+
+  it("verwerp velde met die verkeerde tipe sonder om te ontplof", () => {
+    const stout = geldig({ titel: 5 as unknown as string, intro: {} as unknown as string });
+    const foute = valideerGids(stout, beginner);
+    expect(foute.length).toBeGreaterThan(0);
+    expect(foute.join(" ")).toMatch(/titel|intro/i);
+  });
 });
