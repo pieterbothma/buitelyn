@@ -12,18 +12,18 @@
       ]
     },
     {
-      "kop": "Strategoffies (STRATE Levy)",
+      "kop": "STRATE-heffing",
       "paragrawe": [
         "Die JSE gebruik 'n elektroniese stelsel vir die vereffening en bewaring van aandele, bekend as STRATE. STRATE is die sentrale sekuriteitebewaarder vir die Suid-Afrikaanse finansiële markte. Vir die dienste wat STRATE lewer, word 'n klein heffing gehef op elke aandeletransaksie. Hierdie heffing dra by tot die koste van die instandhouding van die elektroniese register van aandeelhoudings.",
-        "Die Strategoffie is gewoonlik 'n baie klein persentasie van die transaksiewaarde, dikwels in die orde van 0.002% of soortgelyk. Soos met makelaarsfooie, is daar dikwels 'n minimum en 'n maksimum bedrag vir die Strategoffie. Dit verseker dat selfs vir baie groot transaksies, die heffing 'n boonste perk het, terwyl klein transaksies steeds 'n nominale bydrae lewer.",
+        "Die STRATE-heffing is gewoonlik 'n baie klein persentasie van die transaksiewaarde, dikwels in die orde van 0.002% of soortgelyk. Soos met makelaarsfooie, is daar dikwels 'n minimum en 'n maksimum bedrag vir die STRATE-heffing. Dit verseker dat selfs vir baie groot transaksies, die heffing 'n boonste perk het, terwyl klein transaksies steeds 'n nominale bydrae lewer.",
         "Hierdie heffing is 'n verpligte deel van die transaksiekoste en word outomaties by die totale bedrag gevoeg wanneer aandele op die JSE gekoop of verkoop word. Dit is 'n gestandaardiseerde koste wat oor alle makelaars en platforms van toepassing is vir JSE-genoteerde sekuriteite."
       ]
     },
     {
       "kop": "Belasting op Toegevoegde Waarde (BTW)",
       "paragrawe": [
-        "In Suid-Afrika is Belasting op Toegevoegde Waarde, of BTW, van toepassing op sekere dienste. Wanneer dit kom by die koop van aandele, word BTW gehef op die makelaarsfooi en die Strategoffie. Die huidige BTW-koers in Suid-Afrika is 15%. Dit beteken dat bo en behalwe die makelaarsfooi en die Strategoffie, 'n addisionele 15% van daardie bedrae as BTW bygevoeg word.",
-        "Byvoorbeeld, as die makelaarsfooi R100 is en die Strategoffie R5 is, sal die BTW R15.75 wees (15% van R105). Hierdie BTW-komponent verhoog die totale transaksiekoste verder. Dit is belangrik om te onthou dat BTW nie op die waarde van die aandele self gehef word nie, maar slegs op die dienste wat gelewer word om die transaksie uit te voer.",
+        "In Suid-Afrika is Belasting op Toegevoegde Waarde, of BTW, van toepassing op sekere dienste. Wanneer dit kom by die koop van aandele, word BTW gehef op die makelaarsfooi en die STRATE-heffing. Die huidige BTW-koers in Suid-Afrika is 15%. Dit beteken dat bo en behalwe die makelaarsfooi en die STRATE-heffing, 'n addisionele 15% van daardie bedrae as BTW bygevoeg word.",
+        "Byvoorbeeld, as die makelaarsfooi R100 is en die STRATE-heffing R5 is, sal die BTW R15.75 wees (15% van R105). Hierdie BTW-komponent verhoog die totale transaksiekoste verder. Dit is belangrik om te onthou dat BTW nie op die waarde van die aandele self gehef word nie, maar slegs op die dienste wat gelewer word om die transaksie uit te voer.",
         "Die insluiting van BTW in die berekening van transaksiekoste is 'n standaard praktyk en moet in ag geneem word wanneer die totale uitgawe van 'n aandeletransaksie bepaal word. Dit is 'n indirekte belasting wat 'n klein, maar merkbare, impak op die finale koste kan hê."
       ]
     },
