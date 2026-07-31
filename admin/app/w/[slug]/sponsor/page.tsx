@@ -48,7 +48,7 @@ export default async function SponsorKlikke({ params }: { params: Promise<{ slug
 
       {v.fout && (
         <div className="mt-6 max-w-xl border-2 border-red bg-red/5 p-4 text-sm text-red">
-          Kon nie die sponsor-klikke betroubaar laai nie — 'n databasis-navraag het
+          Kon nie die sponsor-klikke betroubaar laai nie — &apos;n databasis-navraag het
           gefaal. Die syfers hieronder mag onvolledig wees; moenie dit met EasyEquities
           deel voordat dit reggestel is nie.
         </div>
@@ -59,7 +59,7 @@ export default async function SponsorKlikke({ params }: { params: Promise<{ slug
         <p className="mt-1 text-4xl font-extrabold tabular-nums">{v.totaal.toLocaleString("af-ZA")}</p>
         {nogNooitGelog ? (
           <p className="mt-1 text-sm font-semibold text-red">
-            Nog geen klik is nog OOIT gelog nie. Dit is nie noodwendig 'n stil maand nie —
+            Nog geen klik is nog OOIT gelog nie. Dit is nie noodwendig &apos;n stil maand nie —
             dit kan beteken die sponsor_klikke-tabel se migrasie is nie toegepas nie, of
             KLIK_SOUT is nie in hierdie omgewing gestel nie. Gaan dit na voordat hierdie
             syfer met EasyEquities gedeel word.
