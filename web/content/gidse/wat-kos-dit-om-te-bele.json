@@ -1,0 +1,52 @@
+{
+  "titel": "Wat kos dit om te belê?",
+  "beskrywing": "Hierdie gids verduidelik die verskillende fooie wat Suid-Afrikaanse beleggers betaal wanneer hulle aandele koop, van makelaarsfooie tot belasting.",
+  "intro": "Belegging in aandele op die JSE behels meer as net die prys van die aandeel self. Daar is verskeie kostes en fooie wat by elke transaksie gevoeg word, en dit is belangrik om hierdie uitgawes te verstaan. Hierdie fooie kan 'n invloed hê op die totale opbrengs van 'n belegging, veral vir kleiner transaksies of gereelde handel.\n\nOm 'n duidelike prentjie te hê van die werklike koste van 'n belegging, is dit nodig om te kyk na die verskillende komponente wat die finale bedrag bepaal. Hierdie gids sal die algemeenste fooie wat Suid-Afrikaanse beleggers teëkom wanneer hulle aandele koop, uiteensit.",
+  "afdelings": [
+    {
+      "kop": "Makelaarsfooie",
+      "paragrawe": [
+        "Wanneer 'n persoon aandele koop, word die transaksie deur 'n makelaar of 'n beleggingsplatform gefasiliteer. Die diens wat hierdie makelaars lewer, kom met 'n koste, bekend as 'n makelaarsfooi. Hierdie fooi is die vergoeding wat die makelaar ontvang vir die uitvoering van die koop- of verkooporder. Die struktuur van makelaarsfooie kan aansienlik verskil tussen verskillende diensverskaffers.",
+        "Sommige makelaars hef 'n persentasie van die totale transaksiewaarde. Byvoorbeeld, 'n fooi van 0.25% beteken dat vir elke R10 000 se aandele wat gekoop word, 'n R25 fooi gehef sal word. Baie makelaars het ook 'n minimum fooi. Dit beteken dat selfs al is die persentasie van 'n klein transaksie minder as die minimum, sal die minimum bedrag steeds gehef word. 'n Minimum fooi van R50 sou byvoorbeeld beteken dat enige transaksie wat 'n persentasiefooi van minder as R50 genereer, steeds 'n R50 fooi sal dra.",
+        "Ander platforms mag 'n vaste fooi per transaksie hef, ongeag die grootte van die transaksie. Die keuse van 'n makelaar en die begrip van hul fooistruktuur is 'n belangrike deel van die beleggingsproses. Suid-Afrikaanse beleggers gebruik verskeie platforms om aandele te koop, insluitend EasyEquities. Dit is raadsaam om die fooistrukture van verskillende makelaars te vergelyk voordat 'n keuse gemaak word."
+      ]
+    },
+    {
+      "kop": "Strategoffies (STRATE Levy)",
+      "paragrawe": [
+        "Die JSE gebruik 'n elektroniese stelsel vir die vereffening en bewaring van aandele, bekend as STRATE. STRATE is die sentrale sekuriteitebewaarder vir die Suid-Afrikaanse finansiële markte. Vir die dienste wat STRATE lewer, word 'n klein heffing gehef op elke aandeletransaksie. Hierdie heffing dra by tot die koste van die instandhouding van die elektroniese register van aandeelhoudings.",
+        "Die Strategoffie is gewoonlik 'n baie klein persentasie van die transaksiewaarde, dikwels in die orde van 0.002% of soortgelyk. Soos met makelaarsfooie, is daar dikwels 'n minimum en 'n maksimum bedrag vir die Strategoffie. Dit verseker dat selfs vir baie groot transaksies, die heffing 'n boonste perk het, terwyl klein transaksies steeds 'n nominale bydrae lewer.",
+        "Hierdie heffing is 'n verpligte deel van die transaksiekoste en word outomaties by die totale bedrag gevoeg wanneer aandele op die JSE gekoop of verkoop word. Dit is 'n gestandaardiseerde koste wat oor alle makelaars en platforms van toepassing is vir JSE-genoteerde sekuriteite."
+      ]
+    },
+    {
+      "kop": "Belasting op Toegevoegde Waarde (BTW)",
+      "paragrawe": [
+        "In Suid-Afrika is Belasting op Toegevoegde Waarde, of BTW, van toepassing op sekere dienste. Wanneer dit kom by die koop van aandele, word BTW gehef op die makelaarsfooi en die Strategoffie. Die huidige BTW-koers in Suid-Afrika is 15%. Dit beteken dat bo en behalwe die makelaarsfooi en die Strategoffie, 'n addisionele 15% van daardie bedrae as BTW bygevoeg word.",
+        "Byvoorbeeld, as die makelaarsfooi R100 is en die Strategoffie R5 is, sal die BTW R15.75 wees (15% van R105). Hierdie BTW-komponent verhoog die totale transaksiekoste verder. Dit is belangrik om te onthou dat BTW nie op die waarde van die aandele self gehef word nie, maar slegs op die dienste wat gelewer word om die transaksie uit te voer.",
+        "Die insluiting van BTW in die berekening van transaksiekoste is 'n standaard praktyk en moet in ag geneem word wanneer die totale uitgawe van 'n aandeletransaksie bepaal word. Dit is 'n indirekte belasting wat 'n klein, maar merkbare, impak op die finale koste kan hê."
+      ]
+    },
+    {
+      "kop": "Sekuriteitstransaksiebelasting (STT)",
+      "paragrawe": [
+        "Sekuriteitstransaksiebelasting, of STT, is 'n belasting wat deur die Suid-Afrikaanse regering gehef word op die oordrag van eienaarskap van sekuriteite. Dit is 'n direkte belasting op die waarde van die aandele wat gekoop word. Die huidige koers vir STT is 0.25% van die waarde van die aandele wat verwerf word.",
+        "Wanneer 'n persoon aandele koop, soos byvoorbeeld 'n belegging in Naspers of Shoprite, word hierdie belasting outomaties by die transaksie gevoeg. As 'n belegger R20 000 se Shoprite-aandele koop, sal die STT R50 wees (0.25% van R20 000). Hierdie belasting is 'n belangrike inkomstebron vir die staat en is 'n verpligte koste vir alle aandeletransaksies.",
+        "STT word nie op die verkoop van aandele gehef nie, slegs op die aankoop. Dit verskil ook van Kapitaalwinsbelasting (KWB), wat van toepassing is op die wins wat gemaak word wanneer 'n bate, soos aandele, verkoop word. STT is 'n transaksiebelasting wat onafhanklik van enige wins of verlies op die belegging gehef word."
+      ]
+    },
+    {
+      "kop": "Ander Moontlike Koste",
+      "paragrawe": [
+        "Benewens die bogenoemde standaardfooie en belasting, kan daar ander koste wees wat 'n belegger mag teëkom, afhangende van die gekose platform en die aard van die belegging. Sommige beleggingsplatforms mag byvoorbeeld 'n maandelikse of jaarlikse administrasiefooi hef vir die instandhouding van die beleggingsrekening. Hierdie fooie kan van toepassing wees ongeag of transaksies plaasvind of nie.",
+        "Vir beleggers wat toegang tot meer gespesialiseerde dienste of data benodig, kan daar ook koste wees vir intydse markdata of vir die gebruik van gevorderde handelsinstrumente. Dit is minder algemeen vir die gewone belegger, maar dit is 'n moontlikheid om van bewus te wees. Verder kan daar ook onttrekkingsfooie wees wanneer fondse van die beleggingsrekening na 'n bankrekening oorgeplaas word.",
+        "Internasionale beleggings behels ook bykomende koste soos buitelandse valuta-omskakelingsfooie, wat relevant sou wees as 'n belegger besluit om in aandele op buitelandse beurse te belê. Dit is altyd 'n goeie praktyk om die volledige fooiskedule van enige beleggingsplatform deeglik te bestudeer voordat 'n rekening oopgemaak word, om sodoende 'n omvattende begrip van alle potensiële koste te verkry."
+      ]
+    }
+  ],
+  "verwant": [
+    "naspers",
+    "shoprite"
+  ],
+  "sponsor_konteks": "Suid-Afrikaanse beleggers gebruik verskeie platforms om aandele te koop, insluitend EasyEquities."
+}
