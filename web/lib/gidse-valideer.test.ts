@@ -77,4 +77,21 @@ describe("valideerGids", () => {
     expect(foute.length).toBeGreaterThan(0);
     expect(foute.join(" ")).toMatch(/titel|intro/i);
   });
+
+  it("vang 'n imperatief met 'n diakritiese letter — 'begin belê' wat voorheen nooit kon pas nie", () => {
+    const stout = geldig({ intro: "Begin belê vandag met R100." });
+    expect(valideerGids(stout, beginner).join(" ")).toMatch(/imperatief|belê/i);
+  });
+
+  it("bly 'belê nou' vang — moet nie deur die diakritiese herstel breek nie", () => {
+    const stout = geldig({ intro: "Belê nou in die Top 40." });
+    expect(valideerGids(stout, beginner).join(" ")).toMatch(/imperatief|belê/i);
+  });
+
+  it("aanvaar egte Afrikaanse saamgestelde woorde soos 'koopkrag' en 'verkoopprys'", () => {
+    const goedKoopkrag = geldig({ intro: "Inflasie vreet aan jou koopkrag oor tyd." });
+    expect(valideerGids(goedKoopkrag, beginner)).toEqual([]);
+    const goedVerkoopprys = geldig({ intro: "Die verkoopprys word deur vraag en aanbod bepaal." });
+    expect(valideerGids(goedVerkoopprys, beginner)).toEqual([]);
+  });
 });
