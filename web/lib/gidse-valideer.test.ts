@@ -94,4 +94,49 @@ describe("valideerGids", () => {
     const goedVerkoopprys = geldig({ intro: "Die verkoopprys word deur vraag en aanbod bepaal." });
     expect(valideerGids(goedVerkoopprys, beginner)).toEqual([]);
   });
+
+  // Rondte 3: die reël toets nou modus (sinbegin) i.p.v. blote woordverbod.
+  // Vyf regte verwerpings, uit die goedgekeurde fiks self.
+  describe("sinbegin-toets — vyf regte verwerpings", () => {
+    it.each([
+      ["Koop jou eerste aandeel vandag."],
+      ["Begin belê vandag met R100."],
+      ["Belê nou in die Top 40."],
+      ["Kry jou rekening reg."],
+      ["Dit is maklik. Koop net die ETF."],
+    ])("verwerp: %s", (sin) => {
+      const stout = geldig({ intro: sin });
+      expect(valideerGids(stout, beginner).join(" ")).toMatch(/imperatief/i);
+    });
+  });
+
+  // Vyf regte aanvaardings — die eerste twee is letterlik van die
+  // generator-mislukkings (task-7-report.md): suiwer beskrywende sinne oor
+  // hoe koop/verkoop werk, wat voorheen op die kaal woordverbod geval het.
+  describe("sinbegin-toets — vyf regte aanvaardings", () => {
+    it.each([
+      ["Die keuse van watter aandele om te koop is 'n belangrike stap."],
+      ["Wanneer jy 'n aandeel koop, betaal jy 'n fooi."],
+      ["'n Belegger wat aandele verkoop, ontvang die opbrengs."],
+      ["Die koopkrag van die rand het gedaal."],
+      ["Om aandele te koop verg 'n rekening."],
+    ])("aanvaar: %s", (sin) => {
+      const goed = geldig({ intro: sin });
+      expect(valideerGids(goed, beginner)).toEqual([]);
+    });
+  });
+
+  it("vang 'n paragraaf wat self met 'Koop ' begin, al eindig die vorige veld nie op 'n punt nie", () => {
+    // Bewys dat die toets per aparte string loop: as ons net oor die
+    // saamgevoegde teks sou toets, sou hierdie paragraaf se "Koop" nie as
+    // sinbegin tel nie, want die vorige stuk eindig sonder 'n punt.
+    const stout = geldig({
+      afdelings: [
+        { kop: "Fooie", paragrawe: ["Fooie vreet aan klein bedrae sonder 'n punt hier"] },
+        { kop: "Volgende stap", paragrawe: ["Koop die aandeel sodra jy reg is."] },
+        { kop: "Tyd", paragrawe: ["Tyd doen die swaarste werk."] },
+      ],
+    });
+    expect(valideerGids(stout, beginner).join(" ")).toMatch(/imperatief/i);
+  });
 });

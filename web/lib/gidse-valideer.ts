@@ -15,19 +15,21 @@ export type GidsInhoud = {
    gidse veilig hou — FSCA, taal, handelsmerk, werkende skakels — word hier
    afgedwing en nie in die prompt gehoop nie. */
 
-// JavaScript se \b is ASCII-gebaseer: \w ken "ê" nie as 'n woordkarakter nie,
-// so \b faal stil ná diakritiese letters ("begin belê\b" kon nooit ooit
-// pas nie). 'n Eie grens op grond van Unicode-letters (\p{L}) los dit reg —
-// dit herken 'n woordgrens ná "ê", "ë", "é", "ï", "ô", "û" ens., én weier steeds
-// om binne-in 'n saamgestelde woord soos "koopkrag" of "verkoopprys" te pas
-// (die letter net ná "koop" verhoed die grens, so die inperkende (?![\p{L}])
-// gee dieselfde beskerming as die ou \b, net Unicode-bewus).
-const GRENS_VOOR = "(?<![\\p{L}])";
-const GRENS_NA = "(?![\\p{L}])";
-const IMPERATIEWE = new RegExp(
-  `${GRENS_VOOR}(koop|verkoop|belê nou|begin belê|kry jou|moenie mis nie|maak seker jy koop)${GRENS_NA}`,
-  "iu",
-);
+// Afrikaans se gebiedende wys is werkwoord-vooraan in 'n hoofsin. 22/22
+// gegenereerde pogings het geval op 'n kaal woordverbod, en elke treffer was
+// suiwer beskrywend ("...aandele om te koop is 'n belangrike stap...") — die
+// reël moes op modus (opdrag vs. verduideliking) toets, nie op die blote
+// voorkoms van die woord nie. Ons merk dus koop/verkoop/belê net wanneer hulle
+// 'n sin of 'n bullet begin (die werklike gebiedende posisie); die
+// ondubbelsinnige veelwoord-frases bly enige plek gevaarlik, ongeag posisie.
+//
+// SIN_BEGIN loop met opset per aparte string (elke paragraaf, kop, ens. —
+// sien onder), NIE oor die saamgevoegde alleTeks-blok nie: velde word met 'n
+// spasie saamgevoeg, so 'n paragraaf wat op sy eie met "Koop ..." begin, sou
+// in die saamgevoegde teks nie noodwendig deur sin-eindigende leestekens
+// voorafgegaan word nie, en 'n werklike opdrag sou ongemerk verbygaan.
+const SIN_BEGIN = /(^|[.!?:]\s+|^\s*[-•]\s*)(koop|verkoop|belê)(?![\p{L}])/iu;
+const FRASE = /(?<![\p{L}])(belê nou|begin belê|kry jou|moenie mis nie|maak seker jy koop)(?![\p{L}])/iu;
 const NIE_AFRIKAANS = /\b(achtbaan|beleggen|aandelen|winstgevend|geldbelegging|bourse|Aktien)\b/i;
 
 // 'n LLM lewer rou, ongetipeerde JSON. Hierdie helper is die enigste plek waar
@@ -58,31 +60,28 @@ export function valideerGids(inhoud: unknown, gids: Gids): string[] {
   const beskrywing = veiligeString(i.beskrywing);
   const intro = veiligeString(i.intro);
   const sponsorKonteks = veiligeString(i.sponsor_konteks);
+  const paragraafDele = afdelings.flatMap((a) => [
+    veiligeString(a?.kop),
+    ...(Array.isArray(a?.paragrawe) ? a.paragrawe.map(veiligeString) : []),
+  ]);
 
-  const alleTeks = [
-    titel, beskrywing, intro, sponsorKonteks,
-    ...afdelings.flatMap((a) => [veiligeString(a?.kop), ...(Array.isArray(a?.paragrawe) ? a.paragrawe.map(veiligeString) : [])]),
-  ]
-    .filter(Boolean)
-    .join(" ");
+  // Elke los stuk teks — nie 'n titel-infinitief-stroping nodig nie: "Hoe om
+  // aandele te koop" het "koop" nooit aan die begin van 'n sin nie, so
+  // SIN_BEGIN vang dit eenvoudig nie; "Koop nou jou eerste aandeel" begin wél
+  // met die werkwoord en word steeds gevang. (Sien fix-verslag rondte 3.)
+  const teksdele = [titel, beskrywing, intro, sponsorKonteks, ...paragraafDele].filter(Boolean);
+  const alleTeks = teksdele.join(" ");
 
-  // Die titel word nie heeltemal uitgesluit van die imperatief-toets nie —
-  // dit is presies die veld wat Gemini genereer (dit word die H1 en die
-  // meta-titel), so 'n opdrag daar is die sigbaarste plek waar dit kan gebeur.
-  // Ons neutraliseer net die "om ... te <werkwoord>"-infinitiefkonstruksie:
-  // "Hoe om aandele te koop" is die soekfrase self en vee skoon uit; "Koop Nou
-  // Jou Eerste Aandeel" het nie hierdie konstruksie nie en word steeds gevang.
-  const titelVeilig = titel.replace(new RegExp(`\\bom\\b[\\s\\S]*?\\bte\\s+(koop|verkoop|belê)${GRENS_NA}`, "giu"), "");
+  const sinBeginTreffer = teksdele
+    .map((deel) => deel.match(SIN_BEGIN))
+    .find((m): m is RegExpMatchArray => m !== null);
+  if (sinBeginTreffer) foute.push(`imperatief gevind ("${sinBeginTreffer[2]}") — FSCA-grenslyn (sin begin met 'n opdrag)`);
 
-  const teksVirImperatief = [
-    titelVeilig, beskrywing, intro, sponsorKonteks,
-    ...afdelings.flatMap((a) => [veiligeString(a?.kop), ...(Array.isArray(a?.paragrawe) ? a.paragrawe.map(veiligeString) : [])]),
-  ]
-    .filter(Boolean)
-    .join(" ");
+  // Die frase-toets is posisie-onafhanklik en mag dus oor die saamgevoegde
+  // teks loop.
+  const fraseTreffer = alleTeks.match(FRASE);
+  if (fraseTreffer) foute.push(`imperatief gevind ("${fraseTreffer[0]}") — FSCA-grenslyn`);
 
-  const imp = teksVirImperatief.match(IMPERATIEWE);
-  if (imp) foute.push(`imperatief gevind ("${imp[0]}") — FSCA-grenslyn`);
   const nl = alleTeks.match(NIE_AFRIKAANS);
   if (nl) foute.push(`nie-Afrikaanse woord gevind ("${nl[0]}")`);
   if (/Die Buitelyn/.test(alleTeks)) foute.push('"Die Buitelyn" — die handelsmerk is net "Buitelyn"');
