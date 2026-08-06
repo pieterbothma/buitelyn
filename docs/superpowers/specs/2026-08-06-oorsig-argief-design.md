@@ -47,7 +47,9 @@ export type Snit = { uitgawe: Uitgawe; url: string; grootte: number };
 export type Dag = { datum: string; datumWoorde: string; snitte: Snit[] };
 
 export function groepeerLeers(
-  leername: string[], publiekeBasis: string, maksDae?: number
+  leers: { name: string; grootte: number }[],
+  publiekeBasis: string,
+  maksDae?: number
 ): Dag[];
 
 export async function kryOorsigArgief(): Promise<
