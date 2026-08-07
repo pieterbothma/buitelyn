@@ -77,9 +77,9 @@ export function MarktePromo() {
           </div>
         </Kaart>
 
-        {/* 2. Die Buitelyn Bot */}
+        {/* 2. Buitelyn Bot */}
         <Kaart
-          titel="Die Buitelyn Bot"
+          titel="Buitelyn Bot"
           blurb="Klets met Buitelyn oor die nuutste verwikkelinge in die aandelemark of jou portefeulje — op die webwerf én op Telegram."
         >
           <MiniKop teks="VRA BUITELYN" />

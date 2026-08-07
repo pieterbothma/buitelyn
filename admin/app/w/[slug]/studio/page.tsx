@@ -5,7 +5,7 @@ import { Shell, type Workspace } from "@/components/shell";
 
 export const dynamic = "force-dynamic";
 
-/* Die Buitelyn-Studio: een tuiste vir die skeppende gereedskap wat uit die
+/* Buitelyn-Studio: een tuiste vir die skeppende gereedskap wat uit die
    /markte-pyplyn en die show groei — nuwe features kry hier 'n kaart. */
 const GEREEDSKAP = [
   {
