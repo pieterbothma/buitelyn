@@ -24,6 +24,14 @@ export default async function OorsigArgief({ params }: { params: Promise<{ slug:
 
   const { dae, fout } = await kryOorsigArgief();
   const vandag = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" }).format(new Date());
+  /* HH:MM in SAST, 24-uur, met voorloop-nul — 'n eenvoudige stringvergelyking
+     teen TYE se waardes werk dan reg (bv. "18:03" > "17:50"). */
+  const nouSast = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Africa/Johannesburg",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date());
 
   return (
     <Shell workspaces={(workspaces ?? []) as Workspace[]} active={active as Workspace}>
@@ -54,24 +62,41 @@ export default async function OorsigArgief({ params }: { params: Promise<{ slug:
               <ul className="mt-3 space-y-3">
                 {UITGAWES.map((u) => {
                   const snit = perUitgawe.get(u);
-                  /* Vandag se nog-onvoltooide uitgawes wys as hangend met hul tyd:
-                     'n missende 11:50-lêer moet lees as "nog nie", nie as "stukkend". */
+                  /* Vandag se nog-onvoltooide uitgawes wys as hangend met hul tyd —
+                     tensy die geskeduleerde tyd reeds verby is, want dan is dit nie
+                     meer "nog nie" nie, dit is heel moontlik 'n gefaalde cron. */
                   if (!snit) {
-                    return dag.datum === vandag ? (
+                    if (dag.datum !== vandag) return null;
+                    const verby = nouSast >= TYE[u];
+                    return (
                       <li key={u} className="flex items-center gap-3 text-sm text-ink/40">
                         <span className="w-16 font-semibold tracking-[0.12em]">{u.toUpperCase()}</span>
-                        <span>kom {TYE[u]}</span>
+                        <span>{verby ? "ontbreek" : `kom ${TYE[u]}`}</span>
                       </li>
-                    ) : null;
+                    );
                   }
                   return (
                     <li key={u} className="flex flex-wrap items-center gap-x-3 gap-y-2">
                       <span className="w-16 text-sm font-semibold tracking-[0.12em]">{u.toUpperCase()}</span>
                       {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
-                      <audio controls preload="none" src={snit.url} className="h-9 min-w-64 flex-1" />
+                      <audio
+                        controls
+                        preload="none"
+                        src={snit.url}
+                        aria-label={`${u}-oorsig, ${dag.datumWoorde}`}
+                        className="h-9 min-w-64 flex-1"
+                      />
+                      {/* Die HTML download-attribuut word oor kruis-oorsprong URL's
+                          geïgnoreer (hq.buitelyn.com vs *.supabase.co), so Supabase
+                          Storage se ?download=<naam> query-parameter dwing die
+                          Content-Disposition: attachment-header af. Die <audio src>
+                          hierbo bly op die kaal snit.url — 'n speler moet nie 'n
+                          aflaai ontketen nie. Die download-attribuut bly ook staan;
+                          dit is onskadelik en help as die bate ooit selfde-oorsprong word. */}
                       <a
-                        href={snit.url}
+                        href={`${snit.url}?download=buitelyn-${dag.datum}-${u}.mp3`}
                         download={`buitelyn-${dag.datum}-${u}.mp3`}
+                        aria-label={`Laai af: ${u}-oorsig, ${dag.datumWoorde} (${mb(snit.grootte)})`}
                         className="border-2 border-ink px-3 py-1 text-xs font-semibold hover:bg-paper"
                       >
                         Laai af ({mb(snit.grootte)})

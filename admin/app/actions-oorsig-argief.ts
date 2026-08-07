@@ -1,10 +1,21 @@
 "use server";
+import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseService } from "@/lib/supabase/service";
 import { groepeerLeers, type Dag } from "@/lib/oorsig-argief";
+
+async function aangemeld(): Promise<boolean> {
+  const sb = await supabaseServer();
+  const {
+    data: { user },
+  } = await sb.auth.getUser();
+  return Boolean(user);
+}
 
 /* Lees die bucket, nie markte_oorsigte nie: die tabel hou één oudio_url per dag
    en sou dus een speler per dag wys in plaas van drie. */
 export async function kryOorsigArgief(): Promise<{ dae: Dag[]; fout: string | null }> {
+  if (!(await aangemeld())) return { dae: [], fout: null };
+
   const basis = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!basis) return { dae: [], fout: "NEXT_PUBLIC_SUPABASE_URL is nie gestel nie." };
 
