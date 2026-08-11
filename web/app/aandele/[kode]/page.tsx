@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { TopBar } from "@/components/top-bar";
 import { Footer } from "@/components/footer";
 import { AandeelGrafiek } from "@/components/aandele/grafiek";
@@ -21,10 +21,20 @@ export function generateStaticParams() {
   return AANDELE.map((a) => ({ kode: a.slug }));
 }
 
-function service() {
-  return createClient(process.env.APHQ_SUPABASE_URL!, process.env.APHQ_SUPABASE_SERVICE_KEY!, {
-    auth: { persistSession: false },
-  });
+/* Sonder ap-hq se sleutels moet hierdie blad stééds bou: die prys en die
+   grafiek kom van Yahoo af, en net die Supabase-ekstras (profiel, SENS,
+   dividende, skuiwer-nota, nuus) val weg.
+
+   Die twee `!`-bewerings het gelyk soos 'n formaliteit, maar generateStaticParams
+   laat elke aandeel by BOUTYD voorafrender, en daar gooi createClient
+   "supabaseUrl is required" as die veranderlike ontbreek. Die twee sleutels
+   is net op Production gestel, dus het die heel eerste voorskou-ontplooiing
+   gesterf op /aandele/naspers — 'n blad wat niemand verander het nie. */
+function service(): SupabaseClient | null {
+  const url = process.env.APHQ_SUPABASE_URL;
+  const sleutel = process.env.APHQ_SUPABASE_SERVICE_KEY;
+  if (!url || !sleutel) return null;
+  return createClient(url, sleutel, { auth: { persistSession: false } });
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ kode: string }> }): Promise<Metadata> {
@@ -60,20 +70,22 @@ export default async function AandeelBlad({ params }: { params: Promise<{ kode: 
   const [kwotasies, reeks, { data: profiel }, { data: sens }, { data: dividende }, { data: nota }, { data: nuus }] = await Promise.all([
     getQuotes([a.simbool]),
     getSeries(a.simbool, "1y"),
-    sb.from("aandeel_profiele").select("profiel_teks").eq("slug", a.slug).maybeSingle(),
-    jseKode
+    sb ? sb.from("aandeel_profiele").select("profiel_teks").eq("slug", a.slug).maybeSingle() : Promise.resolve({ data: null }),
+    sb && jseKode
       ? sb.from("sens_aankondigings").select("sens_id, tyd, titel, tipe, opsomming, skakel").eq("kode", jseKode).order("tyd", { ascending: false }).limit(6)
       : Promise.resolve({ data: [] }),
-    jseKode
+    sb && jseKode
       ? sb.from("dividend_kalender").select("bedrag_sent, ldt, betaaldatum").eq("kode", jseKode).order("ldt", { ascending: false }).limit(3)
       : Promise.resolve({ data: [] }),
-    sb.from("skuiwer_notas").select("nota, datum").eq("simbool", a.simbool).order("datum", { ascending: false }).limit(1).maybeSingle(),
+    sb ? sb.from("skuiwer_notas").select("nota, datum").eq("simbool", a.simbool).order("datum", { ascending: false }).limit(1).maybeSingle() : Promise.resolve({ data: null }),
     sb
-      .from("markte_nuus")
-      .select("titel_af, opsomming, bron, skakel, gepubliseer")
-      .or(`titel_af.ilike.%${a.naam.split(" ")[0]}%,opsomming.ilike.%${a.naam.split(" ")[0]}%`)
-      .order("gepubliseer", { ascending: false })
-      .limit(4),
+      ? sb
+          .from("markte_nuus")
+          .select("titel_af, opsomming, bron, skakel, gepubliseer")
+          .or(`titel_af.ilike.%${a.naam.split(" ")[0]}%,opsomming.ilike.%${a.naam.split(" ")[0]}%`)
+          .order("gepubliseer", { ascending: false })
+          .limit(4)
+      : Promise.resolve({ data: [] }),
   ]);
 
   const k = kwotasies[0];

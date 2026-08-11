@@ -9,3 +9,9 @@ videos/*/renders/
 videos/*/snapshots/
 videos/*/.media/
 admin/supabase/.temp/
+.superpowers/
+videos/*/public/input-video.mp4
+videos/*/audio.mp3
+videos/*/output.mp4
+.vercel
+.env*.local
