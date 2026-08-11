@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { SakgeldSyfer } from "@/app/markte/page";
+import type { SakgeldSyfer } from "@/lib/markte-kas";
 
 const fmtR = new Intl.NumberFormat("af-ZA", { maximumFractionDigits: 0 });
 
