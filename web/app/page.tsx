@@ -43,15 +43,42 @@ export default async function Home() {
       <Koerantkop />
       <main className="flex-1">
         <div className="mx-auto max-w-[1440px] px-6 py-8 md:px-14 md:py-12">
-          <div className="grid gap-10 lg:grid-cols-[1.35fr_1fr] lg:gap-12">
-            <div className="space-y-6">
-              <Dagoorsig oorsig={oorsig} kwotasies={kwotasies} />
-              <BewegersKort skuiwers={skuiwers} />
-              <MarkNuus items={nuus} />
+          {/* Twee kolomme op groot skerms, een stapel op 'n foon — maar nie
+              dieselfde volgorde nie. 'n Gestapelde raster loop kolom vir
+              kolom af, so op 'n foon het die hele markte-kant (oorsig,
+              bewegers, marknuus) voor die eerste storie gekom en Van
+              Buitelyn het ver onder marknuus beland.
+
+              Die kolom-houers word daarom `display:contents` op 'n foon:
+              hulle verdwyn as bokse en hul kinders word self raster-items,
+              wat beteken order-* kan die vyf blokke onafhanklik rangskik.
+              Op lg word hulle weer gewone blokke en elke kolom vloei op sy
+              eie — wat 'n mens NIE met eksplisiete grid-rye kan doen nie,
+              want dan deel die twee kolomme hul ryhoogtes en 'n kort
+              oorsig kry 'n gat onder hom tot by die lang storie-kolom.
+
+              Die houers is kaal divs, dus is dit die veilige geval vir
+              display:contents — daar is geen semantiek om uit die
+              toeganklikheidsboom te verloor nie. */}
+          <div className="grid gap-6 lg:grid-cols-[1.35fr_1fr] lg:items-start lg:gap-12">
+            <div className="contents lg:block lg:space-y-6">
+              <div className="order-1">
+                <Dagoorsig oorsig={oorsig} kwotasies={kwotasies} />
+              </div>
+              <div className="order-2">
+                <BewegersKort skuiwers={skuiwers} />
+              </div>
+              <div className="order-4">
+                <MarkNuus items={nuus} />
+              </div>
             </div>
-            <div className="space-y-8">
-              <VanBuitelyn posts={kanaal.posts} />
-              <Slot />
+            <div className="contents lg:block lg:space-y-8">
+              <div className="order-3">
+                <VanBuitelyn posts={kanaal.posts} />
+              </div>
+              <div className="order-5">
+                <Slot />
+              </div>
             </div>
           </div>
         </div>
