@@ -1,5 +1,5 @@
-import { TopBar } from "@/components/top-bar";
 import { Footer } from "@/components/footer";
+import { Koerantkop } from "@/components/tuisblad/koerantkop";
 import { PrysStrook } from "@/components/tuisblad/prysstrook";
 import { Dagoorsig } from "@/components/tuisblad/dagoorsig";
 import { BewegersKort } from "@/components/tuisblad/bewegers-kort";
@@ -40,7 +40,7 @@ export default async function Home() {
   return (
     <>
       <PrysStrook kwotasies={kwotasies} />
-      <TopBar />
+      <Koerantkop />
       <main className="flex-1">
         <div className="mx-auto max-w-[1440px] px-6 py-8 md:px-14 md:py-12">
           <div className="grid gap-10 lg:grid-cols-[1.35fr_1fr] lg:gap-12">
