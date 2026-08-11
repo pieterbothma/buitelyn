@@ -23,9 +23,9 @@ const AFDELINGS = [
 export function Koerantkop() {
   return (
     <header className="border-b border-ink/15">
-      <div className="mx-auto flex max-w-[1440px] items-center gap-6 px-6 py-3 md:px-14">
+      <div className="mx-auto flex max-w-[1440px] items-center gap-6 px-6 py-2 md:px-14">
         <Link href="/" className="flex shrink-0 items-center" aria-label="Buitelyn — tuis">
-          <Image src="/logo-transparent.png" alt="Buitelyn" width={40} height={40} priority />
+          <Image src="/logo-transparent.png" alt="Buitelyn" width={72} height={72} priority />
         </Link>
 
         {/* Die afdelings sit in die middel op groot skerms en verdwyn op 'n

@@ -8,6 +8,12 @@ export type NuusItem = {
   opsomming: string;
   vrae?: string[]; // klikbare vervolgvrae vir die chat
   gepubliseer: string; // ISO
+  /* Is die opskrif deur Gemini vertaal, of is dit nog die bron se Engels?
+     kryNuus val terug op die oorspronklike titel wanneer die vertaal-cron
+     nog nie by 'n item uitgekom het nie, en dan is dit stil Engels. Op
+     /markte is dit aanvaarbaar; op 'n publieke Afrikaanse tuisblad nie.
+     Die vlag laat elke leser self kies wat om daarmee te doen. */
+  vertaal?: boolean;
 };
 
 export type RouItem = Omit<NuusItem, "opsomming"> & { beskrywing: string };
@@ -234,7 +240,7 @@ async function leesVertalings(sb: any, skakels: string[]): Promise<Map<string, V
 export async function kryNuus(): Promise<NuusItem[]> {
   try {
     if (!process.env.APHQ_SUPABASE_URL || !process.env.APHQ_SUPABASE_SERVICE_KEY) {
-      return voegSaam(await haalBronne()).map(({ beskrywing: _b, ...i }) => ({ ...i, opsomming: "" }));
+      return voegSaam(await haalBronne()).map(({ beskrywing: _b, ...i }) => ({ ...i, opsomming: "", vertaal: false }));
     }
     const sb = diens();
     const items = await versamelItems(sb);
@@ -242,7 +248,7 @@ export async function kryNuus(): Promise<NuusItem[]> {
     const kaart = await leesVertalings(sb, items.map((i) => i.skakel));
     return items.map(({ beskrywing: _b, ...i }) => {
       const v = kaart.get(i.skakel);
-      return { ...i, titel: v?.opskrif || i.titel, opsomming: v?.opsomming ?? "", vrae: v?.vrae ?? [] };
+      return { ...i, titel: v?.opskrif || i.titel, opsomming: v?.opsomming ?? "", vrae: v?.vrae ?? [], vertaal: Boolean(v?.opskrif) };
     });
   } catch {
     return [];

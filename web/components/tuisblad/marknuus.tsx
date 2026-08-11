@@ -17,7 +17,13 @@ const tydFmt = new Intl.DateTimeFormat("af-ZA", {
 });
 
 export function MarkNuus({ items }: { items: NuusItem[] }) {
-  const lys = items.slice(0, MAKS);
+  /* Net vertaalde opskrifte. Die vertaal-cron loop agter die invoer-cron
+     aan, so vars items sit 'n ruk lank in die bron se Engels — en 'n blok
+     Engelse koppe op 'n Afrikaanse tuisblad lyk soos 'n fout, nie soos
+     vars nuus nie. Liewer vier reëls as vyf, of glad geen blok nie: die
+     kolom staan dan terug by die oorsig en die bewegers, wat presies
+     uitleg C se oorspronklike vorm is. */
+  const lys = items.filter((n) => n.vertaal).slice(0, MAKS);
   if (lys.length === 0) return null;
 
   return (

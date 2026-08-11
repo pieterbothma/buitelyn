@@ -64,3 +64,24 @@ body {
     animation: none;
   }
 }
+
+/* Die prysstrook loop stadiger as die koppe-strook: 'n prys met 'n
+   persentasie is meer om te lees as 'n opskrif, en teen 40s gly dit verby
+   voordat 'n mens dit gevat het. Dieselfde keyframes, net 'n ander tempo. */
+.animate-ticker-prys {
+  animation: ticker 90s linear infinite;
+}
+.animate-ticker-prys:hover {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-ticker-prys {
+    animation: none;
+  }
+  /* Sonder die animasie sit die strook op translateX(0) vas en is alles ná
+     die eerste paar simbole onbereikbaar agter overflow-hidden. Gee dit dan
+     terug as 'n gewone rolstrook — stil is reg, onbereikbaar is nie. */
+  .prys-strook {
+    overflow-x: auto;
+  }
+}
