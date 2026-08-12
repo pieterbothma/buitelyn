@@ -80,24 +80,21 @@ export function Dagoorsig({ oorsig, kwotasies }: { oorsig: Oorsig | null; kwotas
         </div>
       )}
 
+      {/* Dieselfde speler as /markte. Dit was 'n <a target="_blank"> na die
+          mp3, wat beteken het "luister" stuur die leser van die blad AF na 'n
+          kaal blaaier-oortjie — en die oorsig is juis die rede om hier te
+          wees. Die ▶ was boonop 'n teksglyph, wat sy eie sy-ruimte saamdra en
+          daarom altyd effens skeef in sy vierkant staan. Die blaaier se eie
+          speler los albei, en hou die twee blaaie eenders. */}
       {oorsig?.oudioUrl && (
-        <a
-          href={oorsig.oudioUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-5 flex items-center gap-3 border border-ink px-4 py-3 transition-colors hover:bg-ink hover:text-offwhite"
-        >
-          <span
-            aria-hidden
-            className="flex h-6 w-6 shrink-0 items-center justify-center bg-ink text-[10px] text-offwhite"
-          >
-            ▶
-          </span>
-          <span className="text-[11px] font-bold tracking-[.12em]">{oorsig.oudioEtiket}</span>
-          {oorsig.oudioDatum && (
-            <span className="ml-auto text-[11px] opacity-60">{oorsig.oudioDatum}</span>
-          )}
-        </a>
+        <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 border border-ink px-4 py-3">
+          <p className="text-[11px] font-bold tracking-[.12em]">
+            {oorsig.oudioEtiket}
+            {oorsig.oudioDatum ? ` — ${oorsig.oudioDatum.toUpperCase()}` : ""}
+            <span aria-hidden className="ml-2 inline-block size-1.5 rounded-full bg-red align-middle" />
+          </p>
+          <audio controls preload="none" src={oorsig.oudioUrl} className="h-9 min-w-64 max-w-md flex-1" />
+        </div>
       )}
     </section>
   );

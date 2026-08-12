@@ -6,6 +6,7 @@ import { BewegersKort } from "@/components/tuisblad/bewegers-kort";
 import { VanBuitelyn } from "@/components/tuisblad/van-buitelyn";
 import { MarkNuus } from "@/components/tuisblad/marknuus";
 import { Slot } from "@/components/tuisblad/slot";
+import { EposCta } from "@/components/tuisblad/epos-cta";
 import { getFeed, type Channel } from "@/lib/feed";
 import { gekasdeOorsig, gekasdeSkuiwers, gekasdeNuus, gekasdeBordKwotasies } from "@/lib/markte-kas";
 import { ALLE_SIMBOLE } from "@/lib/markets/boards";
@@ -81,6 +82,7 @@ export default async function Home() {
             </div>
           </div>
         </div>
+        <EposCta />
       </main>
       <Footer />
     </>
