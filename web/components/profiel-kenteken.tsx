@@ -6,8 +6,14 @@ import { supabaseBrowser } from "@/lib/supabase/client";
 type Profiel = { naam: string | null; avatar_url: string | null };
 
 /** Nav-kenteken: avatar/voorletters met 'n klein keuselys wanneer ingeteken,
- *  anders 'n Teken in-skakel na die markte-hek. */
-export function ProfielKenteken() {
+ *  anders 'n Teken in-skakel na die markte-hek.
+ *
+ *  `knop` maak van die uitgetekende toestand 'n gevulde knoppie i.p.v. 'n
+ *  skakel — die tuisblad se koerantkop wil 'n duidelike aksie regs hê. Dis
+ *  'n variant hier eerder as 'n tweede komponent, want die inteken-toestand
+ *  moet op een plek bly: twee kopieë en die een vergeet 'n dag later dat
+ *  iemand reeds ingeteken is. */
+export function ProfielKenteken({ knop = false }: { knop?: boolean } = {}) {
   const [epos, setEpos] = useState<string | null>(null);
   const [profiel, setProfiel] = useState<Profiel | null>(null);
   const [oop, setOop] = useState(false);
@@ -55,7 +61,14 @@ export function ProfielKenteken() {
   if (!gelaai) return <span className="size-8" aria-hidden />;
 
   if (!epos) {
-    return (
+    return knop ? (
+      <a
+        href="/markte"
+        className="bg-ink px-4 py-2 text-[11px] font-bold tracking-[.12em] text-offwhite transition-opacity hover:opacity-85"
+      >
+        TEKEN IN
+      </a>
+    ) : (
       <a href="/markte" className="text-[15px] font-semibold underline-offset-4 hover:underline">
         Teken in &rarr;
       </a>

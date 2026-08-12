@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { vertaalNuweNuus } from "@/lib/markets/nuus";
+import { cronGeweier } from "@/lib/cron-hek";
 
 export const maxDuration = 120;
 
@@ -9,9 +10,8 @@ export const maxDuration = 120;
    Hier loop dit vooruit, en die render lees net wat reeds gestoor is. */
 
 export async function GET(request: NextRequest) {
-  if (request.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ fout: "nee" }, { status: 401 });
-  }
+  const geweier = cronGeweier(request);
+  if (geweier) return geweier;
   try {
     const uitslag = await vertaalNuweNuus();
     return NextResponse.json({ ok: true, ...uitslag });

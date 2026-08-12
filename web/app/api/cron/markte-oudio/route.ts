@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { cronGeweier } from "@/lib/cron-hek";
 
 export const maxDuration = 120;
 
@@ -53,10 +54,8 @@ function snyMp3(mp3: Buffer, sekondes: number): Buffer {
    ElevenLabs praat dit in Afrikaans, MP3 na publieke Storage, URL op die
    oorsig-ry, en (indien opgestel) uitsaai na die Telegram-kanaal. */
 export async function GET(request: NextRequest) {
-  const auth = request.headers.get("authorization");
-  if (process.env.CRON_SECRET && auth !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ fout: "verbode" }, { status: 401 });
-  }
+  const geweier = cronGeweier(request);
+  if (geweier) return geweier;
 
   const sb = createClient(process.env.APHQ_SUPABASE_URL!, process.env.APHQ_SUPABASE_SERVICE_KEY!, {
     auth: { persistSession: false },

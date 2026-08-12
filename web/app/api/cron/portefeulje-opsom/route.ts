@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getQuotes, type Kwotasie } from "@/lib/markets/source";
+import { cronGeweier } from "@/lib/cron-hek";
 
 export const maxDuration = 300;
 
@@ -38,9 +39,8 @@ function naRand(bedrag: number, geldeenheid: string, fx: Map<string, number>): n
 }
 
 export async function GET(request: NextRequest) {
-  if (request.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ fout: "nee" }, { status: 401 });
-  }
+  const geweier = cronGeweier(request);
+  if (geweier) return geweier;
   if (!process.env.TELEGRAM_BOT_TOKEN) return NextResponse.json({ fout: "geen bot-token" }, { status: 500 });
 
   const sb = createClient(process.env.APHQ_SUPABASE_URL!, process.env.APHQ_SUPABASE_SERVICE_KEY!, {

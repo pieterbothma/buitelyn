@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { getQuotes } from "@/lib/markets/source";
 import { JSE_UITGEBREID, bewegersNaam } from "@/lib/markets/boards";
 import { beantwoordMarkteVraag } from "@/lib/markets/agent";
+import { cronGeweier } from "@/lib/cron-hek";
 
 export const maxDuration = 300;
 
@@ -19,9 +20,8 @@ function htmlOntsnap(t: string): string {
 }
 
 export async function GET(request: NextRequest) {
-  if (request.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ fout: "nee" }, { status: 401 });
-  }
+  const geweier = cronGeweier(request);
+  if (geweier) return geweier;
   const sb = createClient(process.env.APHQ_SUPABASE_URL!, process.env.APHQ_SUPABASE_SERVICE_KEY!, {
     auth: { persistSession: false },
   });

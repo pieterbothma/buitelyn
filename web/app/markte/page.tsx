@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { unstable_cache } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import { TopBar } from "@/components/top-bar";
 import { Footer } from "@/components/footer";
@@ -14,8 +13,16 @@ import { PortefeuljeBlad, type BladHouding, type Waarskuwing, type Dividend } fr
 import { SakgeldBlad } from "@/components/markte/sakgeld-blad";
 import { supabaseServer } from "@/lib/supabase/server";
 import { getQuotes } from "@/lib/markets/source";
-import { kryNuus } from "@/lib/markets/nuus";
 import { ALLE_SIMBOLE, BEWEGERS_SIMBOLE, jseIsOop } from "@/lib/markets/boards";
+import {
+  gekasdeOorsig,
+  gekasdeSens,
+  gekasdeSakgeld,
+  gekasdeNotas,
+  gekasdeNuus,
+  gekasdeBordKwotasies,
+  type SakgeldSyfer,
+} from "@/lib/markte-kas";
 
 /* Gegateer: die hek lees die sessie-koekie, dus moet die blad dinamies
    render. Die fetch-kas werk wel hier (gemeet op 16.2), maar dit help net
@@ -31,129 +38,6 @@ export const metadata: Metadata = {
   description: "JSE, rand, kommoditeite en kripto — live, met Buitelyn se KI-markassistent.",
   robots: { index: false }, // gegateer — die publieke /aandele-blaaie dra die SEO
 };
-
-async function kryNotas(): Promise<Record<string, string>> {
-  if (!process.env.APHQ_SUPABASE_URL || !process.env.APHQ_SUPABASE_SERVICE_KEY) return {};
-  try {
-    const sb = createClient(process.env.APHQ_SUPABASE_URL, process.env.APHQ_SUPABASE_SERVICE_KEY, {
-      auth: { persistSession: false },
-    });
-    const dagFmt = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" });
-    const vandag = dagFmt.format(new Date());
-    const gister = dagFmt.format(new Date(Date.now() - 24 * 60 * 60 * 1000));
-    // albei dae, oudste eerste — vandag s'n oorskryf gister s'n per simbool
-    const { data } = await sb
-      .from("skuiwer_notas")
-      .select("simbool, nota, datum")
-      .in("datum", [gister, vandag])
-      .order("datum", { ascending: true });
-    return Object.fromEntries((data ?? []).map((r) => [r.simbool, r.nota]));
-  } catch {
-    return {};
-  }
-}
-
-async function krySens(): Promise<SensItem[]> {
-  if (!process.env.APHQ_SUPABASE_URL || !process.env.APHQ_SUPABASE_SERVICE_KEY) return [];
-  try {
-    const sb = createClient(process.env.APHQ_SUPABASE_URL, process.env.APHQ_SUPABASE_SERVICE_KEY, {
-      auth: { persistSession: false },
-    });
-    const { data } = await sb
-      .from("sens_aankondigings")
-      .select("sens_id, tyd, kode, maatskappy, titel, tipe, opsomming, skakel")
-      .order("tyd", { ascending: false })
-      .limit(80);
-    return (data ?? []) as SensItem[];
-  } catch {
-    return [];
-  }
-}
-
-export type SakgeldSyfer = { sleutel: string; naam: string; waarde: number; eenheid: string; datum_effektief: string | null };
-
-async function krySakgeld(): Promise<SakgeldSyfer[]> {
-  if (!process.env.APHQ_SUPABASE_URL || !process.env.APHQ_SUPABASE_SERVICE_KEY) return [];
-  try {
-    const sb = createClient(process.env.APHQ_SUPABASE_URL, process.env.APHQ_SUPABASE_SERVICE_KEY, {
-      auth: { persistSession: false },
-    });
-    const { data } = await sb
-      .from("sakgeld_syfers")
-      .select("sleutel, naam, waarde, eenheid, datum_effektief");
-    const orde = ["repo", "prima", "kpi", "petrol95", "diesel", "ppi"];
-    return ((data ?? []) as SakgeldSyfer[]).sort((a, b) => orde.indexOf(a.sleutel) - orde.indexOf(b.sleutel));
-  } catch {
-    return [];
-  }
-}
-
-async function kryOorsig(): Promise<{
-  teks: string;
-  bygewerk: string | null;
-  oudioUrl: string | null;
-  oudioDatum: string | null;
-  oudioEtiket: string;
-} | null> {
-  if (!process.env.APHQ_SUPABASE_URL || !process.env.APHQ_SUPABASE_SERVICE_KEY) return null;
-  try {
-    const sb = createClient(process.env.APHQ_SUPABASE_URL, process.env.APHQ_SUPABASE_SERVICE_KEY, {
-      auth: { persistSession: false },
-    });
-    const { data } = await sb
-      .from("markte_oorsigte")
-      .select("teks, datum, opgedateer_at, oudio_url")
-      .order("datum", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-    if (!data?.teks) return null;
-    const bygewerk = data.opgedateer_at
-      ? new Intl.DateTimeFormat("af-ZA", {
-          timeZone: "Africa/Johannesburg",
-          hour: "2-digit",
-          minute: "2-digit",
-        }).format(new Date(data.opgedateer_at))
-      : null;
-    const oudioDatum = data.oudio_url
-      ? new Intl.DateTimeFormat("af-ZA", {
-          timeZone: "Africa/Johannesburg",
-          weekday: "long",
-          day: "numeric",
-          month: "long",
-        }).format(new Date(`${data.datum}T12:00:00Z`))
-      : null;
-    const oudioEtiket = data.oudio_url?.includes("-aand.mp3")
-      ? "LUISTER NA DIE DAGOPSOMMING"
-      : data.oudio_url?.includes("-middag.mp3")
-        ? "LUISTER NA DIE MIDDAGOORSIG"
-        : "LUISTER NA DIE OGGENDOORSIG";
-    return { teks: data.teks, bygewerk, oudioUrl: data.oudio_url ?? null, oudioDatum, oudioEtiket };
-  } catch {
-    return null;
-  }
-}
-
-/* Alles hieronder is IDENTIES vir elke gebruiker, so dit hoort nie op 'n
-   per-versoek pad nie. Een besoeker per venster betaal die netwerkkoste;
-   die res kry 'n enkele kas-opsoek. Persoonlike data (portefeulje, dophou,
-   waarskuwings, profiel) bly doelbewus ongekas en live.
-   Vensters volg elke bron se cron: oorsig loop uurliks, SENS elke 30 min,
-   nuus elke 15 min, sakgeld daagliks. */
-const gekasdeOorsig = unstable_cache(kryOorsig, ["markte-oorsig"], { revalidate: 300 });
-const gekasdeSens = unstable_cache(krySens, ["markte-sens"], { revalidate: 300 });
-const gekasdeSakgeld = unstable_cache(krySakgeld, ["markte-sakgeld"], { revalidate: 1800 });
-const gekasdeNotas = unstable_cache(kryNotas, ["markte-skuiwer-notas"], { revalidate: 300 });
-const gekasdeNuus = unstable_cache(kryNuus, ["markte-nuus"], { revalidate: 300 });
-
-/* Kwotasies is reeds fetch-gekas, maar dis 23 (Tuis) tot 107 (Bewegers)
-   aparte kas-opsoeke per render — op Vercel is elkeen 'n netwerkrondte.
-   Dié wrapper maak dit een. Net vir die vaste borde: die portefeulje se
-   simbole is per gebruiker en sou die kas-sleutels onbegrens laat groei. */
-const gekasdeBordKwotasies = unstable_cache(
-  (simbole: string[]) => getQuotes(simbole),
-  ["markte-bord-kwotasies"],
-  { revalidate: 60 }
-);
 
 const TABS = [
   { sleutel: "tuis", naam: "Tuis" },

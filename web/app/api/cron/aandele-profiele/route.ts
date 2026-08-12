@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { AANDELE } from "@/lib/aandele";
+import { cronGeweier } from "@/lib/cron-hek";
 
 export const maxDuration = 300;
 
@@ -13,9 +14,8 @@ const STYL =
   "authentic 1950s mid-century commercial book illustration, strictly limited TWO-COLOUR palette of black plus dusty rose-mauve, flat shapes on cream off-white textured paper, loose confident ink-brush linework, charmingly elongated stylised figures and objects, generous negative space, no gradients, absolutely no text or letters or numbers";
 
 export async function GET(request: NextRequest) {
-  if (request.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ fout: "nee" }, { status: 401 });
-  }
+  const geweier = cronGeweier(request);
+  if (geweier) return geweier;
   const sb = createClient(process.env.APHQ_SUPABASE_URL!, process.env.APHQ_SUPABASE_SERVICE_KEY!, {
     auth: { persistSession: false },
   });

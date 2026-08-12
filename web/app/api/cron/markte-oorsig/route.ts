@@ -2,14 +2,13 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { getQuotes } from "@/lib/markets/source";
 import { ALLE_SIMBOLE, naamVirSimbool } from "@/lib/markets/boards";
+import { cronGeweier } from "@/lib/cron-hek";
 
 export const maxDuration = 60;
 
 export async function GET(request: NextRequest) {
-  const auth = request.headers.get("authorization");
-  if (process.env.CRON_SECRET && auth !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ fout: "verbode" }, { status: 401 });
-  }
+  const geweier = cronGeweier(request);
+  if (geweier) return geweier;
 
   const nou = new Date();
   const uur = Number(
