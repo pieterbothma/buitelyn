@@ -21,7 +21,6 @@ import { ALLE_SIMBOLE } from "@/lib/markets/boards";
 
 export const revalidate = 300;
 
-const SUBSTACK = "https://buitelyn.substack.com";
 
 export default async function Home() {
   /* Alles hier is publiek en identies vir elke besoeker, dus loop dit deur
@@ -88,10 +87,24 @@ export default async function Home() {
   );
 }
 
+const TUIS = "https://www.buitelyn.com/";
+const BESKRYWING =
+  "Die JSE, die rand en die dag se grootste bewegers — met die rede daaragter. Plus Buitelyn se skryfwerk.";
+
+/* og:url wys na die WERF, nie na Substack nie. Dit het eers na Substack
+   gewys, wat beteken het dat elke keer as iemand buitelyn.com op WhatsApp
+   deel, die voorskou Substack adverteer — presies die teenoorgestelde van
+   die plan om die gehoor hierheen te trek. */
 export const metadata = {
   title: "Buitelyn — semi-sakenuus en iets van alles",
-  description:
-    "Die JSE, die rand en die dag se grootste bewegers — met die rede daaragter. Plus Buitelyn se skryfwerk.",
-  alternates: { canonical: "https://www.buitelyn.com/" },
-  openGraph: { url: SUBSTACK },
+  description: BESKRYWING,
+  alternates: { canonical: TUIS },
+  openGraph: {
+    type: "website",
+    url: TUIS,
+    siteName: "Buitelyn",
+    locale: "af_ZA",
+    title: "Buitelyn — semi-sakenuus en iets van alles",
+    description: BESKRYWING,
+  },
 };
