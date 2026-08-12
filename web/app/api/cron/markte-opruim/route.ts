@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { cronGeweier } from "@/lib/cron-hek";
 
 /* Daaglikse opruiming: nuus-rye ouer as 72 uur word geskrap. Nie 24u nie —
    die RSS-bronne lys stories nog 2-3 dae, en 'n te vroeë skrap laat die
@@ -8,10 +9,8 @@ import { createClient } from "@supabase/supabase-js";
 const RETENSIE_URE = 72;
 
 export async function GET(request: NextRequest) {
-  const auth = request.headers.get("authorization");
-  if (process.env.CRON_SECRET && auth !== `Bearer ${process.env.CRON_SECRET}`) {
-    return NextResponse.json({ fout: "verbode" }, { status: 401 });
-  }
+  const geweier = cronGeweier(request);
+  if (geweier) return geweier;
 
   const sb = createClient(process.env.APHQ_SUPABASE_URL!, process.env.APHQ_SUPABASE_SERVICE_KEY!, {
     auth: { persistSession: false },
