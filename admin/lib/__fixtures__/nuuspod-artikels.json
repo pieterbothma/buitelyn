@@ -1,0 +1,35 @@
+[
+  {
+    "id": "a1",
+    "headline": "Eskom kondig nuwe tariewe aan",
+    "summary": "Die tariewe styg vanaf Julie.",
+    "body": "Eskom het vandag aangekondig dat tariewe met agt persent styg.",
+    "sourceUrl": "https://news24.com/a1",
+    "sourceName": "News24",
+    "category": "news24",
+    "publishedAt": "2026-08-18T06:00:00.000Z",
+    "createdAt": "2026-08-18T06:05:00.000Z"
+  },
+  {
+    "id": "a2",
+    "headline": "Maroela berig oor die weer",
+    "summary": "Koue front oor die Kaap.",
+    "body": "'n Koue front tref die Wes-Kaap more.",
+    "sourceUrl": "https://maroelamedia.co.za/a2",
+    "sourceName": "Maroela Media",
+    "category": "maroela",
+    "publishedAt": "2026-08-18T05:00:00.000Z",
+    "createdAt": "2026-08-18T05:05:00.000Z"
+  },
+  {
+    "id": "a3",
+    "headline": "News24 se tweede storie",
+    "summary": "Nog nuus.",
+    "body": "",
+    "sourceUrl": "https://news24.com/a3",
+    "sourceName": "News24",
+    "category": "news24",
+    "publishedAt": "2026-08-18T07:00:00.000Z",
+    "createdAt": "2026-08-18T07:05:00.000Z"
+  }
+]
