@@ -15,7 +15,7 @@ export type Artikel = {
   publishedAt: string;
 };
 
-const BRON = "https://nuuspod.co.za/api/articles/all";
+const BRON = "https://www.kremetart.com/api/articles/all";
 
 function teks(waarde: unknown): string {
   return typeof waarde === "string" ? waarde : "";
@@ -65,7 +65,12 @@ export async function kryArtikels(): Promise<Artikel[]> {
   try {
     const res = await fetch(BRON, {
       next: { revalidate: 600 },
-      headers: { "user-agent": "APHQ/1.0 (buitelyn admin)" },
+      headers: {
+        "user-agent": "APHQ/1.0 (buitelyn admin)",
+        /* Sonder hierdie kop stuur nuuspod se middleware ons na /login en
+           ons ontleed 'n aanmeldblad as artikels — wat stil [] gee. */
+        authorization: `Bearer ${process.env.NUUS_DEEL_SLEUTEL ?? ""}`,
+      },
     });
     if (!res.ok) return [];
     return normaliseerArtikels(await res.json());
