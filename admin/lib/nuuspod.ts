@@ -26,16 +26,24 @@ function teks(waarde: unknown): string {
  *  groepeer self per bron (sien groepeerPerBron), so daardie
  *  kategorie-groepering is vir ons nutteloos en word hier plat afgemaak.
  *  'n Kaal skikking (die ou vorm, steeds gedek deur die vaslegging-toetse)
- *  moet ook bly werk. Enigiets anders — 'n foutobjek, 'n HTML-foutbladsy,
- *  null, 'n objek waarvan die waardes nie almal skikkings is nie — word 'n
- *  leë lys. */
+ *  moet ook bly werk. Ekstra skalêre sleutels (bv. 'n toekomstige
+ *  { total: 355, sport: [...] }) word net uitgefilter — dis nie 'n rede om
+ *  élke artikel weg te gooi nie, dis presies die vorm-skuif wat hierdie
+ *  branch se bladsy vantevore laat verdwyn het. Enigiets sonder skikkings —
+ *  'n foutobjek, 'n HTML-foutbladsy, null — word steeds 'n leë lys. */
 function plataAf(rou: unknown): unknown[] {
   if (Array.isArray(rou)) return rou;
   if (rou && typeof rou === "object") {
-    const waardes = Object.values(rou as Record<string, unknown>);
-    if (waardes.every((w) => Array.isArray(w))) return waardes.flat();
+    return Object.values(rou as Record<string, unknown>).filter(Array.isArray).flat();
   }
   return [];
+}
+
+/** 'n Datumstring wat Date.parse nie kan ontleed nie (die 19 bo-liggende
+ *  bronne se formate wissel) mag nooit later `new Date(...)` in
+ *  nuus-lys.tsx laat gooi nie — hou dit net as dit werklik ontleed. */
+function geldigeDatum(waarde: string): string {
+  return waarde !== "" && Number.isFinite(Date.parse(waarde)) ? waarde : "";
 }
 
 /** Maak nuuspod se antwoord veilig. Sien plataAf() vir die vorm-verdraagsaamheid;
@@ -52,7 +60,7 @@ export function normaliseerArtikels(rou: unknown): Artikel[] {
         sourceUrl: teks(a.sourceUrl),
         sourceName: teks(a.sourceName),
         category: teks(a.category),
-        publishedAt: teks(a.publishedAt),
+        publishedAt: geldigeDatum(teks(a.publishedAt)),
       };
     })
     .filter((a) => a.headline && a.sourceName);
@@ -87,9 +95,14 @@ export async function kryArtikels(): Promise<Artikel[]> {
         authorization: `Bearer ${process.env.NUUS_DEEL_SLEUTEL ?? ""}`,
       },
     });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      // Status alleen — nooit die Authorization-kop of die geheim self nie.
+      console.error("nuuspod", res.status);
+      return [];
+    }
     return normaliseerArtikels(await res.json());
-  } catch {
+  } catch (e) {
+    console.error("nuuspod", e);
     return [];
   }
 }

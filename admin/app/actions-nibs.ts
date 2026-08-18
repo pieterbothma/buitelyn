@@ -25,6 +25,6 @@ export async function vertaalNaAfrikaans(teks: string): Promise<string | null> {
 
 Antwoord met NET die vertaling.
 
-${teks}`
+${teks.slice(0, 30_000)}`
   );
 }

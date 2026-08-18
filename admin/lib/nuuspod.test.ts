@@ -22,6 +22,23 @@ describe("normaliseerArtikels", () => {
   it("gooi 'n inskrywing sonder opskrif weg", () => {
     expect(normaliseerArtikels([{ id: "x", sourceName: "News24" }])).toEqual([]);
   });
+
+  it("stoor 'n onontleedbare datumstring as leeg pleks van te gooi", () => {
+    // een slegte datum uit een van 19 bo-liggende bronne mag nie die hele
+    // Nuus-blad met 'n RangeError laat val nie (sien nuus-lys.tsx se new Date()).
+    // (let wel: Date.parse ontleed "18 Augustus 2026" eintlik lenig via
+    // prefix-ooreenstemming — "om 14:00" agteraan is wat dit eg onontleedbaar maak.)
+    const a = normaliseerArtikels([
+      {
+        id: "x",
+        headline: "'n Opskrif",
+        sourceName: "News24",
+        publishedAt: "18 Augustus 2026 om 14:00",
+      },
+    ]);
+    expect(a).toHaveLength(1);
+    expect(a[0].publishedAt).toBe("");
+  });
 });
 
 describe("normaliseerArtikels — kategorie-objek (kremetart se ware vorm)", () => {
@@ -52,8 +69,15 @@ describe("normaliseerArtikels — kategorie-objek (kremetart se ware vorm)", () 
     expect(normaliseerArtikels({ sport: [], australasie: [] })).toEqual([]);
   });
 
-  it("gee 'n leë lys as die objek se waardes nie almal skikkings is nie", () => {
-    expect(normaliseerArtikels({ fout: "oeps", wereld: [artikel()] })).toEqual([]);
+  it("filter ekstra skalêre sleutels uit pleks van alles weg te gooi", () => {
+    // die dag wat kremetart 'n skalêre sleutel soos { total: 355 } byvoeg,
+    // mag dit nie elke artikel laat verdwyn nie — presies hoe hierdie
+    // branch se bladsy vantevore stukkend gegaan het.
+    expect(normaliseerArtikels({ total: 355, wereld: [artikel()] })).toHaveLength(1);
+  });
+
+  it("gee 'n leë lys as die objek géén skikking-waardes het nie", () => {
+    expect(normaliseerArtikels({ fout: "oeps", total: 355 })).toEqual([]);
   });
 });
 

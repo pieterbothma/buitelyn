@@ -76,6 +76,11 @@ export function NibsStudio() {
       const d = await res.json();
       if (res.ok) setMp3(d.mp3);
       else setBoodskap(d.fout ?? "Oudio het misluk.");
+    } catch {
+      /* Gateway-timeout (die TTS-oproep kan tot 300s vat) gee HTML terug,
+         nie JSON nie — res.json() gooi dan. Sonder hierdie catch bly die
+         gebruiker met niks: geen oudio, geen boodskap. */
+      setBoodskap("Netwerkfout.");
     } finally {
       setBesig("");
     }
