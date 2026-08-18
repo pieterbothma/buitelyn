@@ -274,19 +274,25 @@ export function SosiaalStudio({
           placeholder="Opskrif in die beeld (swart teks bo) — opsioneel"
           className="border-2 border-ink bg-offwhite px-3 py-2 text-sm outline-none focus:border-red"
         />
-        <div className="flex flex-wrap gap-2">
-          <input
-            value={eiePrompt}
-            onChange={(e) => setEiePrompt(e.target.value)}
-            placeholder="Waaroor gaan die spotprent? (bv. Kganyago hou die rentekoers-hek toe terwyl die rand wegloop)"
-            className="min-w-72 flex-1 border-2 border-ink bg-offwhite px-3 py-2 text-sm outline-none focus:border-red"
-          />
+        {/* 'n Textarea, nie 'n input nie: 'n spotprent-beskrywing is 'n paar
+            sinne lank en op een reël rol die begin uit sig sodra jy tik — jy
+            kan nie sien wat jy vra nie. Daar was nooit 'n karakterlimiet nie,
+            net te min plek. resize-y laat 'n mens dit self groter trek. */}
+        <textarea
+          value={eiePrompt}
+          onChange={(e) => setEiePrompt(e.target.value)}
+          rows={4}
+          placeholder="Waaroor gaan die spotprent? (bv. Kganyago hou die rentekoers-hek toe terwyl die rand wegloop)"
+          className="w-full resize-y border-2 border-ink bg-offwhite px-3 py-2 text-sm leading-relaxed outline-none focus:border-red"
+        />
+        <div className="flex flex-wrap items-center gap-3">
           <button
             disabled={eieBesig || !eiePrompt.trim()}
             className="bg-ink px-4 py-2 text-sm font-semibold text-offwhite hover:bg-ink/85 disabled:opacity-50"
           >
             {eieBesig ? "Skep… (±30s)" : "Skep spotprent"}
           </button>
+          <span className="text-xs text-ink/50">{eiePrompt.trim().length} karakters</span>
         </div>
       </form>
       {eieFotos.length ? (
