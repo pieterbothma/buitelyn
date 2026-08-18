@@ -173,3 +173,32 @@ describe("kategorie-volgorde", () => {
   });
 });
 
+describe("publishedAt-terugval", () => {
+  it("val terug op createdAt wanneer publishedAt leeg is", () => {
+    // Draadberigte waar die bron se bladsy geen tyd gee nie.
+    const [a] = normaliseerArtikels([
+      { id: "t1", headline: "Sonder tyd", sourceName: "AP News", publishedAt: "", createdAt: "2026-08-18T05:00:00.000Z" },
+    ]);
+    expect(a.publishedAt).toBe("2026-08-18T05:00:00.000Z");
+  });
+
+  it("val ook terug wanneer publishedAt onontleedbaar is", () => {
+    const [a] = normaliseerArtikels([
+      { id: "t2", headline: "Rommeltyd", sourceName: "AP News", publishedAt: "gister sommer", createdAt: "2026-08-18T05:00:00.000Z" },
+    ]);
+    expect(a.publishedAt).toBe("2026-08-18T05:00:00.000Z");
+  });
+
+  it("verkies publishedAt bo createdAt wanneer albei geldig is", () => {
+    const [a] = normaliseerArtikels([
+      { id: "t3", headline: "Albei", sourceName: "AP News", publishedAt: "2026-08-17T09:00:00.000Z", createdAt: "2026-08-18T05:00:00.000Z" },
+    ]);
+    expect(a.publishedAt).toBe("2026-08-17T09:00:00.000Z");
+  });
+
+  it("bly leeg wanneer albei onbruikbaar is", () => {
+    const [a] = normaliseerArtikels([{ id: "t4", headline: "Niks", sourceName: "AP News" }]);
+    expect(a.publishedAt).toBe("");
+  });
+});
+

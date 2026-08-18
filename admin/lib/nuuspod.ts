@@ -75,7 +75,21 @@ export function normaliseerArtikels(rou: unknown): Artikel[] {
         sourceUrl: teks(a.sourceUrl),
         sourceName: teks(a.sourceName),
         category: teks(a.category),
-        publishedAt: geldigeDatum(a.publishedAt),
+        /* publishedAt ?? createdAt. nuuspod gee sedert 2026-08-18 'n egte
+           publikasietyd, maar twee dinge hou die terugval nodig:
+
+           - Artikels wat reeds in Blob lê, behou hul ingestorte tyd totdat
+             hulle weer geskraap word.
+           - Vir draadberigte waar die bladsy niks sê nie, is publishedAt nou
+             doelbewus leeg — 'n versinde tyd sorteer verkeerd terwyl dit eg
+             lyk. nuuspod se eie laaste stap val op "nou" terug sodat die
+             antwoord nie-null bly.
+
+           Ná die volgende volle skraaplopie sê `npx tsx .data/_check-published.ts`
+           (in die nuuspod-repo) hoeveel artikels nog 'n ingestorte waarde het.
+           Naby nul vir die bronne wat saak maak: haal hierdie terugval uit en
+           sorteer op datum voor KATEGORIE_ORDE. */
+        publishedAt: geldigeDatum(a.publishedAt) || geldigeDatum(a.createdAt),
         imageUrl: teks(a.imageUrl),
         rang,
       };
