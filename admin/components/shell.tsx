@@ -90,26 +90,28 @@ export function Shell({
                       <>
                         <li>
                           <Link
+                            href={`/w/${ws.slug}/nuus`}
+                            className="block py-1 text-[13px] text-ink/70 hover:text-ink hover:underline"
+                          >
+                            Nuus
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
                             href={`/w/${ws.slug}/studio`}
                             className="block py-1 text-[13px] text-ink/70 hover:text-ink hover:underline"
                           >
                             Studio
                           </Link>
                         </li>
+                        {/* Nibs hoort by die Studio se gereedskap, nie op sy eie
+                            vlak nie — dit is 'n instrument, nie 'n afdeling nie. */}
                         <li>
                           <Link
                             href={`/w/${ws.slug}/nibs`}
-                            className="block py-1 text-[13px] text-ink/70 hover:text-ink hover:underline"
+                            className="block py-1 pl-3 text-[13px] text-ink/70 hover:text-ink hover:underline"
                           >
                             Nibs
-                          </Link>
-                        </li>
-                        <li>
-                          <Link
-                            href={`/w/${ws.slug}/nuus`}
-                            className="block py-1 text-[13px] text-ink/70 hover:text-ink hover:underline"
-                          >
-                            Nuus
                           </Link>
                         </li>
                         {/* Die Studio se gereedskap was net vanaf die hub bereikbaar;

@@ -13,6 +13,8 @@ export type Artikel = {
   sourceName: string;
   category: string;
   publishedAt: string;
+  /* Die artikel se plek BINNE sy kategorie by kremetart. Sien groepeerPerBron. */
+  rang: number;
 };
 
 const BRON = "https://www.kremetart.com/api/articles/all";
@@ -31,27 +33,39 @@ function teks(waarde: unknown): string {
  *  élke artikel weg te gooi nie, dis presies die vorm-skuif wat hierdie
  *  branch se bladsy vantevore laat verdwyn het. Enigiets sonder skikkings —
  *  'n foutobjek, 'n HTML-foutbladsy, null — word steeds 'n leë lys. */
-function plataAf(rou: unknown): unknown[] {
-  if (Array.isArray(rou)) return rou;
-  if (rou && typeof rou === "object") {
-    return Object.values(rou as Record<string, unknown>).filter(Array.isArray).flat();
-  }
-  return [];
+/* kremetart gee 'n objek terug wat per kategorie groepeer ("wereld", "asie",
+   "suid-afrika", …), elke waarde 'n lys. Ons hergroepeer per BRON, dus is die
+   kategorie-groepering vir ons nutteloos — maar die POSISIE binne 'n kategorie
+   is waardevol: dit is kremetart se eie volgorde, hoofstorie eerste.
+
+   Ons hou daardie posisie as `rang` by, want die alternatief is stil verkeerd:
+   Netwerk24 se 114 artikels dra net 3 verskillende publishedAt-waardes, dus doen
+   'n sortering op datum feitlik niks en bly die invoegvolgorde staan — en dié is
+   die kategorie-sleutels se volgorde, wat "wereld" heelbo sit en Suid-Afrikaanse
+   nuus heel onder. Vandaar 'n bladsy vol Trump terwyl die bron self plaaslik lei.
+
+   'n Kaal lys word ook aanvaar (rang = die posisie in daardie lys). */
+/* 'n Datum wat nie ontleed nie, word 'n leë string eerder as om deur te gaan:
+   nuus-lys gee dit aan `new Date()`, en 'n ongeldige datum gooi daar 'n
+   RangeError wat die HELE Nuus-roete afskiet — daar is geen error.tsx nie.
+   Een bron met 'n vreemde datumformaat mag nie die blad doodmaak nie. */
+function geldigeDatum(waarde: unknown): string {
+  const t = teks(waarde);
+  return Number.isFinite(Date.parse(t)) ? t : "";
 }
 
-/** 'n Datumstring wat Date.parse nie kan ontleed nie (die 19 bo-liggende
- *  bronne se formate wissel) mag nooit later `new Date(...)` in
- *  nuus-lys.tsx laat gooi nie — hou dit net as dit werklik ontleed. */
-function geldigeDatum(waarde: string): string {
-  return waarde !== "" && Number.isFinite(Date.parse(waarde)) ? waarde : "";
+function plataAf(rou: unknown): { item: unknown; rang: number }[] {
+  if (Array.isArray(rou)) return rou.map((item, rang) => ({ item, rang }));
+  if (!rou || typeof rou !== "object") return [];
+  return Object.values(rou as Record<string, unknown>)
+    .filter(Array.isArray)
+    .flatMap((lys) => (lys as unknown[]).map((item, rang) => ({ item, rang })));
 }
 
-/** Maak nuuspod se antwoord veilig. Sien plataAf() vir die vorm-verdraagsaamheid;
- *  die Nuus-blad moet bly staan al is nuuspod af of stuur dit iets onverwags. */
 export function normaliseerArtikels(rou: unknown): Artikel[] {
   return plataAf(rou)
-    .map((r) => {
-      const a = r as Record<string, unknown>;
+    .map(({ item, rang }) => {
+      const a = item as Record<string, unknown>;
       return {
         id: teks(a.id),
         headline: teks(a.headline),
@@ -60,18 +74,29 @@ export function normaliseerArtikels(rou: unknown): Artikel[] {
         sourceUrl: teks(a.sourceUrl),
         sourceName: teks(a.sourceName),
         category: teks(a.category),
-        publishedAt: geldigeDatum(teks(a.publishedAt)),
+        publishedAt: geldigeDatum(a.publishedAt),
+        rang,
       };
     })
     .filter((a) => a.headline && a.sourceName);
 }
 
 /** Groepeer per bron: die bron met die meeste stories eerste, en binne elke
- *  bron die nuutste storie eerste. Die oortjie-volgorde is dus stabiel en
- *  nuttig eerder as alfabeties. */
+ *  bron eers op datum (nuutste bo) en dan op `rang` — kremetart se eie
+ *  volgorde binne 'n kategorie. Die rang doen in die praktyk die meeste werk,
+ *  want die datums is grofweg almal die skraaplopie s'n.
+ *
+ *  Dieselfde artikel staan dikwels in twee kategorieë (bv. "wereld" én
+ *  "internasionaal"), dus gooi ons duplikate op id weg — anders sien 'n mens
+ *  dieselfde storie twee keer en React kry botsende sleutels. */
 export function groepeerPerBron(artikels: Artikel[]): { bron: string; artikels: Artikel[] }[] {
+  const gesien = new Set<string>();
   const kaart = new Map<string, Artikel[]>();
   for (const a of artikels) {
+    if (a.id) {
+      if (gesien.has(a.id)) continue;
+      gesien.add(a.id);
+    }
     const lys = kaart.get(a.sourceName) ?? [];
     lys.push(a);
     kaart.set(a.sourceName, lys);
@@ -79,7 +104,9 @@ export function groepeerPerBron(artikels: Artikel[]): { bron: string; artikels: 
   return [...kaart.entries()]
     .map(([bron, lys]) => ({
       bron,
-      artikels: [...lys].sort((x, y) => y.publishedAt.localeCompare(x.publishedAt)),
+      artikels: [...lys].sort(
+        (x, y) => y.publishedAt.localeCompare(x.publishedAt) || x.rang - y.rang
+      ),
     }))
     .sort((x, y) => y.artikels.length - x.artikels.length);
 }

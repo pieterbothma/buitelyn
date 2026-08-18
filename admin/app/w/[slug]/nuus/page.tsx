@@ -38,8 +38,7 @@ export default async function Nuus({
     <Shell workspaces={(workspaces ?? []) as Workspace[]} active={active as Workspace}>
       <h1 className="text-2xl font-extrabold tracking-tight">Nuus</h1>
       <p className="mt-1 max-w-2xl text-sm text-ink/60">
-        Dieselfde stories wat nuuspod inbring. Stuur enige een met een klik na Nibs.
-      </p>
+        Dis dieselfde stories wat nuuspod inbring, en jy klik op &rsquo;n storie om die volle teks te lees.</p>
 
       {groepe.length === 0 ? (
         <p className="mt-8 border-2 border-ink bg-offwhite p-4 text-sm">

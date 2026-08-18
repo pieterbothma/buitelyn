@@ -96,3 +96,42 @@ describe("groepeerPerBron", () => {
     expect(groepe[0].artikels[0].id).toBe("a3");
   });
 });
+
+describe("volgorde en duplikate", () => {
+  /* Netwerk24 se 114 artikels dra net 3 verskillende publishedAt-waardes, dus
+     doen 'n datum-sortering feitlik niks en bly die kategorie-volgorde staan —
+     wat "wereld" bo Suid-Afrikaanse nuus sit. `rang` moet die knoop deurhak. */
+  it("sorteer op rang wanneer die datums dieselfde is", () => {
+    const rou = {
+      wereld: [
+        { id: "w1", headline: "Wereld een", sourceName: "Netwerk24", publishedAt: "2026-08-18T03:50:00.000Z" },
+        { id: "w2", headline: "Wereld twee", sourceName: "Netwerk24", publishedAt: "2026-08-18T03:50:00.000Z" },
+      ],
+      "suid-afrika": [
+        { id: "s1", headline: "SA een", sourceName: "Netwerk24", publishedAt: "2026-08-18T03:50:00.000Z" },
+      ],
+    };
+    const [groep] = groepeerPerBron(normaliseerArtikels(rou));
+    // w1 (rang 0) en s1 (rang 0) kom voor w2 (rang 1)
+    expect(groep.artikels.map((a) => a.id)).toEqual(["w1", "s1", "w2"]);
+  });
+
+  it("'n nuwer datum klop steeds die rang", () => {
+    const rou = {
+      wereld: [{ id: "w1", headline: "Ouer", sourceName: "Netwerk24", publishedAt: "2026-08-17T06:00:00.000Z" }],
+      "suid-afrika": [{ id: "s1", headline: "Nuwer", sourceName: "Netwerk24", publishedAt: "2026-08-18T06:00:00.000Z" }],
+    };
+    const [groep] = groepeerPerBron(normaliseerArtikels(rou));
+    expect(groep.artikels[0].id).toBe("s1");
+  });
+
+  it("gooi dieselfde artikel weg as dit in twee kategorieë staan", () => {
+    const rou = {
+      wereld: [{ id: "x", headline: "Een storie", sourceName: "Netwerk24", publishedAt: "2026-08-18T03:50:00.000Z" }],
+      internasionaal: [{ id: "x", headline: "Een storie", sourceName: "Netwerk24", publishedAt: "2026-08-18T03:50:00.000Z" }],
+    };
+    const [groep] = groepeerPerBron(normaliseerArtikels(rou));
+    expect(groep.artikels).toHaveLength(1);
+  });
+});
+

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { vertaalNaAfrikaans } from "@/app/actions-nibs";
 import { verwerkTeksVirAudio } from "@/app/actions-audio";
 
@@ -16,22 +16,6 @@ export function NibsStudio() {
   const [boodskap, setBoodskap] = useState("");
   const [mp3, setMp3] = useState<string | null>(null);
 
-  /* Nuus se "Na NIBS"-knoppie los die storie hier. Ons lees dit een keer en
-     vee dit dan uit, anders duik dieselfde storie by elke besoek weer op. */
-  useEffect(() => {
-    try {
-      const oorgedra = sessionStorage.getItem("nibs-bronteks");
-      if (oorgedra) {
-        /* eslint-disable-next-line react-hooks/set-state-in-effect -- selfde
-           patroon as outostoor.tsx: sinchroniseer 'n EKSTERNE stelsel
-           (sessionStorage) na React-toestand toe by laai. */
-        setBron(oorgedra);
-        sessionStorage.removeItem("nibs-bronteks");
-      }
-    } catch {
-      /* privaat modus ens. */
-    }
-  }, []);
 
   const vertaal = async () => {
     setBesig("vertaal");
