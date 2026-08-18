@@ -26,7 +26,10 @@ export const BESIGHEID = {
   handelsnaam: "Seepunt Media",
   publikasie: "Buitelyn",
   adres: "6 Bellevue Road, Cape Town 8050",
-  epos: "apduplessis@gmail.com",
+  /* Nie AP se privaat Gmail nie: dié adres staan op drie openbare bladsye en
+     word gehark. buitelyn.com is reeds Resend-geverifieer vir UITSTUUR — die
+     aanstuur van INKOMENDE pos moet apart opgestel wees voor dit publiseer. */
+  epos: "hallo@buitelyn.com",
   telefoon: "062 707 0784",
 } as const;
 
@@ -53,14 +56,20 @@ export const BELEID = {
   /* Hoe lank aflewering neem. Nodig vir die beleid én vir Paystack. */
   afleweringsDae: "5 tot 7 werksdae",
 
-  /* Word 'n intekening se onbenutte deel terugbetaal wanneer iemand halfpad
-     deur die maand kanselleer, of loop dit klaar tot die einde van die
-     betaalde tydperk? Albei is wettig; dit is Buitelyn se keuse. */
-  intekeningProRata: ONBEVESTIG,
+  /* Piet se keuse (2026-08-18): dit loop klaar tot die einde van die betaalde
+     tydperk, geen pro rata nie. Dus hoef die winkel later nooit 'n gedeeltelike
+     terugbetaling deur Paystack te bereken nie. */
+  intekeningProRata: "geen, omdat toegang behou word tot die einde van die betaalde tydperk",
 } as const;
 
 /* Waar of nie: is daar nog 'n onbevestigde feit oor? Die bladsye gebruik dit
    om 'n sigbare waarskuwing te wys eerder as om stilweg 'n gat te los. */
 export function onvolledig(): boolean {
-  return [...Object.values(BESIGHEID), ...Object.values(BELEID)].some((v) => v === ONBEVESTIG);
+  /* `unknown[]` is nodig omdat `as const` die waardes tot letterlike tipes
+     vernou. TypeScript weet dan dat nie een van hulle ONBEVESTIG kán wees nie
+     en merk die vergelyking as sinneloos (TS2367) — wat op sigself die bewys
+     is dat die blad volledig is. Die hek bly staan vir die volgende keer as
+     iemand 'n nuwe veld byvoeg en dit oop laat. */
+  const waardes: readonly unknown[] = [...Object.values(BESIGHEID), ...Object.values(BELEID)];
+  return waardes.some((v) => v === ONBEVESTIG);
 }
