@@ -29,6 +29,16 @@ const GEREEDSKAP = [
     wat: "Maak 'n ElevenLabs-audio-weergawe van 'n nuusbrief-uitgawe.",
   },
   {
+    pad: "kaarte",
+    naam: "Kaart-bouer",
+    wat: "Bou 'n Buitelyn-kaart in enige formaat: kop + beeld, 'n groot getal, 'n aanhaling of 'n lys. Vierkant, portret, storie of landskap.",
+  },
+  {
+    pad: "beeld",
+    naam: "Beeld-gereedskap",
+    wat: "Verwyder 'n agtergrond, sny 'n beeld en laai dit af — alles in die blaaier, sonder om na Canva toe te gaan.",
+  },
+  {
     pad: "sosiaal",
     naam: "Sosiale Media",
     wat: "Vandag se nuusbrief as plasings: branded poskaarte, platform-tekste, en binnekort video met audio.",

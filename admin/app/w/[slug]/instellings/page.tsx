@@ -106,7 +106,7 @@ export default async function Instellings({ params }: { params: Promise<{ slug: 
             className="mt-1 w-full border-2 border-ink bg-paper px-3 py-2 text-sm font-normal outline-none focus:border-red"
           />
           <span className="mt-1 block text-xs font-normal text-ink/50">
-            Moet 'n Resend-geverifieerde domein wees.
+            Moet &apos;n Resend-geverifieerde domein wees.
           </span>
         </label>
         <button className="w-full bg-ink py-2.5 text-sm font-semibold text-offwhite hover:bg-ink/85">

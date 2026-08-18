@@ -113,7 +113,7 @@ export default async function Vandag() {
           <h2 className="text-sm font-semibold tracking-[0.14em]">INBOX →</h2>
           <p className="mt-3 text-sm text-ink/70">
             <span className="text-2xl font-extrabold">{inbox ?? 0}</span> ongesorteerde idee
-            {(inbox ?? 0) === 1 ? "" : "s"} — tag hulle in 'n werkruimte.
+            {(inbox ?? 0) === 1 ? "" : "s"} — tag hulle in &apos;n werkruimte.
           </p>
         </a>
       </div>
