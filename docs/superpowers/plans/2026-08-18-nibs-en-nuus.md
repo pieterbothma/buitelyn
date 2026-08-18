@@ -697,7 +697,11 @@ import { Shell, type Workspace } from "@/components/shell";
 import { kryArtikels, groepeerPerBron } from "@/lib/nuuspod";
 import { NuusLys } from "@/components/nuus-lys";
 
-export const revalidate = 600;
+/* force-dynamic, want die blad lees koekies deur supabaseServer(). Die
+   KASSERING gebeur op die fetch in kryArtikels() — `next: { revalidate: 600 }`
+   werk wel onder force-dynamic, ten spyte van wat die dokumentasie impliseer
+   (gemeet in hierdie repo, sien die markte-werk). */
+export const dynamic = "force-dynamic";
 
 export default async function Nuus({
   params,
