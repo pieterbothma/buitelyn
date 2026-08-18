@@ -24,6 +24,39 @@ describe("normaliseerArtikels", () => {
   });
 });
 
+describe("normaliseerArtikels — kategorie-objek (kremetart se ware vorm)", () => {
+  // kremetart groepeer per kategorie ({ sport: [...], wereld: [...], ... }),
+  // nie per bron nie — ons plat dit af en groepeer self (groepeerPerBron).
+  const artikel = (oorskryf: Partial<Record<string, unknown>> = {}) => ({
+    id: "k1",
+    headline: "'n Opskrif",
+    summary: "",
+    body: "",
+    sourceUrl: "https://voorbeeld.co.za/k1",
+    sourceName: "Voorbeeld",
+    category: "wereld",
+    publishedAt: "2026-08-18T06:00:00.000Z",
+    ...oorskryf,
+  });
+
+  it("plat 'n objek van skikkings af na een lys artikels", () => {
+    const rou = {
+      sport: [],
+      wereld: [artikel({ id: "k1" }), artikel({ id: "k2" })],
+      news24: [artikel({ id: "k3", sourceName: "News24" })],
+    };
+    expect(normaliseerArtikels(rou).map((a) => a.id).sort()).toEqual(["k1", "k2", "k3"]);
+  });
+
+  it("leë skikkings binne die objek dra niks by nie", () => {
+    expect(normaliseerArtikels({ sport: [], australasie: [] })).toEqual([]);
+  });
+
+  it("gee 'n leë lys as die objek se waardes nie almal skikkings is nie", () => {
+    expect(normaliseerArtikels({ fout: "oeps", wereld: [artikel()] })).toEqual([]);
+  });
+});
+
 describe("groepeerPerBron", () => {
   const groepe = groepeerPerBron(normaliseerArtikels(rou));
 

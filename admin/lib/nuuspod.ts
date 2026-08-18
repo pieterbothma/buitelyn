@@ -21,12 +21,27 @@ function teks(waarde: unknown): string {
   return typeof waarde === "string" ? waarde : "";
 }
 
-/** Maak nuuspod se antwoord veilig. Enigiets wat nie 'n lys is nie — 'n
- *  foutobjek, 'n HTML-foutbladsy, null — word 'n leë lys, want die Nuus-blad
- *  moet bly staan al is nuuspod af. */
+/** Die kremetart-eindpunt groepeer sy antwoord per kategorie — 'n objek met
+ *  'n skikking per sleutel ({ sport: [...], wereld: [...], ... }) — maar ons
+ *  groepeer self per bron (sien groepeerPerBron), so daardie
+ *  kategorie-groepering is vir ons nutteloos en word hier plat afgemaak.
+ *  'n Kaal skikking (die ou vorm, steeds gedek deur die vaslegging-toetse)
+ *  moet ook bly werk. Enigiets anders — 'n foutobjek, 'n HTML-foutbladsy,
+ *  null, 'n objek waarvan die waardes nie almal skikkings is nie — word 'n
+ *  leë lys. */
+function plataAf(rou: unknown): unknown[] {
+  if (Array.isArray(rou)) return rou;
+  if (rou && typeof rou === "object") {
+    const waardes = Object.values(rou as Record<string, unknown>);
+    if (waardes.every((w) => Array.isArray(w))) return waardes.flat();
+  }
+  return [];
+}
+
+/** Maak nuuspod se antwoord veilig. Sien plataAf() vir die vorm-verdraagsaamheid;
+ *  die Nuus-blad moet bly staan al is nuuspod af of stuur dit iets onverwags. */
 export function normaliseerArtikels(rou: unknown): Artikel[] {
-  if (!Array.isArray(rou)) return [];
-  return rou
+  return plataAf(rou)
     .map((r) => {
       const a = r as Record<string, unknown>;
       return {
