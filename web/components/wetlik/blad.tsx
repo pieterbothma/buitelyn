@@ -39,6 +39,27 @@ export function WetlikeBlad({
               </p>
             ) : null}
 
+            {/* Die winkel loop VANDAG op Fourthwall, wat sy eie bestellings
+                verwerk en aflewer. Sonder hierdie nota beloof die beleid hier
+                onder 'n terugbetalingsproses wat Buitelyn nie self hanteer nie
+                — en dít is presies die soort teenstrydigheid wat 'n
+                betalingsverskaffer se nasiener raaksien. Haal die nota uit
+                sodra die eie winkel oopmaak. */}
+            <p className="mt-8 border border-ink/15 bg-offwhite px-4 py-3 text-[14px] leading-relaxed text-ink/75">
+              Ons winkel is tans op{" "}
+              <a
+                href="https://buitelyn-shop.fourthwall.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold underline underline-offset-4"
+              >
+                Fourthwall
+              </a>
+              . Bestellings wat jy daar plaas, word deur Fourthwall verwerk en afgelewer. Hulle eie voorwaardes en
+              terugbetalingsproses geld vir daardie bestellings. Hierdie beleid geld vir aankope wat direk by
+              buitelyn.com gemaak word. Ons bou tans ons eie winkel.
+            </p>
+
             <div className="mt-10 space-y-10">{children}</div>
           </div>
         </div>
