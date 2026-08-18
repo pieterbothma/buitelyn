@@ -110,7 +110,7 @@ export function NibsStudio() {
         {boodskap ? <span className="text-sm text-red">{boodskap}</span> : null}
       </div>
 
-      <label className="mt-6 block text-[11px] font-extrabold uppercase tracking-[.14em]">Skrip</label>
+      <label className="mt-6 block text-[11px] font-extrabold uppercase tracking-[.14em]">Script</label>
       <textarea
         value={skrip}
         onChange={(e) => setSkrip(e.target.value)}
