@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { WetlikeBlad, Afdeling, Wetsverwysing } from "@/components/wetlik/blad";
+import { WetlikeBlad, Afdeling } from "@/components/wetlik/blad";
 import { BESIGHEID, BELEID } from "@/lib/wetlik";
 
 export const metadata: Metadata = {
@@ -34,11 +34,6 @@ export default function Terugbetalings() {
           gee. Die item moet ongebruik wees, in die oorspronklike verpakking, en in &apos;n toestand waarin ons dit weer kan verkoop.
         </p>
         <p>Wie die terugstuurkoste dra: {BELEID.wieBetaalTerugstuur}.</p>
-        <Wetsverwysing>
-          Artikel 44 van ECTA gee &apos;n koper sewe dae ná ontvangs om &apos;n aanlyn bestelling te kanselleer,
-          sonder rede en sonder boete, en bepaal dat die verkoper binne 30 dae moet terugbetaal. Ons betaal binne{" "}
-          {BELEID.terugbetaalWerksdae}{" "}werksdae.
-        </Wetsverwysing>
       </Afdeling>
 
       <Afdeling titel="Fisiese items — dit is gebreek, verkeerd of gebrekkig">
@@ -49,10 +44,6 @@ export default function Terugbetalings() {
         <p>
           Dit geld nie vir normale slytasie nie, en ook nie vir skade wat ná aflewering ontstaan het nie.
         </p>
-        <Wetsverwysing>
-          Artikel 56 van die Verbruikerswet gee &apos;n koper ses maande om &apos;n gebrekkige item terug te gee, en
-          die keuse tussen herstel, vervanging of terugbetaling lê by die koper, nie by die verkoper nie.
-        </Wetsverwysing>
       </Afdeling>
 
       <Afdeling titel="Digitale items">
@@ -65,10 +56,6 @@ export default function Terugbetalings() {
           As die item nie werk nie — byvoorbeeld, dit laai nie af nie, die lêer is beskadig, of dit stem nie ooreen met die beskrywing op die blad nie —
           sal jy jou geld terugkry, ongeag of dit oopgemaak is of nie.
         </p>
-        <Wetsverwysing>
-          Artikel 42(2) van ECTA sluit digitale inhoud wat reeds oopgemaak of afgelaai is, uit van die
-          sewe-dae-afkoelreg. Dit ontneem jou egter nie jou reg op &apos;n item wat eenvoudig nie werk nie.
-        </Wetsverwysing>
       </Afdeling>
 
       <Afdeling titel="Intekeninge">

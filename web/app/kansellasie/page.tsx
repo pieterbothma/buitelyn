@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { WetlikeBlad, Afdeling, Wetsverwysing } from "@/components/wetlik/blad";
+import { WetlikeBlad, Afdeling } from "@/components/wetlik/blad";
 import { BESIGHEID, BELEID } from "@/lib/wetlik";
 
 export const metadata: Metadata = {
@@ -28,10 +28,6 @@ export default function Kansellasie() {
           Jy het {BELEID.afkoelDae}{" "}dae ná ontvangs om te kanselleer, sonder om &rsquo;n rede te verskaf. Stuur die item
           ongebruik terug en ons betaal jou terug binne {BELEID.terugbetaalWerksdae}{" "}werksdae. Die koste vir die terugstuur: {BELEID.wieBetaalTerugstuur}.
         </p>
-        <Wetsverwysing>
-          Artikel 44 van ECTA. Hierdie reg is &rsquo;n minimum wat die wet verleen — ons kan dit nie wegneem of daaraan &rsquo;n
-          boete koppel nie.
-        </Wetsverwysing>
       </Afdeling>
 
       <Afdeling titel="Digitale items">
@@ -53,10 +49,6 @@ export default function Kansellasie() {
           Indien jou intekening &rsquo;n vaste termyn het, kan jy dit met 20 werksdae se skriftelike kennis beëindig. Ons mag &rsquo;n
           redelike bedrag hef vir dienste wat reeds gelewer is, maar nie &rsquo;n boete wat as straf dien nie.
         </p>
-        <Wetsverwysing>
-          Artikel 14 van die Verbruikerswet: &rsquo;n verbruiker mag &rsquo;n vaste-termyn-ooreenkoms met 20 werksdae
-          se skriftelike kennis kanselleer, en die verkoper mag slegs &rsquo;n redelike kansellasiefooi hef.
-        </Wetsverwysing>
       </Afdeling>
 
       <Afdeling titel="Wanneer ons kanselleer">

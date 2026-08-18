@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { WetlikeBlad, Afdeling, Wetsverwysing } from "@/components/wetlik/blad";
+import { WetlikeBlad, Afdeling } from "@/components/wetlik/blad";
 import { BESIGHEID, BELEID } from "@/lib/wetlik";
 
 export const metadata: Metadata = {
@@ -29,11 +29,6 @@ export default function Voorwaardes() {
           <br />
           Telefoon: {BESIGHEID.telefoon}
         </p>
-        <Wetsverwysing>
-          Hierdie besonderhede word hier vermeld omdat artikel 43 van die Wet op Elektroniese Kommunikasie en Transaksies
-          (ECTA) van &apos;n aanlyn verkoper vereis dat hy sy volle naam, regstatus, registrasienommer en fisiese adres
-          bekend maak.
-        </Wetsverwysing>
       </Afdeling>
 
       <Afdeling titel="Wat ons aanbied">

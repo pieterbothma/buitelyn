@@ -79,9 +79,3 @@ export function Afdeling({ titel, children }: { titel: string; children: React.R
     </section>
   );
 }
-
-/* ’n Verwysing na die wet. Ons verwys na die artikel by die naam sodat 'n koper
-   (of 'n kontroleerder) dit self kan naslaan. */
-export function Wetsverwysing({ children }: { children: React.ReactNode }) {
-  return <p className="border-l-2 border-ink/20 pl-4 text-[13.5px] text-ink/60">{children}</p>;
-}
