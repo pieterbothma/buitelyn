@@ -21,10 +21,6 @@ export const BESIGHEID = {
      Piet moet dit teen die sertifikaat nagaan (hoofletters ingesluit). */
   naam: "Promenader (Pty) Ltd",
   registrasienommer: "2026/320074/07",
-  /* Waaronder die publiek ons ken. Seepunt Media is die handelsnaam op die
-     Paystack-rekening; Buitelyn is die publikasie self. */
-  handelsnaam: "Seepunt Media",
-  publikasie: "Buitelyn",
   adres: "6 Bellevue Road, Cape Town 8050",
   /* Nie AP se privaat Gmail nie: dié adres staan op drie openbare bladsye en
      word gehark. buitelyn.com is reeds Resend-geverifieer vir UITSTUUR — die
