@@ -96,6 +96,14 @@ export function Shell({
                             Studio
                           </Link>
                         </li>
+                        <li>
+                          <Link
+                            href={`/w/${ws.slug}/nibs`}
+                            className="block py-1 text-[13px] text-ink/70 hover:text-ink hover:underline"
+                          >
+                            Nibs
+                          </Link>
+                        </li>
                         {/* Die Studio se gereedskap was net vanaf die hub bereikbaar;
                             die twee wat daagliks gebruik word, kry hul eie skakel. */}
                         <li>
