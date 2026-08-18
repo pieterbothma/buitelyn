@@ -64,6 +64,13 @@ export const STEMME = {
 Alida is die stem wat die oorsigte reeds gebruik; sy bly die verstek. Akker kom
 nuut by. Die kliënt kry net die name.
 
+### Die titel
+
+Die TTS-roete vereis 'n `titel` — dit bou die lêernaam daaruit en skryf dit in
+`audio_episodes`. NIBS het nie 'n titel nie, dus stuur dit `Nibs <ISO-datum>`
+(bv. `Nibs 2026-08-18`). Die roete voeg reeds 'n `Date.now()`-voorvoegsel by
+die pad, dus bots twee nibs op dieselfde dag nie.
+
 ## Data-vloei
 
 ```
