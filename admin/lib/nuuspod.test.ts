@@ -135,3 +135,18 @@ describe("volgorde en duplikate", () => {
   });
 });
 
+describe("beelde", () => {
+  it("dra imageUrl deur wanneer dit daar is", () => {
+    const [a] = normaliseerArtikels([
+      { id: "b1", headline: "Met beeld", sourceName: "News24", imageUrl: "https://x.test/f.jpg" },
+    ]);
+    expect(a.imageUrl).toBe("https://x.test/f.jpg");
+  });
+
+  it("gee 'n leë string wanneer daar geen beeld is nie", () => {
+    // Baie stories het geen prent nie; die ry moet steeds werk.
+    const [a] = normaliseerArtikels([{ id: "b2", headline: "Sonder", sourceName: "News24" }]);
+    expect(a.imageUrl).toBe("");
+  });
+});
+

@@ -26,19 +26,47 @@ export function NuusLys({ artikels }: { artikels: Artikel[] }) {
             <button
               onClick={() => setOop(isOop ? null : a.id)}
               aria-expanded={isOop}
-              className="w-full px-3 py-3 text-left hover:bg-paper"
+              className="flex w-full items-start gap-3 px-3 py-3 text-left hover:bg-paper"
             >
-              <p className="text-sm font-semibold">{a.headline}</p>
-              {!isOop && a.summary ? (
-                <p className="mt-1 text-[13px] text-ink/60">{a.summary}</p>
+              {/* Gewone <img>, nie next/image nie: die prente kom van 19
+                  verskillende nuusdomeine en elkeen sou 'n inskrywing in
+                  next.config se remotePatterns verg. 'n Stukkende skakel
+                  versteek homself eerder as om 'n gebreekte ikoon te wys. */}
+              {a.imageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={a.imageUrl}
+                  alt=""
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
+                  className="h-16 w-24 shrink-0 border border-ink/15 object-cover"
+                />
               ) : null}
-              <p className="mt-1 text-xs text-ink/40">
-                {a.publishedAt ? tydFmt.format(new Date(a.publishedAt)) : ""}
-              </p>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-semibold">{a.headline}</span>
+                {!isOop && a.summary ? (
+                  <span className="mt-1 block text-[13px] text-ink/60">{a.summary}</span>
+                ) : null}
+                <span className="mt-1 block text-xs text-ink/40">
+                  {a.publishedAt ? tydFmt.format(new Date(a.publishedAt)) : ""}
+                </span>
+              </span>
             </button>
 
             {isOop ? (
               <div className="px-3 pb-4">
+                {a.imageUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={a.imageUrl}
+                    alt=""
+                    onError={(e) => {
+                      e.currentTarget.style.display = "none";
+                    }}
+                    className="mb-3 max-h-96 w-full max-w-[70ch] border border-ink/15 object-cover"
+                  />
+                ) : null}
                 {/* Die body kom as gewone teks met leë reëls tussen paragrawe. */}
                 {a.body ? (
                   a.body

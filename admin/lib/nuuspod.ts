@@ -13,6 +13,7 @@ export type Artikel = {
   sourceName: string;
   category: string;
   publishedAt: string;
+  imageUrl: string;
   /* Die artikel se plek BINNE sy kategorie by kremetart. Sien groepeerPerBron. */
   rang: number;
 };
@@ -75,6 +76,7 @@ export function normaliseerArtikels(rou: unknown): Artikel[] {
         sourceName: teks(a.sourceName),
         category: teks(a.category),
         publishedAt: geldigeDatum(a.publishedAt),
+        imageUrl: teks(a.imageUrl),
         rang,
       };
     })
