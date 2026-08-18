@@ -20,7 +20,8 @@ export default function Voorwaardes() {
       <Afdeling titel="Wie ons is">
         <p>
           Buitelyn word bedryf deur {BESIGHEID.naam}{" "}(&ldquo;ons&rdquo;), &apos;n maatskappy wat in
-          Suid-Afrika geregistreer is onder registrasienommer {BESIGHEID.registrasienommer}.
+          Suid-Afrika geregistreer is onder registrasienommer {BESIGHEID.registrasienommer}. Ons staan ook
+          bekend as {BESIGHEID.handelsnaam}. {BESIGHEID.publikasie} is ons publikasie.
         </p>
         <p>
           Geregistreerde adres: {BESIGHEID.adres}

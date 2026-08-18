@@ -12,13 +12,22 @@
 export const ONBEVESTIG = "[[ NOG TE BEVESTIG ]]";
 
 export const BESIGHEID = {
-  /* Paystack vra dat dié naam PRESIES by die CIPC-dokumente pas. */
-  naam: "Seepunt Media",
-  handelsnaam: "Buitelyn",
-  registrasienommer: ONBEVESTIG,
-  adres: ONBEVESTIG,
-  epos: ONBEVESTIG,
-  telefoon: ONBEVESTIG,
+  /* Die GEREGISTREERDE naam, nie die handelsnaam nie. ECTA art. 43 vra die
+     regspersoon se volle naam en registrasienommer — 'n handelsnaam alleen
+     voldoen nie, en 'n koper wat moet kla, moet weet wie hy dagvaar. */
+  /* Presies soos geregistreer — NIE vertaal nie. "(Edms) Bpk" is die
+     Afrikaanse vorm van "(Pty) Ltd", maar dit is 'n ANDER string, en Paystack
+     vergelyk hierdie naam karakter vir karakter met die CIPC-dokument.
+     Piet moet dit teen die sertifikaat nagaan (hoofletters ingesluit). */
+  naam: "Promenader (Pty) Ltd",
+  registrasienommer: "2026/320074/07",
+  /* Waaronder die publiek ons ken. Seepunt Media is die handelsnaam op die
+     Paystack-rekening; Buitelyn is die publikasie self. */
+  handelsnaam: "Seepunt Media",
+  publikasie: "Buitelyn",
+  adres: "6 Bellevue Road, Cape Town 8050",
+  epos: "apduplessis@gmail.com",
+  telefoon: "062 707 0784",
 } as const;
 
 /* Wat die winkel verkoop. Elke soort dra sy eie kansellasiereëls, want die
@@ -37,11 +46,12 @@ export const BELEID = {
   gebrekMaande: 6,
 
   /* ECTA art. 44(1)(b): die koper mag die direkte koste van teruglewering
-     dra. Of Buitelyn dit eerder self opneem, is 'n besigheidsbesluit. */
-  wieBetaalTerugstuur: ONBEVESTIG,
+     dra. Piet se keuse (2026-08-18): die koper. Dit geld NET wanneer iemand
+     van plan verander — 'n gebrekkige item kom altyd op ons koste terug. */
+  wieBetaalTerugstuur: "die koper",
 
   /* Hoe lank aflewering neem. Nodig vir die beleid én vir Paystack. */
-  afleweringsDae: ONBEVESTIG,
+  afleweringsDae: "5 tot 7 werksdae",
 
   /* Word 'n intekening se onbenutte deel terugbetaal wanneer iemand halfpad
      deur die maand kanselleer, of loop dit klaar tot die einde van die
