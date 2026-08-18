@@ -677,6 +677,40 @@ git commit -m "feat(admin): lees nuuspod se artikels en groepeer hulle per bron"
 
 ### Task 6: Nuus-blad, storielys en die NIBS-oorhandiging
 
+> **PLAN-WYSIGING (2026-08-18, ná Task 5):** die spec het aangeneem
+> `/api/articles/all` is oop. Dit is nie — nuuspod se `src/middleware.ts` stuur
+> elke `/api/*`-pad sonder sessiekoekie na `/login`, dus kry 'n diens HTML
+> terug, nie JSON nie. Die gasheer is ook nie nuuspod.co.za nie: die nuuspod
+> Vercel-projek bedien **kremetart.com**.
+>
+> Piet het nuuspod se middleware verander (commit `74657ed`, ontplooi): 'n
+> nuwe `NUUS_DEEL_SLEUTEL` laat presies die pad `/api/articles/all` deur
+> wanneer die `Authorization`-kop `Bearer <sleutel>` is. Doelbewus NIE
+> `CRON_SECRET` nie — daardie een maak die skrapers oop.
+>
+> **Stap 0 van hierdie taak** is dus om `admin/lib/nuuspod.ts` reg te maak:
+>
+> ```ts
+> const BRON = "https://www.kremetart.com/api/articles/all";
+> ```
+>
+> en die fetch se kop:
+>
+> ```ts
+>     const res = await fetch(BRON, {
+>       next: { revalidate: 600 },
+>       headers: {
+>         "user-agent": "APHQ/1.0 (buitelyn admin)",
+>         /* Sonder hierdie kop stuur nuuspod se middleware ons na /login en
+>            ons ontleed 'n aanmeldblad as artikels — wat stil [] gee. */
+>         authorization: `Bearer ${process.env.NUUS_DEEL_SLEUTEL ?? ""}`,
+>       },
+>     });
+> ```
+>
+> Die bestaande toetse in `lib/nuuspod.test.ts` raak nie hieraan nie (hulle
+> toets die suiwer funksies op die vaslegging) en moet steeds slaag.
+
 **Files:**
 - Create: `admin/app/w/[slug]/nuus/page.tsx`
 - Create: `admin/components/nuus-lys.tsx`
