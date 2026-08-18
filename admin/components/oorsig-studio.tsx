@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { skepOorsig, stoorOorsig, kryOorsigVirDag, type StudioOorsig } from "@/app/actions-oorsig";
 import { verwerkTeksVirAudio } from "@/app/actions-audio";
 import { useOutostoor, WeergawePaneel } from "@/components/outostoor";
@@ -17,9 +17,16 @@ export function OorsigStudio({ argief, vandag }: { argief: StudioOorsig[]; vanda
   const [teks, setTeks] = useState(argief.find((a) => a.datum === vandag)?.teks ?? "");
   const [besig, setBesig] = useState<"" | "genereer" | "stoor" | "verwerk" | "audio">("");
   const [boodskap, setBoodskap] = useState("");
-  const [audioTeks, setAudioTeks] = useState("");
+  const [audioTeks, setAudioTeks] = useState(argief.find((a) => a.datum === vandag)?.oudio_teks ?? "");
   const [mp3, setMp3] = useState<string | null>(null);
   const outoStatus = useOutostoor("oorsig", datum, teks, setTeks);
+  /* Die oudio-skrip kry sy eie outostoor. Dit is 'n aparte dokument met sy
+     eie handgestelde etikette, en dit was tot nou die enigste veld in die
+     studio wat 'n herlaai nie oorleef het nie. */
+  const oudioStatus = useOutostoor("oudio", datum, audioTeks, setAudioTeks);
+  /* Wat Gemini laas geskryf het. Verskil audioTeks hiervan, het AP self
+     geredigeer — en dan waarsku ons voor ons dit oorskryf. */
+  const laasteGegenereer = useRef("");
 
   const laaiDag = async (d: string) => {
     if (d === datum) return; // moenie die huidige redigeerder oorskryf nie
@@ -28,7 +35,9 @@ export function OorsigStudio({ argief, vandag }: { argief: StudioOorsig[]; vanda
     setMp3(null);
     setBoodskap("Laai…");
     const vars = await kryOorsigVirDag(d); // vars uit die DB — die prop is dalk verouderd
-    setTeks(vars ?? argief.find((a) => a.datum === d)?.teks ?? "");
+    setTeks(vars?.teks ?? argief.find((a) => a.datum === d)?.teks ?? "");
+    setAudioTeks(vars?.oudioTeks ?? argief.find((a) => a.datum === d)?.oudio_teks ?? "");
+    laasteGegenereer.current = "";
     setBoodskap("");
   };
 
@@ -47,7 +56,7 @@ export function OorsigStudio({ argief, vandag }: { argief: StudioOorsig[]; vanda
   const stoor = async () => {
     setBesig("stoor");
     try {
-      await stoorOorsig(teks, datum);
+      await stoorOorsig(teks, datum, audioTeks);
       setBoodskap("Gestoor.");
     } finally {
       setBesig("");
@@ -55,12 +64,23 @@ export function OorsigStudio({ argief, vandag }: { argief: StudioOorsig[]; vanda
   };
 
   const verwerk = async () => {
+    /* Dié knoppie laat Gemini die skrip van vooraf skryf. Het AP die etikette
+       intussen self gestel, is dit fyn werk wat in een klik verdwyn — dus vra
+       ons eers, en NET wanneer daar werklik iets geredigeer is. */
+    if (audioTeks.trim() && audioTeks !== laasteGegenereer.current) {
+      const gaanVoort = window.confirm(
+        "Jy het die oudio-skrip geredigeer. As jy weer verwerk, skryf Gemini 'n splinternuwe skrip en jou etikette gaan verlore.\n\nGaan voort?"
+      );
+      if (!gaanVoort) return;
+    }
     setBesig("verwerk");
     setBoodskap("");
     try {
       const t = await verwerkTeksVirAudio(teks);
-      if (t) setAudioTeks(t);
-      else setBoodskap("Verwerking het misluk.");
+      if (t) {
+        setAudioTeks(t);
+        laasteGegenereer.current = t;
+      } else setBoodskap("Verwerking het misluk.");
     } finally {
       setBesig("");
     }
@@ -153,6 +173,9 @@ export function OorsigStudio({ argief, vandag }: { argief: StudioOorsig[]; vanda
                 {besig === "audio" ? "ElevenLabs praat…" : "2. Genereer audio"}
               </button>
             </div>
+            {audioTeks && oudioStatus ? (
+              <p className="mt-2 text-xs text-ink/50">{oudioStatus}</p>
+            ) : null}
             {audioTeks ? (
               <textarea
                 value={audioTeks}
@@ -163,7 +186,6 @@ export function OorsigStudio({ argief, vandag }: { argief: StudioOorsig[]; vanda
             ) : null}
             {mp3 ? (
               <div className="mt-3 flex flex-wrap items-center gap-3">
-                {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
                 <audio controls src={mp3} className="h-9 min-w-64 flex-1" />
                 <a href={mp3} download className="border-2 border-ink px-3 py-1.5 text-sm font-semibold hover:bg-paper">
                   Laai af

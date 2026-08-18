@@ -119,31 +119,43 @@ SUBSTACK-PLASINGS (net vir punt 4): ${substack || "geen"}`);
   return teks;
 }
 
-export type StudioOorsig = { datum: string; teks: string; opgedateer_at: string };
+export type StudioOorsig = { datum: string; teks: string; opgedateer_at: string; oudio_teks?: string | null };
 
 export async function kryOorsigte(): Promise<StudioOorsig[]> {
   if (!(await aangemeld())) return [];
   const sb = await supabaseServer();
   const { data } = await sb
     .from("studio_oorsigte")
-    .select("datum, teks, opgedateer_at")
+    .select("datum, teks, opgedateer_at, oudio_teks")
     .order("datum", { ascending: false })
     .limit(14);
   return (data ?? []) as StudioOorsig[];
 }
 
-export async function kryOorsigVirDag(datum: string): Promise<string | null> {
+/* Gee ALBEI tekste terug. Die oudio-skrip is 'n aparte redigeerbare veld en
+   moet saam met die dag gelaai word, anders wys die studio 'n leë oudio-boks
+   vir 'n dag wat wel een het. */
+export async function kryOorsigVirDag(datum: string): Promise<{ teks: string; oudioTeks: string } | null> {
   if (!(await aangemeld())) return null;
   const sb = await supabaseServer();
-  const { data } = await sb.from("studio_oorsigte").select("teks").eq("datum", datum).maybeSingle();
-  return data?.teks ?? null;
+  const { data } = await sb.from("studio_oorsigte").select("teks, oudio_teks").eq("datum", datum).maybeSingle();
+  if (!data) return null;
+  return { teks: data.teks ?? "", oudioTeks: data.oudio_teks ?? "" };
 }
 
-export async function stoorOorsig(teks: string, datum?: string): Promise<void> {
+export async function stoorOorsig(teks: string, datum?: string, oudioTeks?: string): Promise<void> {
   if (!(await aangemeld())) return;
   const sb = await supabaseServer();
+  /* oudioTeks word NET geskryf as dit meegestuur is. 'n Onvoorwaardelike
+     veld sou die oudio-skrip uitvee elke keer as iemand net die hoofteks
+     stoor. */
   await sb.from("studio_oorsigte").upsert(
-    { datum: datum ?? vandagSAST(), teks, opgedateer_at: new Date().toISOString() },
+    {
+      datum: datum ?? vandagSAST(),
+      teks,
+      ...(oudioTeks === undefined ? {} : { oudio_teks: oudioTeks }),
+      opgedateer_at: new Date().toISOString(),
+    },
     { onConflict: "datum" }
   );
   revalidatePath("/w/buitelyn/oorsig");

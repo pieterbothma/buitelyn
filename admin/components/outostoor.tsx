@@ -11,7 +11,7 @@ import { outoStoor, kryWeergawes, type Weergawe } from "@/app/actions-weergawes"
 const tydFmt = new Intl.DateTimeFormat("af-ZA", { timeZone: "Africa/Johannesburg", hour: "2-digit", minute: "2-digit" });
 
 export function useOutostoor(
-  tipe: "oorsig" | "konsep",
+  tipe: "oorsig" | "konsep" | "oudio",
   datum: string,
   teks: string,
   setTeks: (t: string) => void
@@ -25,8 +25,15 @@ export function useOutostoor(
     try {
       const bewaar = localStorage.getItem(sleutel);
       if (bewaar && bewaar !== teks && bewaar.length > (teks?.length ?? 0)) {
+        /* Dit is presies die geval waarvoor effekte bedoel is: sinchroniseer
+           'n EKSTERNE stelsel (localStorage) na React-toestand toe. Dit loop
+           een keer per sleutel en herstel werk wat AP andersins verloor — die
+           rede waarom hierdie hook bestaan. Doelbewus NIE herstruktureer nie:
+           die risiko weeg swaarder as die wins. */
+        /* eslint-disable react-hooks/set-state-in-effect */
         setTeks(bewaar);
         setStatus("Ongestoorde werk herstel");
+        /* eslint-enable react-hooks/set-state-in-effect */
       }
     } catch {
       /* privaat modus ens. */
@@ -66,7 +73,7 @@ export function WeergawePaneel({
   datum,
   opHerstel,
 }: {
-  tipe: "oorsig" | "konsep";
+  tipe: "oorsig" | "konsep" | "oudio";
   datum: string;
   opHerstel: (teks: string) => void;
 }) {
