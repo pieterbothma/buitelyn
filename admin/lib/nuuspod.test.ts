@@ -150,3 +150,26 @@ describe("beelde", () => {
   });
 });
 
+describe("kategorie-volgorde", () => {
+  const rou = {
+    // "wereld" staan EERSTE in die objek, presies soos by kremetart.
+    wereld: [{ id: "w", headline: "Trump doen iets", sourceName: "Netwerk24", category: "wereld", publishedAt: "2026-08-18T03:50:00.000Z" }],
+    "suid-afrika": [{ id: "s", headline: "Eskom doen iets", sourceName: "Netwerk24", category: "suid-afrika", publishedAt: "2026-08-18T03:50:00.000Z" }],
+  };
+
+  it("sit plaaslike nuus bo wêreldnuus, al kom wêreld eerste in die antwoord", () => {
+    const [groep] = groepeerPerBron(normaliseerArtikels(rou));
+    expect(groep.artikels.map((a) => a.id)).toEqual(["s", "w"]);
+  });
+
+  it("'n onbekende kategorie beland agter die gelyste plaaslikes", () => {
+    const [groep] = groepeerPerBron(
+      normaliseerArtikels({
+        vreemd: [{ id: "v", headline: "Onbekend", sourceName: "Netwerk24", category: "vreemd", publishedAt: "2026-08-18T03:50:00.000Z" }],
+        beeld: [{ id: "b", headline: "Plaaslik", sourceName: "Netwerk24", category: "beeld", publishedAt: "2026-08-18T03:50:00.000Z" }],
+      })
+    );
+    expect(groep.artikels.map((a) => a.id)).toEqual(["b", "v"]);
+  });
+});
+

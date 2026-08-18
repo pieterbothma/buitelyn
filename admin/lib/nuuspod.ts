@@ -83,10 +83,51 @@ export function normaliseerArtikels(rou: unknown): Artikel[] {
     .filter((a) => a.headline && a.sourceName);
 }
 
+/* Kategorieë in leesvolgorde: plaaslik eerste, res agterna.
+
+   Hoekom dit nodig is: 'n bron se artikels dra feitlik almal dieselfde
+   publishedAt (Netwerk24 se 114 stories het 3 verskillende waardes), dus doen
+   'n datum-sortering niks en bly kremetart se kategorie-volgorde staan — en
+   dié begin by "wereld". Gevolg: 'n Suid-Afrikaanse bron wat met Trump en
+   oorlog open terwyl die bron self plaaslik lei.
+
+   Alles wat nie hier gelys is nie (wereld, vsa, midde-ooste, asie, bbc …) kry
+   dieselfde, laer rang en behou onderling die bron se eie volgorde.
+
+   As nuuspod ooit 'n EGTE publikasietyd begin gee, draai die sortering om:
+   dan behoort die datum eerste te kom en hierdie lys net die gelykspel te
+   breek. */
+const KATEGORIE_ORDE = [
+  "suid-afrika",
+  "beeld",
+  "volksblad",
+  "dieburger",
+  "netwerk24",
+  "news24",
+  "maroela",
+  "laevelder",
+  "pretoria-rekord",
+  "dailyinvestor",
+  "mybroadband",
+  "politicsweb",
+  "commonsense",
+  "dailymaverick",
+  "afrika",
+  "vermaak",
+  "sport",
+  "vreemde-stories",
+];
+
+function kategorieRang(kategorie: string): number {
+  const i = KATEGORIE_ORDE.indexOf(kategorie);
+  return i === -1 ? KATEGORIE_ORDE.length : i;
+}
+
 /** Groepeer per bron: die bron met die meeste stories eerste, en binne elke
- *  bron eers op datum (nuutste bo) en dan op `rang` — kremetart se eie
- *  volgorde binne 'n kategorie. Die rang doen in die praktyk die meeste werk,
- *  want die datums is grofweg almal die skraaplopie s'n.
+ *  bron eers op kategorie (plaaslik bo — sien KATEGORIE_ORDE), dan op datum,
+ *  dan op `rang` (kremetart se eie volgorde binne 'n kategorie). Die datums is
+ *  grofweg almal die skraaplopie s'n, dus doen die eerste en derde sleutel in
+ *  die praktyk die werk.
  *
  *  Dieselfde artikel staan dikwels in twee kategorieë (bv. "wereld" én
  *  "internasionaal"), dus gooi ons duplikate op id weg — anders sien 'n mens
@@ -107,7 +148,10 @@ export function groepeerPerBron(artikels: Artikel[]): { bron: string; artikels: 
     .map(([bron, lys]) => ({
       bron,
       artikels: [...lys].sort(
-        (x, y) => y.publishedAt.localeCompare(x.publishedAt) || x.rang - y.rang
+        (x, y) =>
+          kategorieRang(x.category) - kategorieRang(y.category) ||
+          y.publishedAt.localeCompare(x.publishedAt) ||
+          x.rang - y.rang
       ),
     }))
     .sort((x, y) => y.artikels.length - x.artikels.length);
