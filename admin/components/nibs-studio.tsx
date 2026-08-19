@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { STEM_NAME } from "@/lib/stemme";
 import { vertaalNaAfrikaans } from "@/app/actions-nibs";
 import { verwerkTeksVirAudio } from "@/app/actions-audio";
 
@@ -11,7 +12,7 @@ import { verwerkTeksVirAudio } from "@/app/actions-audio";
 export function NibsStudio() {
   const [bron, setBron] = useState("");
   const [skrip, setSkrip] = useState("");
-  const [stem, setStem] = useState<"alida" | "akker">("alida");
+  const [stem, setStem] = useState(STEM_NAME[0]);
   const [besig, setBesig] = useState<"" | "vertaal" | "verwerk" | "oudio">("");
   const [boodskap, setBoodskap] = useState("");
   const [mp3, setMp3] = useState<string | null>(null);
@@ -111,11 +112,14 @@ export function NibsStudio() {
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <select
           value={stem}
-          onChange={(e) => setStem(e.target.value as "alida" | "akker")}
+          onChange={(e) => setStem(e.target.value)}
           className="border-2 border-ink bg-offwhite px-3 py-2 text-sm outline-none focus:border-red"
         >
-          <option value="alida">Alida</option>
-          <option value="akker">Akker</option>
+          {STEM_NAME.map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
         </select>
         <button
           onClick={maakOudio}

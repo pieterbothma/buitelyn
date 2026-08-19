@@ -7,11 +7,11 @@ describe("kiesStem", () => {
   });
 
   it("gee Alida se ID vir 'alida'", () => {
-    expect(kiesStem("alida")).toBe("alida-id-uit-env");
+    expect(kiesStem("Alida")).toBe("alida-id-uit-env");
   });
 
   it("gee Akker se vaste ID vir 'akker'", () => {
-    expect(kiesStem("akker")).toBe("LG95yZDEHg6fCZdQjLqj");
+    expect(kiesStem("Akker")).toBe("LG95yZDEHg6fCZdQjLqj");
   });
 
   it("val terug op Alida wanneer niks gestuur is nie", () => {
@@ -24,7 +24,7 @@ describe("kiesStem", () => {
     expect(kiesStem("gerhard")).toBe("alida-id-uit-env");
   });
 
-  it("wys presies twee stemme vir die kieser", () => {
-    expect([...STEM_NAME]).toEqual(["alida", "akker"]);
+  it("wys die kaart se name vir die kieser", () => {
+    expect(STEM_NAME).toEqual(["Alida", "Akker"]);
   });
 });
