@@ -15,6 +15,11 @@ import type { Kanaal, Uitslag } from "@/lib/buffer";
 
 type Kaartkeuse = { i: number; kop: string };
 
+/* 'n Bylae is óf die gebakte kaart óf 'n opgelaaide foto. Die kaart bly 'n
+   merker sodat 'n mens die kaart kan kies, verwissel of skuif sonder om hom
+   elke keer opnuut te bak. */
+type Bylae = { soort: "kaart" } | { soort: "foto"; url: string };
+
 export function BufferPaneel({
   datum,
   stukke = [],
@@ -38,6 +43,14 @@ export function BufferPaneel({
   const [teks, setTeks] = useState(aanvanklikeTeks);
   const [eersteKommentaar, setEersteKommentaar] = useState("");
   const [kaartIndeks, setKaartIndeks] = useState<number | "geen">(stukke.length ? 0 : "geen");
+  /* Die kaart EN die ekstra foto's in een geordende lys, want die volgorde
+     waarin hulle hier staan is die volgorde waarin hulle in die plasing
+     verskyn — en 'n mens wil nie altyd hê die kaart moet eerste wees nie.
+     Die kaart is 'n merker, nie 'n URL nie: dit word eers by stuur-tyd gebak. */
+  const [bylaes, setBylaes] = useState<Bylae[]>(
+    vasteBeeldUrl || stukke.length ? [{ soort: "kaart" }] : []
+  );
+  const [laaiOp, setLaaiOp] = useState(false);
   const [wanneer, setWanneer] = useState("");
   const [konsep, setKonsep] = useState(true); // veilige verstek: publiseer nooit vanself
   const [besig, setBesig] = useState<string | null>(null);
@@ -93,12 +106,23 @@ export function BufferPaneel({
       return;
     }
     try {
-      const beeldUrl = await bakKaart();
+      /* Die lys word URL's in presies die volgorde wat op die skerm staan.
+         Die eerste een gaan as beeldUrl deur en die res as ekstraBeelde —
+         lib/buffer voeg hulle weer in dieselfde volgorde saam. */
+      const urls: string[] = [];
+      for (const b of bylaes) {
+        if (b.soort === "kaart") {
+          const u = await bakKaart();
+          if (u) urls.push(u);
+        } else urls.push(b.url);
+      }
+      const [beeldUrl, ...ekstraBeelde] = urls;
 
       const invoer = {
         kanale: geselekteer,
         teks,
-        beeldUrl,
+        beeldUrl: beeldUrl ?? null,
+        ekstraBeelde,
         altTeks: vasteBeeldUrl
           ? teks.slice(0, 120)
           : kaartIndeks === "geen"
@@ -193,9 +217,20 @@ export function BufferPaneel({
               Kaart
               <select
                 value={String(kaartIndeks)}
-                onChange={(e) =>
-                  setKaartIndeks(e.target.value === "geen" ? "geen" : Number(e.target.value))
-                }
+                onChange={(e) => {
+                  const keuse = e.target.value === "geen" ? "geen" : Number(e.target.value);
+                  setKaartIndeks(keuse);
+                  /* Hou die bylaag-lys in pas sonder 'n effek: "geen" haal die
+                     kaart uit, 'n keuse sit hom voor in as hy nog nie daar is
+                     nie. Sy posisie bly staan as hy reeds gekies was. */
+                  setBylaes((vorige) =>
+                    keuse === "geen"
+                      ? vorige.filter((b) => b.soort !== "kaart")
+                      : vorige.some((b) => b.soort === "kaart")
+                        ? vorige
+                        : [{ soort: "kaart" as const }, ...vorige]
+                  );
+                }}
                 className="mt-1 h-11 w-full border-2 border-ink bg-paper px-2 text-sm outline-none focus:border-red"
               >
                 <option value="geen">Geen beeld (net teks)</option>
@@ -207,6 +242,103 @@ export function BufferPaneel({
               </select>
             </label>
             )}
+
+            <div className="text-xs font-semibold sm:col-span-2">
+              Bylaes — die volgorde hier is die volgorde in die plasing
+              <ul className="mt-1 space-y-1">
+                {bylaes.map((b, i) => (
+                  <li
+                    key={b.soort === "kaart" ? "kaart" : b.url}
+                    className="flex items-center gap-2 border border-ink/20 bg-paper px-2 py-1"
+                  >
+                    {b.soort === "foto" ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={b.url} alt="" className="h-10 w-14 border border-ink/15 object-cover" />
+                    ) : (
+                      <span className="flex h-10 w-14 items-center justify-center border border-ink/15 text-[10px] font-bold">
+                        KAART
+                      </span>
+                    )}
+                    <span className="min-w-0 flex-1 truncate font-normal text-ink/60">
+                      {b.soort === "kaart" ? "Die gebakte kaart" : b.url.split("/").pop()}
+                    </span>
+                    <button
+                      type="button"
+                      disabled={i === 0}
+                      onClick={() =>
+                        setBylaes((v) => {
+                          const n = [...v];
+                          [n[i - 1], n[i]] = [n[i], n[i - 1]];
+                          return n;
+                        })
+                      }
+                      className="border border-ink px-2 py-0.5 disabled:opacity-30"
+                      aria-label="Skuif op"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      disabled={i === bylaes.length - 1}
+                      onClick={() =>
+                        setBylaes((v) => {
+                          const n = [...v];
+                          [n[i], n[i + 1]] = [n[i + 1], n[i]];
+                          return n;
+                        })
+                      }
+                      className="border border-ink px-2 py-0.5 disabled:opacity-30"
+                      aria-label="Skuif af"
+                    >
+                      ↓
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (b.soort === "kaart") setKaartIndeks("geen");
+                        setBylaes((v) => v.filter((_, j) => j !== i));
+                      }}
+                      className="border border-ink px-2 py-0.5"
+                      aria-label="Verwyder"
+                    >
+                      ✕
+                    </button>
+                  </li>
+                ))}
+              </ul>
+
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                disabled={laaiOp}
+                onChange={async (e) => {
+                  const leers = Array.from(e.target.files ?? []);
+                  e.target.value = "";
+                  if (!leers.length) return;
+                  setLaaiOp(true);
+                  setFout(null);
+                  try {
+                    for (const leer of leers) {
+                      const vorm = new FormData();
+                      vorm.append("leer", leer);
+                      const res = await fetch("/api/fotos/oplaai", { method: "POST", body: vorm });
+                      const data = await res.json();
+                      if (!res.ok) throw new Error(data.fout ?? "Oplaai het misluk.");
+                      /* Die URL moet publiek wees: Buffer laai niks op nie, dit
+                         haal die beeld self by ons af. */
+                      setBylaes((v) => [...v, { soort: "foto", url: data.url as string }]);
+                    }
+                  } catch (err) {
+                    setFout(err instanceof Error ? err.message : "Oplaai het misluk.");
+                  } finally {
+                    setLaaiOp(false);
+                  }
+                }}
+                className="mt-2 block w-full text-xs font-normal"
+              />
+              {laaiOp ? <span className="text-ink/50">Laai op…</span> : null}
+            </div>
 
             <label className="text-xs font-semibold">
               {"Wanneer (SAST) — leeg = die kanaal se volgende tou-gleuf"}

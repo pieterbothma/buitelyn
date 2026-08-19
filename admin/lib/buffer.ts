@@ -152,6 +152,11 @@ export type PlasingOpsies = {
   teks: string;
   /** Publieke URL — Buffer kan niks anders inneem nie. */
   beeldUrl?: string | null;
+  /** Verdere publieke URL's wat NÁ die kaart aangeheg word. Vir die kere wat
+   *  'n plasing meer as die gebakte kaart nodig het — 'n foto van die dag,
+   *  'n skermskoot. Dieselfde reël geld: Buffer laai niks op nie, dus moet
+   *  elke URL reeds publiek wees. */
+  ekstraBeelde?: string[];
   altTeks?: string;
   /** SAST "2026-08-14T17:00". Weggelaat = plaas in die kanaal se tou. */
   wanneer?: string | null;
@@ -172,6 +177,21 @@ const ONONDERSTEUN: Record<string, string> = {
 /** Dienste wat 'n beeld of video MOET hê (Buffer se eie lys). */
 const VEREIS_BEELD = new Set(["instagram", "tiktok", "pinterest"]);
 
+/** Hoeveel beelde 'n diens aanvaar. Net dié waarvan ons seker is — die res
+ *  laat ons deur en Buffer se eie fout praat. 'n Verkeerde perk hier sou 'n
+ *  geldige plasing keer, wat erger is as 'n duidelike fout van Buffer af. */
+const MAKS_BEELDE: Record<string, number> = {
+  twitter: 4,
+  mastodon: 4,
+  bluesky: 4,
+};
+
+/** Die kaart eerste, dan die ekstras — dis die volgorde waarin hulle in die
+ *  plasing verskyn. Leë inskrywings val weg. */
+export function alleBeelde(opsies: Pick<PlasingOpsies, "beeldUrl" | "ekstraBeelde">): string[] {
+  return [opsies.beeldUrl ?? "", ...(opsies.ekstraBeelde ?? [])].filter((u) => u.trim());
+}
+
 /** Keur 'n plasing af VOORDAT ons Buffer bel. Gee null terug as alles reg is. */
 export function keurPlasing(opsies: PlasingOpsies): string | null {
   const { kanaal } = opsies;
@@ -179,11 +199,15 @@ export function keurPlasing(opsies: PlasingOpsies): string | null {
   if (kanaal.gesluit)
     return `${kanaal.naam} is gesluit — die Buffer-plan se kanaallimiet is oorskry.`;
   if (ONONDERSTEUN[kanaal.diens]) return ONONDERSTEUN[kanaal.diens];
-  if (VEREIS_BEELD.has(kanaal.diens) && !opsies.beeldUrl)
+  const beelde = alleBeelde(opsies);
+  if (VEREIS_BEELD.has(kanaal.diens) && beelde.length === 0)
     return `${kanaal.naam} (${kanaal.diens}) benodig 'n beeld.`;
+  const maks = MAKS_BEELDE[kanaal.diens];
+  if (maks && beelde.length > maks)
+    return `${kanaal.naam} (${kanaal.diens}) neem hoogstens ${maks} beelde — jy het ${beelde.length}.`;
   // Die skema merk text as opsioneel, maar die API verwerp 'n leë plasing
   // sonder bylae vir die meeste dienste.
-  if (!skoonTeks(opsies.teks) && !opsies.beeldUrl) return "Die plasing is leeg.";
+  if (!skoonTeks(opsies.teks) && beelde.length === 0) return "Die plasing is leeg.";
   return null;
 }
 
@@ -223,16 +247,15 @@ export function bouInvoer(opsies: PlasingOpsies): CreatePostInput {
   if (opsies.wanneer) invoer.dueAt = saDueAt(opsies.wanneer);
   if (opsies.konsep) invoer.saveToDraft = true;
 
-  if (opsies.beeldUrl) {
-    invoer.assets = [
-      {
-        image: {
-          url: opsies.beeldUrl,
-          // altText is verpligtend sodra metadata teenwoordig is.
-          metadata: { altText: (opsies.altTeks || teks || "Buitelyn-kaart").slice(0, 280) },
-        },
+  const beelde = alleBeelde(opsies);
+  if (beelde.length) {
+    invoer.assets = beelde.map((url) => ({
+      image: {
+        url,
+        // altText is verpligtend sodra metadata teenwoordig is.
+        metadata: { altText: (opsies.altTeks || teks || "Buitelyn-kaart").slice(0, 280) },
       },
-    ];
+    }));
   }
 
   const metadata: Record<string, unknown> = {};

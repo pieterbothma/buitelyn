@@ -54,6 +54,7 @@ export type SkeduleerInvoer = {
   kanale: Kanaal[];
   teks: string;
   beeldUrl?: string | null;
+  ekstraBeelde?: string[];
   altTeks?: string;
   /** SAST "2026-08-14T17:00"; leeg = die kanaal se volgende tou-gleuf. */
   wanneer?: string | null;
@@ -78,6 +79,7 @@ export async function skeduleer(invoer: SkeduleerInvoer): Promise<Uitslag[]> {
       kanaal,
       teks: invoer.teks,
       beeldUrl: invoer.beeldUrl,
+      ekstraBeelde: invoer.ekstraBeelde,
       altTeks: invoer.altTeks,
       wanneer: invoer.wanneer || null,
       konsep: invoer.konsep,
