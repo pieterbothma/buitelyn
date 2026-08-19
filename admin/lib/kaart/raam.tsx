@@ -40,9 +40,17 @@ export function Raam({
   const paneel = opInk ? vel.agtergrond : VELLE.offwhite.agtergrond;
   const sagteTeks = opInk ? vel.teks : INK_SAG;
 
-  // Sonder die merk: VOLLEBLEED — geen padding, geen raam, geen voetskrif.
-  // 'n Meme met 'n wit rand daarom lyk verkeerd; wie merk uitskakel, wil die
-  // hele blad hê.
+  // Sonder die merk: VOLLEBLEED — geen raam, geen voetskrif.
+  //
+  // 'n Meme of 'n agter-die-teks-beeld MOET tot teen die rand loop; 'n wit
+  // randjie daarom lyk verkeerd. Maar TEKS mag nooit aan die rand raak nie —
+  // 'n groot getal of 'n lys sonder merk het gelees soos 'n bladsy wat afgesny
+  // is. Dus: die beeldstyle bly vollebleed, die res kry dieselfde sy-ruimte as
+  // die geraamde variant.
+  const beeldVul =
+    kaart.spec.styl === "meme" ||
+    (kaart.spec.styl === "kop-beeld" && kaart.spec.uitleg === "beeld-agter");
+
   if (!kaart.merk) {
     return (
       <div
@@ -50,6 +58,8 @@ export function Raam({
           width: "100%", height: "100%", display: "flex", flexDirection: "column",
           backgroundColor: vel.agtergrond, color: vel.teks,
           fontFamily: "LeagueSpartan",
+          paddingLeft: beeldVul ? 0 : mate.buiteX,
+          paddingRight: beeldVul ? 0 : mate.buiteX,
         }}
       >
         {children}
