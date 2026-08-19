@@ -14,7 +14,24 @@
    funksie word dit by elke oproep gelees. */
 function stemme(): Record<string, string> {
   return {
+    /* Alida is Buitelyn se verstek — die oorsigte, briefings en oudio-studio
+       praat almal met haar. Sy kom uit die omgewing sodat 'n rotasie nie 'n
+       ontplooiing verg nie.
+
+       Let wel: dis DIESELFDE stem as Koedoe se "Rachel" (aD6riP1btT197c6dACmy,
+       ElevenLabs se "Rachel M – Pro British Radio Presenter"), wat daar die
+       resepte lees. Een inskrywing, nie twee — Piet se keuse om haar hier
+       Alida te hou. */
     Alida: process.env.ELEVENLABS_VOICE_ID ?? "",
+
+    /* Koedoe se huisstemme. Die doel langs elkeen is waarvoor Koedoe hom
+       gebruik; in NIBS mag jy enigeen kies. */
+    Gerhard: "dSByRdUbTGloB7TFA1qD", // Brood + verstek: woordspel, leer
+    Sarie: "h2dQOVyUfIDqY2whPOMo", // Nuus, 07:00 en 18:30
+    Seuna: "34lPwSZ54D8fWbX1aHzk", // Sport
+    Britney: "kPzsL2i3teMYv0FxEYQ6", // Weer
+    Lanie: "EQu48Nbp4OqDxsnYh27f", // nog nie toegewys nie
+
     Akker: "LG95yZDEHg6fCZdQjLqj",
   };
 }

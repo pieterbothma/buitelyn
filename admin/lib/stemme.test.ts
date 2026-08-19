@@ -25,6 +25,27 @@ describe("kiesStem", () => {
   });
 
   it("wys die kaart se name vir die kieser", () => {
-    expect(STEM_NAME).toEqual(["Alida", "Akker"]);
+    expect(STEM_NAME).toEqual(["Alida", "Gerhard", "Sarie", "Seuna", "Britney", "Lanie", "Akker"]);
   });
 });
+
+describe("Koedoe se huisstemme", () => {
+  it("los elke huisnaam op na sy ID", () => {
+    expect(kiesStem("Gerhard")).toBe("dSByRdUbTGloB7TFA1qD");
+    expect(kiesStem("Sarie")).toBe("h2dQOVyUfIDqY2whPOMo");
+    expect(kiesStem("Seuna")).toBe("34lPwSZ54D8fWbX1aHzk");
+    expect(kiesStem("Britney")).toBe("kPzsL2i3teMYv0FxEYQ6");
+    expect(kiesStem("Lanie")).toBe("EQu48Nbp4OqDxsnYh27f");
+  });
+
+  it("Alida bly eerste, want die kieser se verstek is STEM_NAME[0]", () => {
+    expect(STEM_NAME[0]).toBe("Alida");
+  });
+
+  it("wys Rachel NIE apart nie — dis dieselfde stem as Alida", () => {
+    // aD6riP1btT197c6dACmy is albei; twee inskrywings sou dieselfde stem twee
+    // keer in die keuselys sit.
+    expect(STEM_NAME).not.toContain("Rachel");
+  });
+});
+
