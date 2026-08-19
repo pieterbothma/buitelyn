@@ -24,11 +24,6 @@ export default async function Kaarte({ params }: { params: Promise<{ slug: strin
 
   return (
     <Shell workspaces={(workspaces ?? []) as Workspace[]} active={active as Workspace}>
-      {/* Ekstra sy-ruimte bo-op Shell se px-8. Op 'n smal venster loop die
-          gestoorde-kaarte-rooster na een kolom en die kaart raak dan feitlik
-          aan die rand — 32px is te min vir 'n blad wat uit groot beelde
-          bestaan. */}
-      <div className="px-4 sm:px-6">
       <h1 className="text-3xl font-extrabold tracking-tight">Kaart-bouer</h1>
       <p className="mt-2 max-w-lg text-sm text-ink/60">
         Kies &apos;n styl, tik die teks, en kry &apos;n Buitelyn-kaart in enige formaat. Die
@@ -36,7 +31,6 @@ export default async function Kaarte({ params }: { params: Promise<{ slug: strin
       </p>
       <div className="mt-6">
         <KaartStudio datum={datum} aanvanklikeKaarte={kaarte} />
-      </div>
       </div>
     </Shell>
   );
