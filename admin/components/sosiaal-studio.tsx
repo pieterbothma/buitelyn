@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { krySosialeTekste, laaiNuusbriefOp, type SosialeTekste } from "@/app/actions-sosiaal";
 import { BufferPaneel } from "@/components/buffer-paneel";
+import { haalJson } from "@/lib/haal";
 
 const PLATFORMS: { sleutel: keyof SosialeTekste; naam: string }[] = [
   { sleutel: "x", naam: "X / Twitter" },
@@ -73,18 +74,16 @@ export function SosiaalStudio({
     setEieBesig(true);
     setBoodskap(null);
     try {
-      const res = await fetch("/api/fotos/skep", {
+      const u = await haalJson<{ url?: string }>("/api/fotos/skep", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ prompt: eiePrompt.trim(), size: eieGrootte, logo: eieLogo, opskrif: eieOpskrif }),
       });
-      const data = await res.json();
-      if (data.url) {
-        setEieFotos((f) => [data.url, ...f]);
+      if (u.ok && u.data.url) {
+        const url = u.data.url;
+        setEieFotos((f) => [url, ...f]);
         setEiePrompt("");
-      } else setBoodskap(data.fout ?? "Kon nie skep nie.");
-    } catch {
-      setBoodskap("Netwerkfout.");
+      } else setBoodskap(u.ok ? "Kon nie skep nie." : u.fout);
     } finally {
       setEieBesig(false);
     }
@@ -99,12 +98,9 @@ export function SosiaalStudio({
       vorm.append("formaat", videoFormaat);
       vorm.append("kaart", String(videoKaart));
       if (videoBron === "oplaai" && videoLeer) vorm.append("leer", videoLeer);
-      const res = await fetch("/api/sosiaal/video", { method: "POST", body: vorm });
-      const data = await res.json();
-      if (res.ok) setVideoUrl(data.url);
-      else setVideoFout(data.fout ?? "Render het misluk.");
-    } catch {
-      setVideoFout("Netwerkfout.");
+      const u = await haalJson<{ url?: string }>("/api/sosiaal/video", { method: "POST", body: vorm });
+      if (u.ok) setVideoUrl(u.data.url ?? null);
+      else setVideoFout(u.fout);
     } finally {
       setVideoBesig(false);
     }

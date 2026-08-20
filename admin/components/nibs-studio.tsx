@@ -4,6 +4,7 @@ import { useState } from "react";
 import { STEM_NAME } from "@/lib/stemme";
 import { vertaalNaAfrikaans } from "@/app/actions-nibs";
 import { verwerkTeksVirAudio } from "@/app/actions-audio";
+import { haalJson } from "@/lib/haal";
 
 /* Twee bokse, nie een nie: die bronteks bly staan sodat 'n swak vertaling
    nooit die oorspronklike kos nie. Die skrip is die redigeerbare een — elke
@@ -49,7 +50,9 @@ export function NibsStudio() {
     setBoodskap("");
     setMp3(null);
     try {
-      const res = await fetch("/api/audio/generate", {
+      /* Die TTS-oproep kan tot 300s vat; 'n gateway-timeout gee HTML terug.
+         haalJson wys dan die status in plaas van "Netwerkfout". */
+      const u = await haalJson<{ mp3?: string }>("/api/audio/generate", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -58,14 +61,8 @@ export function NibsStudio() {
           stem,
         }),
       });
-      const d = await res.json();
-      if (res.ok) setMp3(d.mp3);
-      else setBoodskap(d.fout ?? "Oudio het misluk.");
-    } catch {
-      /* Gateway-timeout (die TTS-oproep kan tot 300s vat) gee HTML terug,
-         nie JSON nie — res.json() gooi dan. Sonder hierdie catch bly die
-         gebruiker met niks: geen oudio, geen boodskap. */
-      setBoodskap("Netwerkfout.");
+      if (u.ok) setMp3(u.data.mp3 ?? null);
+      else setBoodskap(u.fout);
     } finally {
       setBesig("");
     }

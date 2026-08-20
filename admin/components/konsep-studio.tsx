@@ -11,6 +11,7 @@ import { verwerkTeksVirAudio } from "@/app/actions-audio";
 import { useOutostoor, WeergawePaneel } from "@/components/outostoor";
 import { GifKieser } from "@/components/gif-kieser";
 import type { Gif } from "@/lib/klipy";
+import { haalJson } from "@/lib/haal";
 
 function AudioModal({ bronTeks, toe }: { bronTeks: string; toe: () => void }) {
   const [teks, setTeks] = useState<string | null>(null);
@@ -33,16 +34,13 @@ function AudioModal({ bronTeks, toe }: { bronTeks: string; toe: () => void }) {
     setBesig("genereer");
     setFout(null);
     try {
-      const res = await fetch("/api/audio/generate", {
+      const u = await haalJson<{ mp3?: string }>("/api/audio/generate", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ titel: `Konsep-audio ${new Date().toLocaleDateString("af-ZA")}`, teks }),
       });
-      const data = await res.json();
-      if (res.ok) setMp3(data.mp3);
-      else setFout(data.fout ?? "Kon nie genereer nie.");
-    } catch {
-      setFout("Netwerkfout.");
+      if (u.ok) setMp3(u.data.mp3 ?? null);
+      else setFout(u.fout);
     } finally {
       setBesig(null);
     }
@@ -121,16 +119,15 @@ function FotoIdees({ bestaandeFotos, aktief }: { bestaandeFotos: string[]; aktie
     setBesigMet(etiket);
     setBoodskap(null);
     try {
-      const res = await fetch("/api/fotos/skep", {
+      const u = await haalJson<{ url?: string }>("/api/fotos/skep", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ prompt, size: grootte }),
       });
-      const data = await res.json();
-      if (data.url) setFotos((f) => [data.url, ...f]);
-      else setBoodskap(data.fout ?? "Kon nie die beeld skep nie.");
-    } catch {
-      setBoodskap("Netwerkfout — probeer weer.");
+      if (u.ok && u.data.url) {
+        const url = u.data.url;
+        setFotos((f) => [url, ...f]);
+      } else setBoodskap(u.ok ? "Kon nie die beeld skep nie." : u.fout);
     } finally {
       setBesigMet(null);
     }

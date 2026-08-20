@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { lysGaleryFotos } from "@/app/actions-kaarte";
 import { normaliseerBeeld, type BeeldBron } from "@/lib/kaart/spec";
 import { BeeldSnyer } from "@/components/kaart/beeld-snyer";
+import { haalJson } from "@/lib/haal";
 
 /* Kies 'n beeld vir 'n kaart: laai een op, of vat een uit die dag se galery
    (Foto Idees, spotprente, grafieke).
@@ -41,12 +42,15 @@ export function BeeldKieser({
       const vorm = new FormData();
       vorm.append("leer", leer);
       vorm.append("datum", datum);
-      const res = await fetch("/api/fotos/oplaai", { method: "POST", body: vorm });
-      const data = await res.json();
-      if (!res.ok) {
-        setFout(data.fout ?? "Kon nie oplaai nie.");
+      const u = await haalJson<{ url: string; wydte: number; hoogte: number; deursigtig: boolean }>(
+        "/api/fotos/oplaai",
+        { method: "POST", body: vorm }
+      );
+      if (!u.ok) {
+        setFout(u.fout);
         return;
       }
+      const data = u.data;
       stel(
         normaliseerBeeld({
           url: data.url,
@@ -58,8 +62,6 @@ export function BeeldKieser({
           zoem: 1,
         })
       );
-    } catch {
-      setFout("Netwerkfout.");
     } finally {
       setBesig(false);
     }

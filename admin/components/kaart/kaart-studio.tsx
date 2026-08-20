@@ -7,6 +7,7 @@ import { gleufVir } from "@/lib/kaart/mate";
 import { useVoorskou } from "@/components/kaart/voorskou";
 import { VeldInvoer } from "@/components/kaart/veld-invoer";
 import { BufferPaneel } from "@/components/buffer-paneel";
+import { haalJson } from "@/lib/haal";
 import {
   dupliseerKaart,
   lysKaarte,
@@ -106,24 +107,23 @@ export function KaartStudio({
     setBesigStoor(true);
     setStoorFout(null);
     try {
-      const res = await fetch("/api/sosiaal/kaart", {
+      const u = await haalJson<{ url: string }>("/api/sosiaal/kaart", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ kaart, datum, stoor: true }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setStoorFout(data.fout ?? "Kon nie die kaart render nie.");
+      if (!u.ok) {
+        setStoorFout(u.fout);
         return;
       }
-      setGestoor(data.url);
+      setGestoor(u.data.url);
 
       const uitslag = await stoorKaart({
         id: huidigeId,
         datum,
         titel,
         kaart,
-        pngUrl: data.url,
+        pngUrl: u.data.url,
       });
       if (!uitslag.ok) {
         setStoorFout(uitslag.fout ?? "Kon nie stoor nie.");
@@ -131,8 +131,6 @@ export function KaartStudio({
       }
       if (uitslag.id) setHuidigeId(uitslag.id);
       await herlaai();
-    } catch {
-      setStoorFout("Netwerkfout.");
     } finally {
       setBesigStoor(false);
     }
