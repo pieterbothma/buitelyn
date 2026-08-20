@@ -65,7 +65,10 @@ export async function POST(request: NextRequest) {
   if (!b64) return NextResponse.json({ fout: "geen beeld terug nie" }, { status: 502 });
 
   // Composiet in een pas: opskrif in ons font in die boonste band + logo regs onder
-  let beeld = Buffer.from(b64, "base64");
+  /* Uitdruklik Buffer (dus Buffer<ArrayBufferLike>): sharp se toBuffer() gee
+     dié wyer tipe terug, terwyl Buffer.from() na Buffer<ArrayBuffer> vernou.
+     Sonder die annotasie weier die hertoekenning hier onder. */
+  let beeld: Buffer = Buffer.from(b64, "base64");
   const [wydte, hoogte] = grootte.split("x").map(Number);
   const lae: OverlayOptions[] = [];
   if (opskrif !== undefined && opskrif.trim()) {
