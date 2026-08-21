@@ -35,16 +35,17 @@ export function csvVeld(waarde: string): string {
   return waarde;
 }
 
-/** Die sigblad. Excel, Numbers en Sheets maak 'n CSV sonder meer oop, dus is
- *  daar geen rede vir 'n xlsx-afhanklikheid nie.
+/** Die sigblad — in Substack se INVOERFORMAAT, want dit is presies wat met
+ *  hierdie lêer gebeur: ons versamel op buitelyn.com en laai op na Substack,
+ *  wat die nuusbrief stuur tot ons heeltemal wegtrek.
  *
- *  Die BOM staan voor: sonder dit wys Excel op Windows "AndrÃ©" in plaas van
- *  "André", en Afrikaanse adresse dra gereeld 'n leesteken. */
+ *  Net 'n `email`-kolom. Substack lees die kop LETTERLIK, dus GEEN BOM nie:
+ *  met 'n BOM heet die eerste kolom "\ufeffemail" en die invoerder sê hy kan
+ *  geen e-poskolom kry nie. (Die teenoorgestelde van 'n Excel-lêer, waar die
+ *  BOM juis nodig is — dieselfde data, twee lêers, twee regte antwoorde.)
+ *
+ *  Die tyd en die bron staan in die e-pos se lyf, nie hier nie: 'n ekstra
+ *  kolom is 'n ding wat 'n mens voor die oplaai moet uitvee. */
 export function bouCsv(rye: Intekenaar[]): string {
-  const kop = ["E-pos", "Ingeteken (SAST)", "Bron"];
-  const lyne = [kop.join(",")];
-  for (const r of rye) {
-    lyne.push([csvVeld(r.epos), csvVeld(sastTyd(r.geskep_at)), csvVeld(r.bron ?? "")].join(","));
-  }
-  return "﻿" + lyne.join("\r\n") + "\r\n";
+  return ["email", ...rye.map((r) => csvVeld(r.epos))].join("\r\n") + "\r\n";
 }

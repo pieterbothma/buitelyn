@@ -33,24 +33,23 @@ describe("csvVeld", () => {
   });
 });
 
-describe("bouCsv", () => {
+describe("bouCsv — Substack se invoerformaat", () => {
   const rye = [
     { epos: "een@toets.co.za", geskep_at: "2026-08-20T15:33:00.000Z", bron: "tuisblad" },
     { epos: "twee@toets.co.za", geskep_at: "2026-08-20T16:00:00.000Z", bron: null },
   ];
 
-  it("skryf 'n kopreël en een reël per intekenaar", () => {
-    const lyne = bouCsv(rye).trimEnd().split("\r\n");
-    expect(lyne[0]).toBe("﻿E-pos,Ingeteken (SAST),Bron");
-    expect(lyne).toHaveLength(3);
-    expect(lyne[1]).toBe("een@toets.co.za,2026-08-20 17:33,tuisblad");
+  it("skryf net 'n email-kolom", () => {
+    expect(bouCsv(rye)).toBe("email\r\neen@toets.co.za\r\ntwee@toets.co.za\r\n");
   });
 
-  it("hanteer 'n ontbrekende bron as 'n leë sel", () => {
-    expect(bouCsv(rye).trimEnd().split("\r\n")[2]).toBe("twee@toets.co.za,2026-08-20 18:00,");
+  it("het GEEN BOM nie — Substack lees die kop letterlik", () => {
+    // Met 'n BOM heet die kolom "\ufeffemail" en die invoerder kry niks.
+    expect(bouCsv(rye).startsWith("\ufeff")).toBe(false);
+    expect(bouCsv(rye).startsWith("email")).toBe(true);
   });
 
-  it("begin met 'n BOM sodat Excel die leestekens reg wys", () => {
-    expect(bouCsv([]).startsWith("﻿")).toBe(true);
+  it("gee net die kop terug wanneer daar niemand is nie", () => {
+    expect(bouCsv([])).toBe("email\r\n");
   });
 });

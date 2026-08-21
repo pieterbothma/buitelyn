@@ -40,10 +40,10 @@ export async function GET(request: NextRequest) {
     from: "Buitelyn <piet@aitsa.tech>",
     to: "apduplessis@gmail.com",
     subject: `Buitelyn-nuusbrief: ${meervoud}`,
-    text: `Sedert gisteraand 20:00 het ${meervoud} ingeteken:\n\n${lys}\n\nDie aangehegte sigblad het dieselfde lys met die bron by.\n\n— outomaties gestuur deur AP HQ`,
+    text: `Sedert gisteraand 20:00 het ${meervoud} op buitelyn.com ingeteken:\n\n${lys}\n\nDie aangehegte CSV is reg vir Substack se invoer — net 'n email-kolom, niks om eers uit te vee nie.\n\n— outomaties gestuur deur AP HQ`,
     attachments: [
       {
-        filename: `nuusbrief-intekenare-${datum}.csv`,
+        filename: `buitelyn-substack-${datum}.csv`,
         content: Buffer.from(bouCsv(rye), "utf8").toString("base64"),
       },
     ],
