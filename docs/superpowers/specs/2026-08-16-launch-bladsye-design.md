@@ -9,7 +9,8 @@
 Drie dinge op buitelyn.com voor die video-launch:
 
 1. Die jongste YouTube-video wat vanself op die voorblad verskyn, onder 'n foto
-   van AP en Suzaan.
+   van AP. (Suzaan was oorspronklik deel van die aanbieding; sedert 2026-08-25
+   is dit net AP.)
 2. 'n `/adverteer`-blad wat verduidelik hóé 'n adverteerder adverteer, sonder om
    'n prys op die werf te sit.
 3. 'n `/redaksioneel`-blad wat sê waar die nuus vandaan kom, dat die RSS-stories
@@ -142,7 +143,7 @@ Vorm ──POST──> /api/adverteer ──1──> Supabase advertensie_navrae
 Die struktuur staan; hierdie is kopie-invoere wat later ingeplak word:
 
 1. Hoeveel borge per episode — is dit werklik een op 'n slag?
-2. Lees AP en Suzaan die vermeldings self?
+2. Lees AP die vermeldings self?
 3. Wat is nou beskikbaar, en wat is reeds verkoop?
 4. Kry 'n adverteerder 'n maandverslag, en wat staan daarin?
 5. Suzaan se van, vir die redaksionele blad.
@@ -156,7 +157,7 @@ Die struktuur staan; hierdie is kopie-invoere wat later ingeplak word:
   rekeninghouer af en gee 403 vir enigiemand anders.
 - Twee adresse wat werklik iewers uitkom: `hallo@buitelyn.com` (verwyder-my-
   stroom) en `regstellings@buitelyn.com`. Of 'n bestaande adres in hul plek.
-- Vrydag se foto.
+- Die foto van AP.
 
 ## Buite bestek
 
