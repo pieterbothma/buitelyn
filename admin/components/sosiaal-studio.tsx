@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { krySosialeTekste, laaiNuusbriefOp, type SosialeTekste } from "@/app/actions-sosiaal";
+import { BufferPaneel } from "@/components/buffer-paneel";
 
 const PLATFORMS: { sleutel: keyof SosialeTekste; naam: string }[] = [
   { sleutel: "x", naam: "X / Twitter" },
@@ -121,6 +123,19 @@ export function SosiaalStudio({
       </h2>
       <p className="mt-1 max-w-lg text-sm text-ink/60">
         Branded kaarte uit vandag se nuusbrief — regsklik en stoor, of maak oop en deel.
+        Dit is die OUTOMATIESE stel, in een uitleg.
+      </p>
+      {/* Sonder hierdie wyser is die Kaart-bouer onvindbaar: dit is 'n eie blad,
+          en dit is hierdie blad waarop mens instinktief soek. */}
+      <Link
+        href="/w/buitelyn/kaarte"
+        className="mt-3 inline-block border-2 border-ink bg-ink px-4 py-2 text-sm font-semibold text-offwhite hover:bg-ink/85"
+      >
+        Bou &apos;n eie kaart → Kaart-bouer
+      </Link>
+      <p className="mt-1 max-w-lg text-xs text-ink/50">
+        Vyf style (kop + beeld, groot getal, aanhaling, lys, meme), vier groottes,
+        eie foto&apos;s met snit en agtergrond-verwydering.
       </p>
       <div className="mt-3">
         {oplaaiOop ? (
@@ -207,7 +222,7 @@ export function SosiaalStudio({
         <span aria-hidden className="size-2 rounded-full bg-red" />
       </h2>
       <p className="mt-1 max-w-lg text-sm text-ink/60">
-        'n Buitelyn-spotprent: swart opskrif bo, 'n slim spotprent van jou onderwerp
+        &apos;n Buitelyn-spotprent: swart opskrif bo, &apos;n slim spotprent van jou onderwerp
         daaronder — die logo kom outomaties in die hoek.
       </p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -259,19 +274,25 @@ export function SosiaalStudio({
           placeholder="Opskrif in die beeld (swart teks bo) — opsioneel"
           className="border-2 border-ink bg-offwhite px-3 py-2 text-sm outline-none focus:border-red"
         />
-        <div className="flex flex-wrap gap-2">
-          <input
-            value={eiePrompt}
-            onChange={(e) => setEiePrompt(e.target.value)}
-            placeholder="Waaroor gaan die spotprent? (bv. Kganyago hou die rentekoers-hek toe terwyl die rand wegloop)"
-            className="min-w-72 flex-1 border-2 border-ink bg-offwhite px-3 py-2 text-sm outline-none focus:border-red"
-          />
+        {/* 'n Textarea, nie 'n input nie: 'n spotprent-beskrywing is 'n paar
+            sinne lank en op een reël rol die begin uit sig sodra jy tik — jy
+            kan nie sien wat jy vra nie. Daar was nooit 'n karakterlimiet nie,
+            net te min plek. resize-y laat 'n mens dit self groter trek. */}
+        <textarea
+          value={eiePrompt}
+          onChange={(e) => setEiePrompt(e.target.value)}
+          rows={4}
+          placeholder="Waaroor gaan die spotprent? (bv. Kganyago hou die rentekoers-hek toe terwyl die rand wegloop)"
+          className="w-full resize-y border-2 border-ink bg-offwhite px-3 py-2 text-sm leading-relaxed outline-none focus:border-red"
+        />
+        <div className="flex flex-wrap items-center gap-3">
           <button
             disabled={eieBesig || !eiePrompt.trim()}
             className="bg-ink px-4 py-2 text-sm font-semibold text-offwhite hover:bg-ink/85 disabled:opacity-50"
           >
             {eieBesig ? "Skep… (±30s)" : "Skep spotprent"}
           </button>
+          <span className="text-xs text-ink/50">{eiePrompt.trim().length} karakters</span>
         </div>
       </form>
       {eieFotos.length ? (
@@ -323,7 +344,7 @@ export function SosiaalStudio({
         <span aria-hidden className="size-2 rounded-full bg-red" />
       </h2>
       <p className="mt-1 max-w-lg text-sm text-ink/60">
-        Die dag se briefing-audio oor die voorbladkaart met 'n golfvorm — gerender in 'n
+        Die dag se briefing-audio oor die voorbladkaart met &apos;n golfvorm — gerender in &apos;n
         Vercel Sandbox.
       </p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -403,6 +424,13 @@ export function SosiaalStudio({
           </a>
         </div>
       ) : null}
+
+      <BufferPaneel
+        datum={datum}
+        stukke={stukke.map((s, i) => ({ i, kop: s.kop }))}
+        vorm={vorm}
+        weergawe={weergawe}
+      />
     </div>
   );
 }

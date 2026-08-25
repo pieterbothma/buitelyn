@@ -141,7 +141,7 @@ export async function kryEpos(accountId: string, emailId: string): Promise<Volle
   const q = new URLSearchParams({ account_id: accountId, limit: "100" });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const lys = await unipileFetch<{ items?: any[] }>(`/emails?${q}`);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const raw = (lys.items ?? []).find(
     (m) => m.id === emailId || m.deprecated_id === emailId
   );

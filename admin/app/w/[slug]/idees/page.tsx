@@ -22,6 +22,10 @@ export default async function Idees({ params }: { params: Promise<{ slug: string
     .order("geskep_at", { ascending: false });
 
   const fmt = new Intl.DateTimeFormat("af-ZA", { timeZone: "Africa/Johannesburg", day: "numeric", month: "short" });
+  /* Dit is 'n async SERVER-komponent: Date.now() loop een keer per
+     versoek op die bediener, nie in 'n kliënt-render nie. Die
+     purity-reël mik op kliënt-renders en gee hier 'n vals positief. */
+  // eslint-disable-next-line react-hooks/purity
   const môre = new Date(Date.now() + 86_400_000);
   môre.setHours(9, 0, 0, 0);
 

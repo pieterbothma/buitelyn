@@ -27,7 +27,7 @@ export default async function NuweFaktuur({ params }: { params: Promise<{ slug: 
       <h1 className="text-3xl font-extrabold tracking-tight">Nuwe faktuur</h1>
       {(kliente ?? []).length === 0 ? (
         <p className="mt-6 text-sm text-ink/60">
-          Skep eers 'n kliënt onder{" "}
+          Skep eers &apos;n kliënt onder{" "}
           <Link href={`/w/${slug}/kliente`} className="font-semibold underline">
             Kliënte
           </Link>

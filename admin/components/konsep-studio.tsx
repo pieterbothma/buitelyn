@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import {
   kryFotoIdees,
   skepNuusbriefKonsep,
@@ -9,6 +9,8 @@ import {
 } from "@/app/actions-nuusbrief";
 import { verwerkTeksVirAudio } from "@/app/actions-audio";
 import { useOutostoor, WeergawePaneel } from "@/components/outostoor";
+import { GifKieser } from "@/components/gif-kieser";
+import type { Gif } from "@/lib/klipy";
 
 function AudioModal({ bronTeks, toe }: { bronTeks: string; toe: () => void }) {
   const [teks, setTeks] = useState<string | null>(null);
@@ -245,6 +247,8 @@ export function KonsepStudio({
   const [teks, setTeks] = useState(aanvanklik);
   const [boodskap, setBoodskap] = useState<string | null>(null);
   const [audioOop, setAudioOop] = useState(false);
+  const [gifOop, setGifOop] = useState(false);
+  const teksRef = useRef<HTMLTextAreaElement>(null);
   const [besig, begin] = useTransition();
   const vandagSAST = new Intl.DateTimeFormat("en-CA", { timeZone: "Africa/Johannesburg" }).format(new Date());
   const outoStatus = useOutostoor("konsep", datum ?? vandagSAST, teks, setTeks);
@@ -272,6 +276,27 @@ export function KonsepStudio({
   async function kopieer() {
     await navigator.clipboard.writeText(teks);
     setBoodskap("Gekopieer — plak in Substack.");
+  }
+
+  /* Voeg die GIF as markdown-beeld in by die wyser, nie agteraan nie. Leë reëls
+     rondom dit sodat Substack die beeld as sy eie blok hanteer. */
+  function voegGifIn(gif: Gif) {
+    const veld = teksRef.current;
+    const merk = `![${gif.titel}](${gif.volledig})`;
+    const posisie = veld?.selectionStart ?? teks.length;
+    const einde = veld?.selectionEnd ?? posisie;
+    const voor = teks.slice(0, posisie).replace(/\n*$/, "");
+    const na = teks.slice(einde).replace(/^\n*/, "");
+    const nuut = `${voor}\n\n${merk}\n\n${na}`;
+    setTeks(nuut);
+    setGifOop(false);
+    setBoodskap("GIF ingevoeg.");
+    // Sit die wyser ná die ingevoegde beeld sodat AP verder kan tik.
+    const nuwePosisie = voor.length + 2 + merk.length;
+    requestAnimationFrame(() => {
+      veld?.focus();
+      veld?.setSelectionRange(nuwePosisie, nuwePosisie);
+    });
   }
 
   return (
@@ -312,12 +337,19 @@ export function KonsepStudio({
       {teks ? (
         <>
         <textarea
+          ref={teksRef}
           value={teks}
           onChange={(e) => setTeks(e.target.value)}
           rows={28}
           className="mt-4 w-full border-2 border-ink bg-offwhite p-4 font-mono text-sm leading-relaxed outline-none focus:border-red"
         />
-        <div className="mt-2 flex justify-end">
+        <div className="mt-2 flex justify-end gap-2">
+          <button
+            onClick={() => setGifOop(true)}
+            className="border-2 border-ink bg-offwhite px-4 py-2 text-sm font-semibold hover:bg-paper"
+          >
+            Voeg GIF in 🎞
+          </button>
           <button
             onClick={() => setAudioOop(true)}
             className="border-2 border-ink bg-offwhite px-4 py-2 text-sm font-semibold hover:bg-paper"
@@ -326,6 +358,7 @@ export function KonsepStudio({
           </button>
         </div>
         {audioOop ? <AudioModal bronTeks={teks} toe={() => setAudioOop(false)} /> : null}
+        {gifOop ? <GifKieser opKies={voegGifIn} toe={() => setGifOop(false)} /> : null}
         </>
       ) : (
         <p className="mt-4 max-w-lg text-sm text-ink/60">

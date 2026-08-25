@@ -9,7 +9,7 @@ function vandagSAST(): string {
 /** Outostoor: skryf die hoofteks (oorsig/konsep) én los 'n weergawe-snapshot
  *  as die teks werklik verander het. Word elke ±20s deur die redigeerders
  *  geroep — niks gaan ooit weer verlore deur weg te navigeer nie. */
-export async function outoStoor(tipe: "oorsig" | "konsep", teks: string, datum?: string): Promise<string | null> {
+export async function outoStoor(tipe: "oorsig" | "konsep" | "oudio", teks: string, datum?: string): Promise<string | null> {
   const sb = await supabaseServer();
   const {
     data: { user },
@@ -23,6 +23,15 @@ export async function outoStoor(tipe: "oorsig" | "konsep", teks: string, datum?:
       { datum: doelDatum, teks, opgedateer_at: new Date().toISOString() },
       { onConflict: "datum" }
     );
+  } else if (tipe === "oudio") {
+    /* UPDATE, nie upsert nie: studio_oorsigte.teks is NOT NULL, dus sou 'n
+       invoeging met net oudio_teks val. Die ry bestaan in elk geval altyd
+       teen die tyd dat daar 'n oudio-skrip is — die oorsig se eie outostoor
+       skep hom binne 20s. */
+    await sb
+      .from("studio_oorsigte")
+      .update({ oudio_teks: teks, opgedateer_at: new Date().toISOString() })
+      .eq("datum", doelDatum);
   } else {
     await sb.from("nuusbrief_konsepte").upsert(
       { datum: doelDatum, teks, opgedateer_at: new Date().toISOString() },
@@ -60,7 +69,7 @@ export async function outoStoor(tipe: "oorsig" | "konsep", teks: string, datum?:
 
 export type Weergawe = { id: string; teks: string; geskep_at: string };
 
-export async function kryWeergawes(tipe: "oorsig" | "konsep", datum?: string): Promise<Weergawe[]> {
+export async function kryWeergawes(tipe: "oorsig" | "konsep" | "oudio", datum?: string): Promise<Weergawe[]> {
   const sb = await supabaseServer();
   const {
     data: { user },

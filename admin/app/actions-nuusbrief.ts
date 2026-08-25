@@ -118,9 +118,12 @@ Antwoord NET met die markdown-konsep.`
   /* Meganiese naskou: enige URL wat nie uit die nuuslys (of ons eie blad)
      kom nie, word sigbaar gemerk — prompt-reëls alleen hou nie. */
   const toegelaat = new Set((nuus ?? []).map((n) => n.skakel));
+  /* Ons eie media-gasheerders: die konsep-fotos-bucket en Klipy se GIF's wat
+     AP self ingevoeg het. Sonder dié sou 'n hergenereerde konsep hulle merk. */
+  const EIE_GASHEERS = ["buitelyn.com", "static.klipy.com", "media.klipy.com", "supabase.co"];
   const gemerk = teks.replace(/https?:\/\/[^\s)\]]+/g, (url) => {
     const skoon = url.replace(/[.,;]+$/, "");
-    if (toegelaat.has(skoon) || skoon.includes("buitelyn.com")) return url;
+    if (toegelaat.has(skoon) || EIE_GASHEERS.some((g) => skoon.includes(g))) return url;
     return `${url} ⚠️VERDAGTE-SKAKEL — nie uit die nuuslys nie, verwyder voor publikasie`;
   });
 

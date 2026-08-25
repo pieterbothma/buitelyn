@@ -78,7 +78,7 @@ export default async function OorsigArgief({ params }: { params: Promise<{ slug:
                   return (
                     <li key={u} className="flex flex-wrap items-center gap-x-3 gap-y-2">
                       <span className="w-16 text-sm font-semibold tracking-[0.12em]">{u.toUpperCase()}</span>
-                      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+                      { }
                       <audio
                         controls
                         preload="none"

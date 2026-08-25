@@ -79,7 +79,7 @@ export function InvoiceForm({ slug, kliente }: { slug: string; kliente: Klient[]
           onClick={() => setLyne((l) => [...l, { beskrywing: "", aantal: "1", prys: "" }])}
           className="mt-2 text-sm font-semibold underline-offset-2 hover:underline"
         >
-          + nog 'n lyn
+          + nog &apos;n lyn
         </button>
       </div>
 

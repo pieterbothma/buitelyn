@@ -87,14 +87,34 @@ export function Shell({
                       </li>
                     ) : null}
                     {ws.slug === "buitelyn" ? (
-                      <li>
-                        <Link
-                          href={`/w/${ws.slug}/studio`}
-                          className="block py-1 text-[13px] text-ink/70 hover:text-ink hover:underline"
-                        >
-                          Studio
-                        </Link>
-                      </li>
+                      <>
+                        <li>
+                          <Link
+                            href={`/w/${ws.slug}/studio`}
+                            className="block py-1 text-[13px] text-ink/70 hover:text-ink hover:underline"
+                          >
+                            Studio
+                          </Link>
+                        </li>
+                        {/* Die Studio se gereedskap was net vanaf die hub bereikbaar;
+                            die twee wat daagliks gebruik word, kry hul eie skakel. */}
+                        <li>
+                          <Link
+                            href={`/w/${ws.slug}/kaarte`}
+                            className="block py-1 pl-3 text-[13px] text-ink/70 hover:text-ink hover:underline"
+                          >
+                            Kaart-bouer
+                          </Link>
+                        </li>
+                        <li>
+                          <Link
+                            href={`/w/${ws.slug}/beeld`}
+                            className="block py-1 pl-3 text-[13px] text-ink/70 hover:text-ink hover:underline"
+                          >
+                            Beeld-gereedskap
+                          </Link>
+                        </li>
+                      </>
                     ) : null}
                   </ul>
                 ) : null}

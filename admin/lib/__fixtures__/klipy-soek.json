@@ -1,0 +1,64 @@
+{
+  "result": true,
+  "data": {
+    "data": [
+      {
+        "id": 8041071659142944,
+        "slug": "hello-hi-662",
+        "title": "Hello",
+        "file": {
+          "hd": {
+            "gif": { "url": "https://static.klipy.com/ii/935d/14/af/um0L4dFH.gif", "width": 498, "height": 498, "size": 4001918 },
+            "webp": { "url": "https://static.klipy.com/ii/935d/14/af/eUbp2uNc.webp", "width": 498, "height": 498, "size": 285228 },
+            "jpg": { "url": "https://static.klipy.com/ii/935d/14/af/LyWpim71.jpg", "width": 498, "height": 498, "size": 19255 },
+            "mp4": { "url": "https://static.klipy.com/ii/935d/14/af/MCCBoQlZ.mp4", "width": 498, "height": 498, "size": 119294 }
+          },
+          "md": {
+            "gif": { "url": "https://static.klipy.com/ii/935d/14/af/8GCrVAB7.gif", "width": 320, "height": 320, "size": 3721260 },
+            "webp": { "url": "https://static.klipy.com/ii/935d/14/af/JUYsGsrc.webp", "width": 320, "height": 320, "size": 643490 },
+            "mp4": { "url": "https://static.klipy.com/ii/935d/14/af/V6da8Awi.mp4", "width": 320, "height": 320, "size": 119294 }
+          },
+          "sm": {
+            "gif": { "url": "https://static.klipy.com/ii/935d/14/af/sm-hello.gif", "width": 160, "height": 160, "size": 512000 },
+            "webp": { "url": "https://static.klipy.com/ii/935d/14/af/sm-hello.webp", "width": 160, "height": 160, "size": 48000 }
+          }
+        }
+      },
+      {
+        "id": 8041071659142945,
+        "slug": "geadverteer",
+        "title": "Koop nou",
+        "type": "ad",
+        "file": {
+          "md": {
+            "gif": { "url": "https://static.klipy.com/ad/advert.gif", "width": 320, "height": 320, "size": 100000 },
+            "webp": { "url": "https://static.klipy.com/ad/advert.webp", "width": 320, "height": 320, "size": 20000 }
+          }
+        }
+      },
+      {
+        "id": 8041071659142946,
+        "slug": "net-video",
+        "title": "Net 'n video",
+        "file": {
+          "md": {
+            "mp4": { "url": "https://static.klipy.com/ii/935d/14/af/net-video.mp4", "width": 320, "height": 240, "size": 90000 }
+          }
+        }
+      },
+      {
+        "id": 8041071659142947,
+        "slug": "net-hd",
+        "title": "Slegs HD",
+        "file": {
+          "hd": {
+            "gif": { "url": "https://static.klipy.com/ii/935d/14/af/net-hd.gif", "width": 640, "height": 360, "size": 2000000 }
+          }
+        }
+      }
+    ],
+    "current_page": 2,
+    "per_page": 24,
+    "has_next": true
+  }
+}

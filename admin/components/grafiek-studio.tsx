@@ -124,7 +124,7 @@ export function GrafiekStudio() {
           ))}
         </div>
       ) : (
-        <p className="mt-3 text-sm text-ink/50">Voeg 2 of meer aandele by vir 'n vergelyking.</p>
+        <p className="mt-3 text-sm text-ink/50">Voeg 2 of meer aandele by vir &apos;n vergelyking.</p>
       )}
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
