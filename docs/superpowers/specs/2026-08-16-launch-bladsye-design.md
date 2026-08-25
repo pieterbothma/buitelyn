@@ -146,7 +146,6 @@ Die struktuur staan; hierdie is kopie-invoere wat later ingeplak word:
 2. Lees AP die vermeldings self?
 3. Wat is nou beskikbaar, en wat is reeds verkoop?
 4. Kry 'n adverteerder 'n maandverslag, en wat staan daarin?
-5. Suzaan se van, vir die redaksionele blad.
 
 ## Wat nodig is voor ontplooiing
 
