@@ -61,6 +61,30 @@ describe("normaliseerDuimnael", () => {
     });
     expect(d.lae).toEqual([]);
   });
+
+  it("dwing die agtergrond se afmetings na getalle — NaN sou yoga laat val", () => {
+    const d = normaliseerDuimnael({
+      agtergrond: { url: "https://x/a.png", wydte: "piesang", hoogte: null, fokusX: 99, zoem: 500 },
+      lae: [],
+    });
+    expect(typeof d.agtergrond!.wydte).toBe("number");
+    expect(Number.isFinite(d.agtergrond!.wydte)).toBe(true);
+    expect(d.agtergrond!.fokusX).toBeLessThanOrEqual(1);
+    expect(d.agtergrond!.zoem).toBeLessThanOrEqual(4);
+  });
+
+  it("weier 'n WebP-agtergrond — satori dekodeer dit nie en die duimnael kom stil blank uit", () => {
+    const d = normaliseerDuimnael({ agtergrond: { url: "https://x/a.webp", wydte: 10, hoogte: 10 }, lae: [] });
+    expect(d.agtergrond).toBeNull();
+  });
+
+  it("begrens 'n absurd lang opskrif voordat satori dit moet uitlê", () => {
+    const d = normaliseerDuimnael({
+      agtergrond: null,
+      lae: [{ soort: "teks", teks: "A".repeat(200_000), kleur: "wit", belyn: "links", plek: { x: 0.1, y: 0.1, grootte: 0.08 } }],
+    });
+    expect((d.lae[0] as { teks: string }).teks.length).toBe(120);
+  });
 });
 
 describe("VERSTEK_PROMPT", () => {

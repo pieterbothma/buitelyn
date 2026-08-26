@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { gloedKas, gloedSvgUrl } from "./gloed";
+import { laagKas } from "./laag";
 import { GLOED_VERSTEK, RAAM, type Laag } from "./spec";
 
 const reaksie = (gloed = GLOED_VERSTEK): Laag => ({
@@ -22,7 +23,7 @@ describe("gloedKas", () => {
 
   it("is vierkantig met deursnee 2 × radius", () => {
     const k = gloedKas(reaksie(), RAAM)!;
-    expect(k.width).toBe(2 * Math.round(GLOED_VERSTEK.radius * RAAM.w));
+    expect(k.width).toBe(1076); // 2 * round(0.42 * 1280) — ewe, dus presies sentreerbaar
     expect(k.height).toBe(k.width);
   });
 
@@ -33,6 +34,14 @@ describe("gloedKas", () => {
   it("gee null vir 'n laag wat nie 'n reaksie is nie", () => {
     const logo: Laag = { soort: "logo", kleur: "wit", plek: { x: 0.5, y: 0.5, grootte: 0.1 } };
     expect(gloedKas(logo, RAAM)).toBeNull();
+  });
+
+  it("volg laagKas se middelpunt, nie 'n tweede eie som nie", () => {
+    const l = reaksie();
+    const r = laagKas(l, RAAM);
+    const g = gloedKas(l, RAAM)!;
+    expect(g.left + g.width / 2).toBe(r.left + r.width / 2);
+    expect(g.top + g.height! / 2).toBe(r.top + r.height! / 2);
   });
 });
 
@@ -58,5 +67,12 @@ describe("gloedSvgUrl", () => {
     const url = gloedSvgUrl(GLOED_VERSTEK);
     expect(url).not.toContain("#");
     expect(url).not.toContain("<");
+  });
+
+  it("die gradiënt-verwysing oorleef een dekodering — anders render die gloed glad nie", () => {
+    const svg = decodeURIComponent(gloedSvgUrl(GLOED_VERSTEK).slice("data:image/svg+xml,".length));
+    expect(svg).toContain('fill="url(#g)"');
+    expect(svg).not.toContain("%23");
+    expect(svg).toContain('<radialGradient id="g"');
   });
 });

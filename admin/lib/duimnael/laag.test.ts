@@ -21,8 +21,8 @@ describe("laagKas — reaksie", () => {
   });
 
   it("behou die beeld se verhouding — nooit plet nie", () => {
-    const hoog: Laag = { ...reaksie({ x: 0.5, y: 0.5, grootte: 0.5 }), wydte: 800, hoogte: 1600 };
-    const k = laagKas(hoog, RAAM);
+    const hoog = { ...reaksie({ x: 0.5, y: 0.5, grootte: 0.5 }), wydte: 800, hoogte: 1600 };
+    const k = laagKas(hoog as Laag, RAAM);
     expect(k.width).toBe(640);
     expect(k.height).toBe(1280);
   });

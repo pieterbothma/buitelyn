@@ -5,7 +5,7 @@
    Word daardie invoer, sleep satori + resvg + yoga.wasm die blaaier-bundel in,
    en die bou slaag stilweg. */
 
-import type { BeeldBron } from "@/lib/kaart/spec";
+import { normaliseerBeeld, type BeeldBron } from "@/lib/kaart/spec";
 
 export const RAAM = { w: 1280, h: 720 } as const;
 
@@ -54,6 +54,8 @@ export const VERSTEK_PROMPT =
 
 const LEEG: Duimnael = { agtergrond: null, lae: [] };
 
+const MAKS_TEKS = 120;
+
 function getal(n: unknown, verstek: number): number {
   return typeof n === "number" && Number.isFinite(n) ? n : verstek;
 }
@@ -87,7 +89,7 @@ function gloed(rou: unknown): Gloed {
 /** 'n data:-URL is verbode. satori haal beelde by ELKE render weer af, en 'n
  *  ingebedde base64-string laat die spec megagrepe swaar word. */
 function bruikbareUrl(u: unknown): string | null {
-  return typeof u === "string" && /^https?:\/\//.test(u) ? u : null;
+  return typeof u === "string" && /^https?:\/\//i.test(u) ? u : null;
 }
 
 function laag(rou: unknown): Laag | null {
@@ -104,7 +106,10 @@ function laag(rou: unknown): Laag | null {
     case "logo":
       return { soort: "logo", kleur: l.kleur === "ink" ? "ink" : "wit", plek: plek(l.plek) };
     case "teks": {
-      const teks = typeof l.teks === "string" ? l.teks.trim() : "";
+      /* Begrens wat satori moet uitlê. 'n Opskrif langer as dit is by 1280×720
+         in elk geval onleesbaar, en die suster-module begrens elke string wat
+         sy aan satori gee. */
+      const teks = typeof l.teks === "string" ? l.teks.trim().slice(0, MAKS_TEKS) : "";
       if (!teks) return null;
       return {
         soort: "teks",
@@ -123,6 +128,9 @@ export function normaliseerDuimnael(rou: unknown): Duimnael {
   if (rou == null || typeof rou !== "object") return LEEG;
   const d = rou as Record<string, unknown>;
   const lae = Array.isArray(d.lae) ? d.lae.map(laag).filter((l): l is Laag => l !== null) : [];
-  const agtergrond = d.agtergrond && typeof d.agtergrond === "object" ? (d.agtergrond as BeeldBron) : null;
-  return { agtergrond: agtergrond && bruikbareUrl(agtergrond.url) ? agtergrond : null, lae };
+  /* Hergebruik kaart se normaliseerder: dit klem fokus en zoem, vloer wydte en
+     hoogte, dwing deursigtig na 'n boolean, en weier WebP-URL's — wat ons
+     eie WebP-reël gratis afdwing. */
+  const agtergrond = normaliseerBeeld(d.agtergrond);
+  return { agtergrond, lae };
 }

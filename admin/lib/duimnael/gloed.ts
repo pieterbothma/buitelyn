@@ -7,20 +7,23 @@
    KLIËNT-VEILIG. */
 
 import type { Gleuf, LaagKas } from "./laag";
+import { laagKas } from "./laag";
 import type { Gloed, Laag } from "./spec";
 
 /** Waar die gloed sit — dieselfde ankerpunt as die reaksie, want 'n gloed wat
  *  nie sy mens volg nie is net 'n kol op die agtergrond. */
 export function gloedKas(laag: Laag, raam: Gleuf): LaagKas | null {
   if (laag.soort !== "reaksie" || !laag.gloed.aan) return null;
-  /* 'n EWE deursnee, want 'n onewe boks kan nie op 'n heelgetal-rooster
-     gesentreer word nie: met radius 0.42 gee round(0.42*2*1280) = 1075, en die
-     middelpunt val op 320.5 — vir altyd 'n halwe pixel langs AP. Ons rond die
-     radius af en verdubbel dan, so deursnee/2 is altyd 'n heelgetal. */
+  /* Ons vra laagKas waar die reaksie is, eerder as om die anker weer self uit
+     te werk. Dieselfde som op twee plekke dryf uiteindelik uiteen, en dan volg
+     die gloed nie meer sy mens nie. */
+  const kas = laagKas(laag, raam);
+  const middelX = kas.left + kas.width / 2;
+  const middelY = kas.top + kas.height! / 2;
   const deursnee = 2 * Math.round(laag.gloed.radius * raam.w);
   return {
-    left: Math.round(laag.plek.x * raam.w - deursnee / 2),
-    top: Math.round(laag.plek.y * raam.h - deursnee / 2),
+    left: Math.round(middelX - deursnee / 2),
+    top: Math.round(middelY - deursnee / 2),
     width: deursnee,
     height: deursnee,
   };
@@ -37,7 +40,11 @@ export function gloedSvgUrl(gloed: Gloed): string {
     `<stop offset="55%" stop-color="${gloed.kleur}" stop-opacity="${(gloed.sterkte * 0.35).toFixed(3)}"/>` +
     `<stop offset="100%" stop-color="${gloed.kleur}" stop-opacity="0"/>` +
     `</radialGradient></defs>` +
-    `<rect width="100" height="100" fill="url(%23g)"/>` +
+    `<rect width="100" height="100" fill="url(#g)"/>` +
     `</svg>`;
+  /* Let wel: die `#` word LETTERLIK geskryf. encodeURIComponent ontsnap dit een
+     keer na %23, wat presies een keer terug dekodeer na `#`. Skryf ons self %23,
+     word dit %2523 en die gradiënt-verwysing hang in die lug — die gloed render
+     dan glad nie, stilweg. */
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
