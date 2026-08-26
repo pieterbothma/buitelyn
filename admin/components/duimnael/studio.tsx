@@ -48,6 +48,8 @@ export function DuimnaelStudio({
   const [prompt, setPrompt] = useState(verstekPrompt);
   const [styl, setStyl] = useState<string>(STYLE[0].sleutel);
   const [kant, setKant] = useState<Kant>("links");
+  const [onderwerpe, setOnderwerpe] = useState("");
+  const [gevorderd, setGevorderd] = useState(false);
 
   /* Styl en kant bou saam die prompt. Die teksblok bly vryevorm — 'n eie
      wysiging bly staan totdat 'n knoppie weer gedruk word. */
@@ -174,6 +176,7 @@ export function DuimnaelStudio({
     setBoodskap(null);
     const vorm = new FormData();
     vorm.append("prompt", prompt);
+    if (onderwerpe.trim()) vorm.append("onderwerpe", onderwerpe.trim());
     for (const v of verwysings) vorm.append("verwysing", v.lêer);
     const res = await fetch("/api/duimnael/agtergrond", { method: "POST", body: vorm });
     const data = await res.json();
@@ -182,6 +185,7 @@ export function DuimnaelStudio({
       setBoodskap(data.fout ?? "Die agtergrond kon nie gemaak word nie.");
       return;
     }
+    if (data.onderwerpe) setOnderwerpe(data.onderwerpe);
     setDuimnael((d) => ({
       ...d,
       agtergrond: {
@@ -513,12 +517,35 @@ export function DuimnaelStudio({
               </button>
             ))}
           </div>
-          <textarea
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            rows={6}
-            className="mt-2 w-full border-2 border-ink bg-offwhite p-2 text-xs"
+          <label className="mt-3 block text-xs font-bold uppercase">Onderwerpe</label>
+          <input
+            type="text"
+            value={onderwerpe}
+            onChange={(e) => setOnderwerpe(e.target.value)}
+            placeholder="Los leeg — die KI lees dit uit die beelde"
+            className="mt-1 w-full border-2 border-ink bg-offwhite px-2 py-1.5 text-sm"
           />
+          <p className="mt-1 text-xs text-ink/50">
+            Bv. &quot;Naspers, Clicks, rugby&quot;. Tik dit self as die KI dit verkeerd lees.
+          </p>
+
+          {/* Die volle prompt is 'n stylgids, nie 'n kontrole nie. Dit sit weg
+              agter Gevorderd sodat die paneel wys wat AP werklik verstel. */}
+          <button
+            type="button"
+            onClick={() => setGevorderd((g) => !g)}
+            className="mt-2 text-xs font-bold underline hover:no-underline"
+          >
+            {gevorderd ? "Versteek die stylreëls" : "Wys die stylreëls"}
+          </button>
+          {gevorderd ? (
+            <textarea
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              rows={8}
+              className="mt-2 w-full border-2 border-ink bg-offwhite p-2 text-[11px] leading-snug"
+            />
+          ) : null}
           <button
             onClick={genereerAgtergrond}
             disabled={besig !== null || verwysings.length === 0}

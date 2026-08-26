@@ -85,9 +85,38 @@ describe("POST /api/duimnael/agtergrond", () => {
     getUser.mockResolvedValue({ data: { user: { id: "u" } } });
     vi.stubEnv("OPENAI_API_KEY", "sk-toets");
     vi.stubGlobal("fetch", vi.fn(async () => new Response("stukkend", { status: 400 })));
-    const res = await POST(versoek({ prompt: "iets" }));
+    // Met onderwerpe saam word die visie-stap oorgeslaan, so die enigste
+    // oproep is die beeldmodel s'n.
+    const res = await POST(versoek({ prompt: "iets", onderwerpe: "Naspers" }));
     expect(res.status).toBe(502);
     expect((await res.json()).fout).toContain("stukkend");
+  });
+
+  it("stuur die VERWYSING NOOIT na die beeldmodel nie — net woorde", async () => {
+    /* Dit is die hele punt van die herbou. /v1/images/edits is 'n REDIGEER-
+       eindpunt: dit het Naspers se logo letterlik oorgeteken, son, letters en
+       al, ten spyte van vyf verbods-sinne. Gaan die beeld nooit soontoe nie,
+       is kopieer struktureel onmoontlik in plaas van vriendelik afgeraai. */
+    getUser.mockResolvedValue({ data: { user: { id: "u" } } });
+    vi.stubEnv("OPENAI_API_KEY", "sk-toets");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://sb.test");
+    const png =
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+    const haal = vi.fn(async () => Response.json({ data: [{ b64_json: png }] }));
+    vi.stubGlobal("fetch", haal);
+    upload.mockResolvedValue({ error: null });
+
+    await POST(versoek({ prompt: "iets", onderwerpe: "Naspers" }));
+
+    expect(haal.mock.calls.length).toBeGreaterThan(0);
+    for (const oproep of haal.mock.calls) {
+      const url = String((oproep as unknown as [string])[0]);
+      const opsies = (oproep as unknown as [string, RequestInit | undefined])[1];
+      expect(url).not.toContain("/images/edits");
+      expect(opsies?.body instanceof FormData).toBe(false);
+    }
+    const urls = haal.mock.calls.map((c) => String((c as unknown as [string])[0]));
+    expect(urls.some((u) => u.includes("/images/generations"))).toBe(true);
   });
 
   it("stoor die beeld en gee die publieke URL terug", async () => {
@@ -102,12 +131,14 @@ describe("POST /api/duimnael/agtergrond", () => {
       vi.fn(async () => Response.json({ data: [{ b64_json: png }] }))
     );
     upload.mockResolvedValue({ error: null });
-    const res = await POST(versoek({ prompt: "iets" }));
+    const res = await POST(versoek({ prompt: "iets", onderwerpe: "Naspers, Clicks, rugby" }));
     expect(res.status).toBe(200);
     const liggaam = await res.json();
     expect(liggaam.ok).toBe(true);
     expect(liggaam.url).toContain("https://sb.test/storage/v1/object/public/duimnael/");
     expect(liggaam.wydte).toBeGreaterThan(0);
     expect(liggaam.hoogte).toBeGreaterThan(0);
+    // Die onderwerpe kom terug sodat AP kan sien wat die KI verstaan het.
+    expect(liggaam.onderwerpe).toBe("Naspers, Clicks, rugby");
   });
 });

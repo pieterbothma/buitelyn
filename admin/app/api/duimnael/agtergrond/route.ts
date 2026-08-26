@@ -59,37 +59,85 @@ export async function POST(request: Request) {
 
   if (!process.env.OPENAI_API_KEY) return fout("OPENAI_API_KEY ontbreek", 503);
 
-  /* Normaliseer elke verwysing voordat dit die model sien: EXIF reggedraai en
-     die langste kant tot 1600px. 'n 8MP-foto kos net invoer-tekens. */
-  const uit = new FormData();
-  uit.append("prompt", prompt);
-  uit.append("size", GROOTTE);
-  uit.append("quality", "medium");
-  for (const [i, v] of verwysings.slice(0, MAKS_VERWYSINGS).entries()) {
+  /* TWEE STAPPE, en die tweede sien NOOIT die verwysing nie.
+
+     /v1/images/edits is 'n REDIGEER-eindpunt: dit se werk is om die invoerbeeld
+     te transformeer. Gee jy dit 'n logo, teken dit daardie logo oor — gemeet op
+     2026-08-26 met Naspers se son en die letters "PERS" wat deurgekom het, ten
+     spyte van vyf verbods-sinne in die prompt. Dit ignoreer dan ook die
+     komposisie-reel, want dit is besig om te kopieer eerder as om te komponeer.
+
+     Ons vra dus eers 'n visie-model WAAROOR die verwysings gaan, in 'n paar
+     woorde, en genereer dan met /v1/images/generations — wat geen beeld het om
+     te kopieer nie. Kopieer word so struktureel onmoontlik in plaas van
+     vriendelik afgeraai. */
+
+  const beelde: string[] = [];
+  for (const v of verwysings.slice(0, MAKS_VERWYSINGS)) {
     const rou = Buffer.from(await v.arrayBuffer());
-    let klein: Buffer;
     try {
-      klein = await sharp(rou)
+      const klein = await sharp(rou)
         .rotate()
-        .resize(MAKS_KANT, MAKS_KANT, { fit: "inside", withoutEnlargement: true })
+        .resize(768, 768, { fit: "inside", withoutEnlargement: true })
         .png()
         .toBuffer();
+      beelde.push(`data:image/png;base64,${klein.toString("base64")}`);
     } catch {
-      /* Kon sharp dit nie ontsyfer nie, dan is dit nie 'n beeld nie. Ons stuur dit
-         NIE rou deur nie: normalisering is die enigste plek waar die 1600px-perk
-         en die geen-WebP-reël afgedwing word. Laat ons dit hier verby, kom 'n
-         onleesbare beeld by satori uit en die duimnael kom stil blank uit. */
       return fout(`Kon "${v.name}" nie as beeld lees nie — stuur 'n PNG of JPEG.`, 400);
     }
-    uit.append("image[]", new Blob([new Uint8Array(klein)], { type: "image/png" }), `verwysing-${i}.png`);
   }
 
-  async function genereer(model: string) {
-    uit.set("model", model);
-    return fetch("https://api.openai.com/v1/images/edits", {
+  let onderwerpe = String(vorm.get("onderwerpe") ?? "").trim();
+
+  /* Het AP self die onderwerpe getik, glo ons hom en slaan die visie-stap oor —
+     dis vinniger en akkurater as raai uit 'n logo. */
+  if (!onderwerpe) {
+    const visieRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
-      headers: { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
-      body: uit,
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        model: process.env.OPENAI_MODEL || "gpt-5.4",
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text:
+                  "Each image below is a reference for a South African business-news episode. " +
+                  "For EACH image, name the subject it refers to — the company, industry, sport or topic — " +
+                  "in a few words, with a short plain-English gloss of what it is. " +
+                  "Do NOT describe colours, layout or design. Answer as one comma-separated line, nothing else.",
+              },
+              ...beelde.map((url) => ({ type: "image_url", image_url: { url } })),
+            ],
+          },
+        ],
+        max_completion_tokens: 300,
+      }),
+    });
+    if (!visieRes.ok) {
+      return fout(`Kon nie die verwysings lees nie (${visieRes.status}).`, 502);
+    }
+    const visie = (await visieRes.json()) as { choices?: { message?: { content?: string } }[] };
+    onderwerpe = (visie.choices?.[0]?.message?.content ?? "").trim();
+  }
+
+  if (!onderwerpe) return fout("Kon nie uitwerk waaroor die verwysings gaan nie.", 502);
+
+  const volledig = `${prompt}\n\nTODAY'S SUBJECTS: ${onderwerpe}. Evoke these subjects ABSTRACTLY as symbols and forms — never draw their actual logos or brand marks.`;
+
+  async function genereer(model: string) {
+    return fetch("https://api.openai.com/v1/images/generations", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({ model, prompt: volledig, size: GROOTTE, quality: "medium" }),
     });
   }
 
@@ -123,5 +171,6 @@ export async function POST(request: Request) {
     url: `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/duimnael/${pad}`,
     wydte: meta.width ?? 1536,
     hoogte: meta.height ?? 1024,
+    onderwerpe,
   });
 }
