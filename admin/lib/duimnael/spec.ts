@@ -6,6 +6,7 @@
    en die bou slaag stilweg. */
 
 import { normaliseerBeeld, type BeeldBron } from "@/lib/kaart/spec";
+import { ROOI } from "@/lib/kaart/tokens";
 
 export const RAAM = { w: 1280, h: 720 } as const;
 
@@ -29,7 +30,10 @@ export type Gloed = {
   radius: number;
 };
 
-export const GLOED_VERSTEK: Gloed = { aan: true, kleur: "#E2231A", sterkte: 0.85, radius: 0.42 };
+/* Die gloed gebruik Buitelyn se EIE rooi uit tokens.ts, nie 'n hex wat hier
+   herhaal word nie. Die hex was #E2231A — naby genoeg om reg te lyk, maar dit
+   is nie die huiskleur nie, en 'n duimnael langs 'n kaart sou effens uit wees. */
+export const GLOED_VERSTEK: Gloed = { aan: true, kleur: ROOI, sterkte: 0.85, radius: 0.42 };
 
 export type Laag =
   /** `spieël` draai die uitknipsel horisontaal om. Sit AP regs in die raam,

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { gloedKas, gloedSvgUrl } from "./gloed";
 import { laagKas } from "./laag";
 import { GLOED_VERSTEK, RAAM, type Laag } from "./spec";
+import { ROOI } from "../kaart/tokens";
 
 const reaksie = (gloed = GLOED_VERSTEK): Laag => ({
   soort: "reaksie",
@@ -48,9 +49,9 @@ describe("gloedKas", () => {
 
 describe("gloedSvgUrl", () => {
   it("bou 'n data:-SVG met die gevraagde kleur", () => {
-    const url = gloedSvgUrl({ ...GLOED_VERSTEK, kleur: "#E2231A" });
+    const url = gloedSvgUrl({ ...GLOED_VERSTEK, kleur: ROOI });
     expect(url.startsWith("data:image/svg+xml,")).toBe(true);
-    expect(decodeURIComponent(url)).toContain("#E2231A");
+    expect(decodeURIComponent(url)).toContain(ROOI);
     expect(decodeURIComponent(url)).toContain("radialGradient");
   });
 

@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { gloedKas, gloedSvgUrl } from "@/lib/duimnael/gloed";
 import { laagKas } from "@/lib/duimnael/laag";
 import { GLOED_VERSTEK, RAAM, STYLE, type Duimnael, type Laag } from "@/lib/duimnael/spec";
+import { ROOI } from "@/lib/kaart/tokens";
 import type { Reaksie } from "@/app/actions-duimnael";
 
 /* Die redigeerder.
@@ -287,7 +288,7 @@ export function DuimnaelStudio({
                     width: k.width * skaal,
                     height: k.height ? k.height * skaal : undefined,
                     cursor: "grab",
-                    outline: gekies === i ? "2px solid #E2231A" : "none",
+                    outline: gekies === i ? `2px solid ${ROOI}` : "none",
                   }}
                 >
                   {laag.soort === "teks" ? (
