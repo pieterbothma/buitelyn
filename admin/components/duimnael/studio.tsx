@@ -15,6 +15,16 @@ import type { Reaksie } from "@/app/actions-duimnael";
 
 const VOORSKOU_BREEDTE = 960;
 
+/* Die roete stuur hoogstens vier verwysings na die beeldmodel. Ons dwing
+   dieselfde perk hier af sodat AP dit SIEN eerder as dat die vyfde stil
+   verdwyn. */
+const MAKS_VERWYSINGS = 4;
+
+/** 'n Gekose verwysingsbeeld plus sy voorskou-URL. Ons hou die object-URL by
+ *  die lêer sodat ons dit weer kan vrylaat — 'n object-URL wat nooit gerevoke
+ *  word nie, hou die hele beeld in geheue vir die leeftyd van die blad. */
+type Verwysing = { lêer: File; voorskou: string };
+
 export function DuimnaelStudio({
   reaksies,
   verstekPrompt,
@@ -24,7 +34,7 @@ export function DuimnaelStudio({
 }) {
   const [duimnael, setDuimnael] = useState<Duimnael>({ agtergrond: null, lae: [] });
   const [prompt, setPrompt] = useState(verstekPrompt);
-  const [verwysings, setVerwysings] = useState<File[]>([]);
+  const [verwysings, setVerwysings] = useState<Verwysing[]>([]);
   const [besig, setBesig] = useState<string | null>(null);
   const [boodskap, setBoodskap] = useState<string | null>(null);
   const [gekies, setGekies] = useState<number | null>(null);
@@ -35,6 +45,46 @@ export function DuimnaelStudio({
   const stelLaag = useCallback((i: number, verander: (l: Laag) => Laag) => {
     setDuimnael((d) => ({ ...d, lae: d.lae.map((l, j) => (j === i ? verander(l) : l)) }));
   }, []);
+
+  // ---- verwysingsbeelde ----
+
+  /* Beelde word BYGEVOEG, nie vervang nie. AP kies sy onderwerpe een-een —
+     Naspers, dan Clicks, dan rugby — en 'n tweede keuse wat die eerste twee
+     stil weggooi, is presies hoe jy 'n duimnael maak sonder om te weet dat jou
+     verwysings weg is. */
+  function voegVerwysingsBy(gekose: FileList | null) {
+    const nuwes = Array.from(gekose ?? []);
+    if (nuwes.length === 0) return;
+
+    const geweier: string[] = [];
+    setVerwysings((huidig) => {
+      const uit = [...huidig];
+      for (const lêer of nuwes) {
+        if (lêer.type === "image/webp" || lêer.name.toLowerCase().endsWith(".webp")) {
+          // Die roete weier WebP ook; ons sê dit hier sodat AP nie eers 'n
+          // mislukte generasie moet afwag om dit te hoor nie.
+          geweier.push(`${lêer.name} (WebP werk nie)`);
+          continue;
+        }
+        if (uit.length >= MAKS_VERWYSINGS) {
+          geweier.push(`${lêer.name} (hoogstens ${MAKS_VERWYSINGS})`);
+          continue;
+        }
+        uit.push({ lêer, voorskou: URL.createObjectURL(lêer) });
+      }
+      return uit;
+    });
+
+    setBoodskap(geweier.length ? `Oorgeslaan: ${geweier.join(", ")}` : null);
+  }
+
+  function verwyderVerwysing(i: number) {
+    setVerwysings((huidig) => {
+      const weg = huidig[i];
+      if (weg) URL.revokeObjectURL(weg.voorskou);
+      return huidig.filter((_, j) => j !== i);
+    });
+  }
 
   // ---- sleep ----
   const sleep = useCallback(
@@ -69,7 +119,7 @@ export function DuimnaelStudio({
     setBoodskap(null);
     const vorm = new FormData();
     vorm.append("prompt", prompt);
-    for (const v of verwysings) vorm.append("verwysing", v);
+    for (const v of verwysings) vorm.append("verwysing", v.lêer);
     const res = await fetch("/api/duimnael/agtergrond", { method: "POST", body: vorm });
     const data = await res.json();
     setBesig(null);
@@ -275,13 +325,51 @@ export function DuimnaelStudio({
 
         <section>
           <h2 className="text-sm font-extrabold uppercase tracking-wide">2 · Agtergrond</h2>
-          <input
-            type="file"
-            accept="image/png,image/jpeg"
-            multiple
-            onChange={(e) => setVerwysings(Array.from(e.target.files ?? []).slice(0, 4))}
-            className="mt-2 block w-full text-sm"
-          />
+          <p className="mt-1 text-xs leading-relaxed text-ink/60">
+            Laai vandag se onderwerpe op — die KI maak daaruit &apos;n agtergrond.
+          </p>
+
+          {verwysings.length > 0 ? (
+            <ul className="mt-2 grid grid-cols-4 gap-2">
+              {verwysings.map((v, i) => (
+                <li key={v.voorskou} className="relative">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    alt={v.lêer.name}
+                    title={v.lêer.name}
+                    src={v.voorskou}
+                    className="aspect-square w-full border-2 border-ink object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => verwyderVerwysing(i)}
+                    aria-label={`Verwyder ${v.lêer.name}`}
+                    className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center border-2 border-ink bg-paper text-xs font-bold leading-none hover:bg-red hover:text-paper"
+                  >
+                    ×
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+
+          <label className="mt-2 block cursor-pointer border-2 border-dashed border-ink/40 px-3 py-2 text-center text-sm font-bold hover:border-ink hover:bg-paper">
+            {verwysings.length === 0
+              ? "+ Kies verwysingsbeelde"
+              : `+ Nog een (${verwysings.length}/${MAKS_VERWYSINGS})`}
+            <input
+              type="file"
+              accept="image/png,image/jpeg"
+              multiple
+              disabled={verwysings.length >= MAKS_VERWYSINGS}
+              onChange={(e) => {
+                voegVerwysingsBy(e.target.files);
+                // Maak die invoer skoon sodat dieselfde lêer weer gekies kan word.
+                e.target.value = "";
+              }}
+              className="hidden"
+            />
+          </label>
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
@@ -290,11 +378,14 @@ export function DuimnaelStudio({
           />
           <button
             onClick={genereerAgtergrond}
-            disabled={besig !== null}
-            className="mt-2 w-full border-2 border-ink px-3 py-1.5 text-sm font-bold hover:bg-paper disabled:opacity-40"
+            disabled={besig !== null || verwysings.length === 0}
+            className="mt-2 w-full border-2 border-ink bg-ink px-3 py-1.5 text-sm font-bold text-paper hover:bg-ink/85 disabled:bg-ink/30"
           >
-            Maak agtergrond
+            {verwysings.length === 0
+              ? "Maak agtergrond"
+              : `Maak agtergrond uit ${verwysings.length} ${verwysings.length === 1 ? "beeld" : "beelde"}`}
           </button>
+          <p className="mt-1 text-xs text-ink/50">Vat 30–60s en kos geld per druk.</p>
         </section>
 
         {gekose ? (
