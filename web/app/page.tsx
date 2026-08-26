@@ -6,8 +6,10 @@ import { BewegersKort } from "@/components/tuisblad/bewegers-kort";
 import { VanBuitelyn } from "@/components/tuisblad/van-buitelyn";
 import { MarkNuus } from "@/components/tuisblad/marknuus";
 import { Slot } from "@/components/tuisblad/slot";
+import { TvBlok } from "@/components/tuisblad/tv-blok";
 import { EposCta } from "@/components/tuisblad/epos-cta";
 import { getFeed, type Channel } from "@/lib/feed";
+import { getNuutsteVideo } from "@/lib/youtube";
 import { gekasdeOorsig, gekasdeSkuiwers, gekasdeNuus, gekasdeBordKwotasies } from "@/lib/markte-kas";
 import { ALLE_SIMBOLE } from "@/lib/markets/boards";
 
@@ -29,12 +31,17 @@ export default async function Home() {
      wat die Tuis-oortjie reeds warm hou, so die tuisblad kos niks ekstra
      stroomop nie. Die feed val apart uit sodat 'n stil Substack die markte
      nie saam met hom afvat nie. */
-  const [kwotasies, oorsig, skuiwers, nuus, kanaal] = await Promise.all([
+  const [kwotasies, oorsig, skuiwers, nuus, kanaal, video] = await Promise.all([
     gekasdeBordKwotasies(ALLE_SIMBOLE),
     gekasdeOorsig(),
     gekasdeSkuiwers(),
     gekasdeNuus(),
     getFeed().catch((): Channel => ({ tagline: "", posts: [] })),
+    /* getNuutsteVideo gooi nie — dit gee null by enige fout. Die .catch is
+       nogtans hier omdat 'n gooiende lid van hierdie Promise.all die HELE
+       tuisblad sou afvat, en die YouTube-voer is die minste belangrike deel
+       daarvan. */
+    getNuutsteVideo().catch(() => null),
   ]);
 
   return (
@@ -42,6 +49,9 @@ export default async function Home() {
       <PrysStrook kwotasies={kwotasies} />
       <Koerantkop />
       <main className="flex-1">
+        {/* Die TV-blok kom BY die markte-eerste tuisblad; uitleg C daaronder
+            bly onaangeraak. */}
+        <TvBlok video={video} />
         <div className="mx-auto max-w-[1440px] px-6 py-8 md:px-14 md:py-12">
           {/* Twee kolomme op groot skerms, een stapel op 'n foon — maar nie
               dieselfde volgorde nie. 'n Gestapelde raster loop kolom vir
