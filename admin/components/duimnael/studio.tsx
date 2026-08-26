@@ -73,8 +73,19 @@ export function DuimnaelStudio({
      die voorskou af — dis waar AP is wanneer hy na 'n render besluit die
      agtergrond moet anders. */
   function wysigAgtergrond() {
+    /* Blaai en oopmaak is albei niks-doeners as die afdeling reeds sigbaar en
+       oop is — en dan lyk die knoppie stukkend presies wanneer AP dit druk.
+       Ons plaas dus die wyser in die teksblok: dit gebeur altyd, en dis waar
+       hy in elk geval wil wees. */
     setGevorderd(true);
     agtergrondRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    // Ná die herrender, anders bestaan die teksblok nog nie.
+    requestAnimationFrame(() => {
+      const t = promptRef.current;
+      if (!t) return;
+      t.focus();
+      t.setSelectionRange(t.value.length, t.value.length);
+    });
   }
   const [biblioteek, setBiblioteek] = useState<Reaksie[]>(reaksies);
   const [verwysings, setVerwysings] = useState<Verwysing[]>([]);
@@ -82,7 +93,8 @@ export function DuimnaelStudio({
   const [boodskap, setBoodskap] = useState<string | null>(null);
   const [gekies, setGekies] = useState<number | null>(null);
   const raamRef = useRef<HTMLDivElement>(null);
-  const agtergrondRef = useRef<HTMLDivElement>(null);
+  const agtergrondRef = useRef<HTMLHeadingElement>(null);
+  const promptRef = useRef<HTMLTextAreaElement>(null);
 
   const skaal = VOORSKOU_BREEDTE / RAAM.w;
 
@@ -640,6 +652,7 @@ export function DuimnaelStudio({
           </button>
           {gevorderd ? (
             <textarea
+              ref={promptRef}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               rows={8}
