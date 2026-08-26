@@ -42,15 +42,77 @@ export type Duimnael = {
   lae: Laag[];
 };
 
-/* Die verstek-prompt vir die KI-agtergrond. Dit woon hier — kliënt-veilige data —
-   sodat die blad dit kan invoer sonder om die roete (en sharp) in sy grafiek te
-   sleep. AP kan dit heeltemal oorskryf; die huisstyl leef in data, nie in kode nie. */
-export const VERSTEK_PROMPT =
-  "A bold YouTube thumbnail BACKGROUND PLATE inspired by the reference images. " +
-  "Dark, near-black, richly textured, with subtle film grain and a deep red tint. " +
-  "Keep the LEFT THIRD darker and visually quiet — a person will be placed there. " +
-  "Keep the right two thirds calm enough for a headline to sit on top. " +
-  "Absolutely no people, no faces, no text, no lettering, no logos, no watermarks.";
+/* Prompt-voorafstellings vir die KI-agtergrond.
+
+   Dit woon hier — kliënt-veilige data — sodat die blad dit kan invoer sonder om
+   die roete (en sharp) in sy grafiek te sleep. AP kan enige prompt heeltemal
+   oorskryf; die huisstyl leef in data, nie in kode nie.
+
+   Die belangrikste sin in elkeen is die ANTI-AFGELEIDE een. /v1/images/edits is
+   'n REDIGEER-eindpunt: sy verstek is om die invoerbeeld te transformeer. Sê jy
+   net "inspired by the reference images", trek dit die verwysing self oor —
+   dieselfde sterre, dieselfde strepe, net dowwer met grein bo-oor. Gemeet op
+   2026-08-26 teen die M-Net-omslag: die ou prompt het die omslag herteken.
+
+   Ons moet dus UITDRUKLIK sê: moenie die verwysing weergee, kopieer, sny of
+   plak nie — gebruik dit net as 'n leidraad oor wat vandag se storie is. */
+export type Styl = { sleutel: string; naam: string; wat: string; prompt: string };
+
+const GEEN_AFGELEIDE =
+  "The reference images indicate ONLY what today's story is about — do NOT reproduce, copy, crop, " +
+  "collage or paste them, and never show the reference images themselves. Invent something new that " +
+  "merely evokes those subjects. ";
+
+const RAAM_REELS =
+  "COMPOSITION: the LEFT THIRD must stay dark and visually empty — a cut-out person will be placed " +
+  "there. The visual weight sits to the right, but stays calm enough for a large headline on top. " +
+  "Absolutely no people, no faces, no text, no letters, no numbers, no logos, no watermarks.";
+
+export const STYLE: Styl[] = [
+  {
+    sleutel: "grafies",
+    naam: "Grafies",
+    wat: "Bold poster-kuns — groot vorms, skoon, lees goed klein.",
+    prompt:
+      "Create an ORIGINAL bold graphic background plate for a business-news YouTube thumbnail. " +
+      GEEN_AFGELEIDE +
+      "Interpret the subjects ABSTRACTLY as symbols and forms. " +
+      "STYLE: striking editorial poster art — oversized abstract shapes, hard diagonal light shafts, " +
+      "layered depth, a restrained palette of near-black, charcoal and one vivid red, heavy texture " +
+      "and grain, subtle halftone. Dramatic and premium, not busy. " +
+      RAAM_REELS,
+  },
+  {
+    sleutel: "kinematies",
+    naam: "Kinematies",
+    wat: "Filmiese diepte — lig, mis, atmosfeer.",
+    prompt:
+      "Design an ORIGINAL, dramatic editorial background plate for a business-news YouTube thumbnail. " +
+      GEEN_AFGELEIDE +
+      "Invent a completely new abstract scene that evokes those subjects: bold geometric forms, " +
+      "sweeping light, depth and atmosphere. " +
+      "STYLE: cinematic, high-contrast, near-black with one deep red accent, volumetric haze, subtle " +
+      "film grain, dramatic rim lighting, a sense of scale and motion. Like a modern financial " +
+      "documentary title card. " +
+      RAAM_REELS,
+  },
+  {
+    sleutel: "rustig",
+    naam: "Rustig",
+    wat: "Amper leeg — laat die opskrif en AP die werk doen.",
+    prompt:
+      "Create an ORIGINAL, restrained background plate for a business-news YouTube thumbnail. " +
+      GEEN_AFGELEIDE +
+      "STYLE: almost minimal — a deep near-black field with one soft red glow, a faint suggestion of " +
+      "abstract form far to the right, gentle vignetting and fine film grain. Quiet, expensive, and " +
+      "deliberately understated so the headline dominates. " +
+      RAAM_REELS,
+  },
+];
+
+/** Die voorafstelling wat voorgelaai word. Grafies lees die beste by
+ *  duimnael-grootte: groot vorms oorleef die afskaal na 320px. */
+export const VERSTEK_PROMPT = STYLE[0].prompt;
 
 const LEEG: Duimnael = { agtergrond: null, lae: [] };
 

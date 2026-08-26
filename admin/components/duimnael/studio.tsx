@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { gloedKas, gloedSvgUrl } from "@/lib/duimnael/gloed";
 import { laagKas } from "@/lib/duimnael/laag";
-import { GLOED_VERSTEK, RAAM, type Duimnael, type Laag } from "@/lib/duimnael/spec";
+import { GLOED_VERSTEK, RAAM, STYLE, type Duimnael, type Laag } from "@/lib/duimnael/spec";
 import type { Reaksie } from "@/app/actions-duimnael";
 
 /* Die redigeerder.
@@ -447,6 +447,21 @@ export function DuimnaelStudio({
               className="hidden"
             />
           </label>
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {STYLE.map((s) => (
+              <button
+                key={s.sleutel}
+                type="button"
+                title={s.wat}
+                onClick={() => setPrompt(s.prompt)}
+                className={`border-2 border-ink px-2 py-1 text-xs font-bold ${
+                  prompt === s.prompt ? "bg-ink text-paper" : "hover:bg-paper"
+                }`}
+              >
+                {s.naam}
+              </button>
+            ))}
+          </div>
           <textarea
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
