@@ -113,7 +113,7 @@ describe("prompte", () => {
     /* Dit moet vir ELKE styl geld: AP word bo-op gecomposiet, so 'n gegenereerde
        mens is 'n tweede persoon in die raam, en elke woord word agterna met die
        hand bygesit. */
-    for (const styl of STYLE) {
+    for (const styl of STYLE.filter((s) => !s.vry)) {
       for (const kant of ["links", "regs"] as const) {
         const p = bouPrompt(styl, kant).toLowerCase();
         expect(p, `${styl.sleutel}/${kant}`).toContain("no people");
@@ -142,8 +142,14 @@ describe("prompte", () => {
     expect(regs).not.toContain("LEFT THIRD");
   });
 
+  it("die vrye styl kry GEEN reëls nie — dis die punt daarvan", () => {
+    const vry = STYLE.find((s) => s.vry)!;
+    expect(bouPrompt(vry, "links")).toBe("");
+    expect(bouPrompt(vry, "regs")).toBe("");
+  });
+
   it("sê uitdruklik moenie die verwysing oorteken nie", () => {
-    for (const styl of STYLE) {
+    for (const styl of STYLE.filter((s) => !s.vry)) {
       expect(bouPrompt(styl, "links")).toContain("do NOT reproduce");
     }
   });

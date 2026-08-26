@@ -62,6 +62,19 @@ export function DuimnaelStudio({
     setStyl(s.sleutel);
     setKant(k);
     setPrompt(bouPrompt(s, k));
+    /* By 'n vrye styl is die teksblok die ENIGSTE plek waar iets staan — hou dit
+       toe en die paneel lyk stukkend. */
+    if (s.vry) setGevorderd(true);
+  }
+
+  const vryeStyl = STYLE.find((x) => x.sleutel === styl)?.vry === true;
+
+  /* Wys die agtergrond-afdeling en maak die prompt oop. Van die knoppie onder
+     die voorskou af — dis waar AP is wanneer hy na 'n render besluit die
+     agtergrond moet anders. */
+  function wysigAgtergrond() {
+    setGevorderd(true);
+    agtergrondRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   }
   const [biblioteek, setBiblioteek] = useState<Reaksie[]>(reaksies);
   const [verwysings, setVerwysings] = useState<Verwysing[]>([]);
@@ -69,6 +82,7 @@ export function DuimnaelStudio({
   const [boodskap, setBoodskap] = useState<string | null>(null);
   const [gekies, setGekies] = useState<number | null>(null);
   const raamRef = useRef<HTMLDivElement>(null);
+  const agtergrondRef = useRef<HTMLDivElement>(null);
 
   const skaal = VOORSKOU_BREEDTE / RAAM.w;
 
@@ -439,6 +453,12 @@ export function DuimnaelStudio({
           <button onClick={() => voegLogoBy("ink")} className="border-2 border-ink px-3 py-1.5 text-sm font-bold hover:bg-paper">
             + Logo (swart)
           </button>
+          <button
+            onClick={wysigAgtergrond}
+            className="border-2 border-ink px-3 py-1.5 text-sm font-bold hover:bg-paper"
+          >
+            ⟳ Wysig agtergrond
+          </button>
           <button onClick={laaiAf} className="border-2 border-ink bg-ink px-3 py-1.5 text-sm font-bold text-paper">
             Laai af (1280×720)
           </button>
@@ -497,7 +517,9 @@ export function DuimnaelStudio({
         </section>
 
         <section>
-          <h2 className="text-sm font-extrabold uppercase tracking-wide">2 · Agtergrond</h2>
+          <h2 ref={agtergrondRef} className="text-sm font-extrabold uppercase tracking-wide">
+            2 · Agtergrond
+          </h2>
           <p className="mt-1 text-xs leading-relaxed text-ink/60">
             Laai vandag se onderwerpe op — die KI maak daaruit &apos;n agtergrond.
           </p>
@@ -571,14 +593,18 @@ export function DuimnaelStudio({
           {/* Waar AP sit, moet die KI weet — anders hou dit die verkeerde kant
               oop en die interessante deel beland agter sy kop. */}
           <div className="mt-2 flex items-center gap-2">
-            <span className="text-xs font-bold uppercase text-ink/60">AP sit</span>
+            <span className={`text-xs font-bold uppercase ${vryeStyl ? "text-ink/30" : "text-ink/60"}`}>
+              AP sit
+            </span>
             {(["links", "regs"] as const).map((k) => (
               <button
                 key={k}
                 type="button"
                 onClick={() => stelStyl(styl, k)}
+                disabled={vryeStyl}
+                title={vryeStyl ? "Geld nie by 'n vrye prompt nie" : undefined}
                 className={`border-2 border-ink px-2 py-1 text-xs font-bold ${
-                  kant === k ? "bg-ink text-paper" : "hover:bg-paper"
+                  vryeStyl ? "opacity-30" : kant === k ? "bg-ink text-paper" : "hover:bg-paper"
                 }`}
               >
                 {k === "links" ? "◧ Links" : "◨ Regs"}
@@ -604,13 +630,20 @@ export function DuimnaelStudio({
             onClick={() => setGevorderd((g) => !g)}
             className="mt-2 text-xs font-bold underline hover:no-underline"
           >
-            {gevorderd ? "Versteek die stylreëls" : "Wys die stylreëls"}
+            {vryeStyl
+              ? gevorderd
+                ? "Versteek die prompt"
+                : "Wys die prompt"
+              : gevorderd
+                ? "Versteek die stylreëls"
+                : "Wys die stylreëls"}
           </button>
           {gevorderd ? (
             <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               rows={8}
+              placeholder={vryeStyl ? "Skryf die hele prompt self — geen reëls word bygevoeg nie." : undefined}
               className="mt-2 w-full border-2 border-ink bg-offwhite p-2 text-[11px] leading-snug"
             />
           ) : null}

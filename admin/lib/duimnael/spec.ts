@@ -139,7 +139,15 @@ export type Duimnael = {
  *  leeg hou, anders beland die interessante deel presies agter sy kop. */
 export type Kant = "links" | "regs";
 
-export type Styl = { sleutel: string; naam: string; wat: string; kern: string };
+export type Styl = {
+  sleutel: string;
+  naam: string;
+  wat: string;
+  kern: string;
+  /** 'n Vrye styl kry GEEN raamreëls nie — geen medium-wenke, geen leë kant,
+   *  en ook nie die mens- en teks-verbod nie. Wat AP tik, is die hele prompt. */
+  vry?: true;
+};
 
 const GEEN_AFGELEIDE =
   "The reference images indicate ONLY what today's story is about — do NOT reproduce, copy, crop, " +
@@ -217,11 +225,22 @@ export const STYLE: Styl[] = [
       "print misregistration, halftone dots, and the paper showing through as negative space. " +
       "Confident, graphic and analogue — like a printed financial broadsheet cover. ",
   },
+  {
+    sleutel: "vry",
+    naam: "Vrye",
+    wat: "Geen reëls nie — jy skryf die hele prompt self.",
+    vry: true,
+    kern: "",
+  },
 ];
 
-/** Bou die volledige prompt vir 'n styl en 'n kant. */
+/** Bou die volledige prompt vir 'n styl en 'n kant.
+ *
+ *  By 'n vrye styl gee ons presies terug wat daar is — geen raamreëls nie. Die
+ *  kant-skakelaar doen dan ook niks, want daar is geen komposisie-reël om te
+ *  draai nie. */
 export function bouPrompt(styl: Styl, kant: Kant): string {
-  return styl.kern + raamReels(kant);
+  return styl.vry ? styl.kern : styl.kern + raamReels(kant);
 }
 
 /** Die voorafstelling wat voorgelaai word. Grafies lees die beste by
