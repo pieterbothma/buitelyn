@@ -75,9 +75,11 @@ export async function POST(request: Request) {
         .png()
         .toBuffer();
     } catch {
-      // Kon sharp dit nie ontsyfer nie — stuur die rou grepe onveranderd eerder
-      // as om die hele versoek te laat omval oor een moeilike verwysing.
-      klein = rou;
+      /* Kon sharp dit nie ontsyfer nie, dan is dit nie 'n beeld nie. Ons stuur dit
+         NIE rou deur nie: normalisering is die enigste plek waar die 1600px-perk
+         en die geen-WebP-reël afgedwing word. Laat ons dit hier verby, kom 'n
+         onleesbare beeld by satori uit en die duimnael kom stil blank uit. */
+      return fout(`Kon "${v.name}" nie as beeld lees nie — stuur 'n PNG of JPEG.`, 400);
     }
     uit.append("image[]", new Blob([new Uint8Array(klein)], { type: "image/png" }), `verwysing-${i}.png`);
   }

@@ -12,11 +12,18 @@ vi.mock("@/lib/supabase/service", () => ({
 
 import { POST } from "./route";
 
+// 'n Egte 1x1 deursigtige PNG. Drie arbitrêre grepe is nie 'n beeld nie, en 'n
+// toets wat dit voer, toets iets anders as wat die roete in produksie sien.
+const PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64"
+);
+
 function versoek(velde: Record<string, string>, lêers: number = 1): Request {
   const vorm = new FormData();
   for (const [k, v] of Object.entries(velde)) vorm.append(k, v);
   for (let i = 0; i < lêers; i++) {
-    vorm.append("verwysing", new File([new Uint8Array([1, 2, 3])], `r${i}.png`, { type: "image/png" }));
+    vorm.append("verwysing", new File([new Uint8Array(PNG)], `r${i}.png`, { type: "image/png" }));
   }
   return new Request("http://t/api/duimnael/agtergrond", { method: "POST", body: vorm });
 }
@@ -54,6 +61,17 @@ describe("POST /api/duimnael/agtergrond", () => {
     vorm.append("verwysing", new File([new Uint8Array([1])], "r.webp", { type: "image/webp" }));
     const res = await POST(new Request("http://t/x", { method: "POST", body: vorm }));
     expect(res.status).toBe(415);
+  });
+
+  it("weier 'n lêer wat nie 'n beeld is nie — normalisering is die enigste hek", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "u" } } });
+    vi.stubEnv("OPENAI_API_KEY", "sk-toets");
+    const vorm = new FormData();
+    vorm.append("prompt", "iets");
+    vorm.append("verwysing", new File([new Uint8Array([1, 2, 3])], "rommel.png", { type: "image/png" }));
+    const res = await POST(new Request("http://t/x", { method: "POST", body: vorm }));
+    expect(res.status).toBe(400);
+    expect((await res.json()).fout).toMatch(/beeld/i);
   });
 
   it("gee 503 wanneer OPENAI_API_KEY ontbreek", async () => {

@@ -56,6 +56,15 @@ describe("POST /api/duimnael/reaksie", () => {
     expect((await POST(oplaai("x.webp", "image/webp"))).status).toBe(415);
   });
 
+  it("weier 'n lêer wat nie 'n beeld is nie, en bel Replicate glad nie", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "u" } } });
+    const vorm = new FormData();
+    vorm.append("leer", new File([new Uint8Array([1, 2, 3])], "rommel.png", { type: "image/png" }));
+    const res = await POST(new Request("http://t/x", { method: "POST", body: vorm }));
+    expect(res.status).toBe(400);
+    expect(verwyderAgtergrondReplicate).not.toHaveBeenCalled();
+  });
+
   it("gee 503 wanneer Replicate nie opgestel is nie", async () => {
     getUser.mockResolvedValue({ data: { user: { id: "u" } } });
     replicateConfigured.mockReturnValue(false);

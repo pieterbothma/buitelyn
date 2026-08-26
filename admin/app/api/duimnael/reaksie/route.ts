@@ -64,9 +64,9 @@ export async function POST(request: Request) {
         .png()
         .toBuffer();
     } catch {
-      // Kon sharp dit nie ontsyfer nie — stuur die rou grepe onveranderd eerder
-      // as om die hele versoek te laat omval oor een moeilike beeld.
-      genormaliseer = rou;
+      /* Sien die agtergrond-roete: 'n beeld wat sharp nie kan lees nie, gaan nie
+         rou deur nie. */
+      return fout("Kon die lêer nie as beeld lees nie — stuur 'n PNG of JPEG.", 400);
     }
     // Rou Buffer word deur storage as teks gemangel — altyd as Blob.
     const opgelaai = await svc.storage
