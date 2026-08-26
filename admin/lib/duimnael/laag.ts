@@ -27,22 +27,34 @@ export function laagKas(laag: Laag, raam: Gleuf): LaagKas {
     /* Teks anker BO, nie in die middel nie: sy hoogte hang van die omvou af,
        wat die blaaier en satori nie identies oplos nie. Anker bo en die
        ankerpunt bly presies waar AP dit gelos het. */
-    const fontSize = Math.round(grootte * raam.w);
+    /* Krimp die font sodat die LANGSTE WOORD in die blok pas.
+
+       'n Reël kan tussen woorde omvou, maar binne 'n woord is daar geen breek
+       nie: is "AANDELEHOUERS" wyer as die blok, loop dit oor en word stil
+       afgesny — jy sien "AANDELEHOUE". Afrikaanse saamgestelde woorde tref dit
+       gereeld, en 'n smal blok maak dit erger.
+
+       0.62 is 'n gemete benadering van League Spartan 700 se gemiddelde
+       hoofletter-wydte as breukdeel van die fontgrootte. Dit hoef nie presies
+       te wees nie: 'n bietjie te klein is onsigbaar, 'n afgesnyde woord nie. */
+    const gevra = Math.round(grootte * raam.w);
+    const blokBreedte = Math.round(laag.breedte * raam.w);
+    const langste = laag.teks.split(/\s+/).reduce((n, w) => Math.max(n, w.length), 1);
+    const pas = Math.floor(blokBreedte / (langste * 0.62));
+    const fontSize = Math.max(8, Math.min(gevra, pas));
     const top = Math.round(y * raam.h);
+    /* Die blok se breedte kom van die laag af, nie van die raamrand nie. Dit is
+       wat bepaal waar 'n opskrif omvou — sonder dit loop elke reël tot by die
+       kant en jy kan nie kies waar dit breek nie. */
+    const width = blokBreedte;
+    const anker = Math.round(x * raam.w);
     switch (laag.belyn) {
-      case "links": {
-        const left = Math.round(x * raam.w);
-        return { left, top, width: raam.w - left, fontSize };
-      }
-      case "regs": {
-        const regterrand = Math.round(x * raam.w);
-        return { left: 0, top, width: regterrand, fontSize };
-      }
-      case "middel": {
-        // Simmetries om x, sodat die blok altyd binne die raam bly.
-        const half = Math.round(Math.min(x, 1 - x) * raam.w);
-        return { left: Math.round(x * raam.w) - half, top, width: half * 2, fontSize };
-      }
+      case "links":
+        return { left: anker, top, width, fontSize };
+      case "regs":
+        return { left: anker - width, top, width, fontSize };
+      case "middel":
+        return { left: Math.round(anker - width / 2), top, width, fontSize };
     }
   }
 

@@ -50,7 +50,19 @@ export type Laag =
       spieël: boolean;
     }
   | { soort: "logo"; kleur: "ink" | "wit"; plek: Plek }
-  | { soort: "teks"; teks: string; kleur: TeksKleur; belyn: "links" | "middel" | "regs"; plek: Plek };
+  | {
+      soort: "teks";
+      teks: string;
+      kleur: TeksKleur;
+      /** Omlyning agter die letters. "geen" is geen omlyning nie. */
+      omlyn: TeksKleur | "geen";
+      belyn: "links" | "middel" | "regs";
+      /** Die blok se breedte as breukdeel van die raam. Dit bepaal waar die
+       *  woorde omvou — sonder dit loop 'n opskrif altyd tot by die rand en jy
+       *  kan nie kies waar die reël breek nie. */
+      breedte: number;
+      plek: Plek;
+    };
 
 /** Teks bly by Buitelyn se palet. 'n Vrye kleurkieser klink vriendeliker, maar
  *  dit is presies hoe 'n huisstyl oor 'n paar episodes uitmekaar val — en die
@@ -75,6 +87,18 @@ export function teksHex(k: TeksKleur): string {
  *  'n vuil rand. */
 export function teksSkaduwee(k: TeksKleur): string {
   return k === "ink" ? "none" : "0 4px 18px rgba(0,0,0,0.55)";
+}
+
+/** Die omlyning as 'n -webkit-text-stroke-waarde, of "" vir geen.
+ *
+ *  Geverifieer teen satori op 2026-08-26: -webkit-text-stroke werk, en gee 'n
+ *  skerper, egaliger rand as die ou truuk van agt textShadows. Blaaiers
+ *  ondersteun dit natuurlik, so die voorskou en satori stem ooreen. */
+export function teksOmlyn(omlyn: TeksKleur | "geen", fontSize: number): string {
+  if (omlyn === "geen") return "";
+  // Die rand skaal saam met die letters, anders is dit dik op klein teks.
+  const dikte = Math.max(2, Math.round(fontSize * 0.06));
+  return `${dikte}px ${TEKS_HEX[omlyn]}`;
 }
 
 export type Duimnael = {
@@ -257,11 +281,17 @@ function laag(rou: unknown): Laag | null {
          sy aan satori gee. */
       const teks = typeof l.teks === "string" ? l.teks.trim().slice(0, MAKS_TEKS) : "";
       if (!teks) return null;
+      const omlyn =
+        l.omlyn === "wit" || l.omlyn === "ink" || l.omlyn === "rooi" ? l.omlyn : "geen";
       return {
         soort: "teks",
         teks,
         kleur: l.kleur === "ink" || l.kleur === "rooi" ? l.kleur : "wit",
+        omlyn,
         belyn: l.belyn === "middel" || l.belyn === "regs" ? l.belyn : "links",
+        /* Nooit 0 nie: 'n blok van breedte 0 kan geen woord bevat nie en is
+           onsleepbaar. */
+        breedte: Math.min(1, Math.max(0.05, getal(l.breedte, 0.5))),
         plek: plek(l.plek),
       };
     }

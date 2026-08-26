@@ -40,11 +40,13 @@ describe("laagKas — logo", () => {
 });
 
 describe("laagKas — teks", () => {
-  const teks = (belyn: "links" | "middel" | "regs", x: number): Laag => ({
+  const teks = (belyn: "links" | "middel" | "regs", x: number, breedte = 0.45): Laag => ({
     soort: "teks",
     teks: "SAKENUUS",
     kleur: "wit",
+    omlyn: "geen",
     belyn,
+    breedte,
     plek: { x, y: 0.1, grootte: 0.09 },
   });
 
@@ -54,25 +56,61 @@ describe("laagKas — teks", () => {
     expect(k.height).toBeUndefined();
   });
 
-  it("anker links: x is die linkerrand, die blok vloei na regs", () => {
-    const k = laagKas(teks("links", 0.55), RAAM);
+  it("anker links: x is die linkerrand, en die blok is so breed soos gevra", () => {
+    const k = laagKas(teks("links", 0.55, 0.4), RAAM);
     expect(k.left).toBe(704);
-    expect(k.width).toBe(576); // 1280 - 704
+    expect(k.width).toBe(512); // 0.4 * 1280 — NIE tot by die raamrand nie
   });
 
-  it("anker regs: x is die regterrand, die blok vloei na links", () => {
-    const k = laagKas(teks("regs", 0.95), RAAM);
-    expect(k.left).toBe(0);
-    expect(k.width).toBe(1216);
+  it("anker regs: x is die regterrand, die blok strek links daarvandaan", () => {
+    const k = laagKas(teks("regs", 0.95, 0.5), RAAM);
+    expect(k.width).toBe(640);
+    expect(k.left).toBe(1216 - 640);
   });
 
-  it("anker middel: die blok is simmetries om x en pas altyd in die raam", () => {
-    const k = laagKas(teks("middel", 0.5), RAAM);
-    expect(k.left).toBe(0);
-    expect(k.width).toBe(1280);
-    const skeef = laagKas(teks("middel", 0.25), RAAM);
-    expect(skeef.left).toBe(0);
-    expect(skeef.width).toBe(640); // 2 * min(0.25, 0.75) * 1280
+  it("anker middel: die blok is simmetries om x", () => {
+    const k = laagKas(teks("middel", 0.5, 0.5), RAAM);
+    expect(k.width).toBe(640);
+    expect(k.left).toBe(640 - 320);
+  });
+
+  it("krimp die font sodat 'n lang woord nie afgesny word nie", () => {
+    /* Binne 'n woord is daar geen breekpunt nie: pas dit nie, word dit stil
+       afgesny. Afrikaanse saamgestelde woorde tref dit gereeld. */
+    const lank: Laag = {
+      soort: "teks",
+      teks: "AANDELEHOUERS",
+      kleur: "wit",
+      omlyn: "geen",
+      belyn: "links",
+      breedte: 0.25,
+      plek: { x: 0.1, y: 0.1, grootte: 0.12 },
+    };
+    const k = laagKas(lank, RAAM);
+    expect(k.fontSize!).toBeLessThan(Math.round(0.12 * RAAM.w));
+    // Die langste woord moet in die blok pas.
+    expect("AANDELEHOUERS".length * k.fontSize! * 0.62).toBeLessThanOrEqual(k.width + 1);
+  });
+
+  it("laat 'n kort woord met rus — net wat nie pas nie, krimp", () => {
+    const kort: Laag = {
+      soort: "teks",
+      teks: "JA",
+      kleur: "wit",
+      omlyn: "geen",
+      belyn: "links",
+      breedte: 0.6,
+      plek: { x: 0.1, y: 0.1, grootte: 0.09 },
+    };
+    expect(laagKas(kort, RAAM).fontSize).toBe(Math.round(0.09 * RAAM.w));
+  });
+
+  it("die breedte bepaal waar die woorde omvou — dis die hele punt", () => {
+    const wyd = laagKas(teks("links", 0.1, 0.8), RAAM);
+    const smal = laagKas(teks("links", 0.1, 0.25), RAAM);
+    expect(wyd.width).toBe(1024);
+    expect(smal.width).toBe(320);
+    expect(smal.left).toBe(wyd.left); // net die breedte verander
   });
 
   it("anker bo, nie in die middel nie — die blok groei ondertoe", () => {

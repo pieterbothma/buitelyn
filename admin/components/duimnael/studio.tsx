@@ -11,6 +11,7 @@ import {
   bouPrompt,
   type Kant,
   teksHex,
+  teksOmlyn,
   teksSkaduwee,
   type Duimnael,
   type Laag,
@@ -143,6 +144,36 @@ export function DuimnaelStudio({
     });
   }
 
+  /* Sleep die regterrand van 'n teksblok om te kies waar die woorde omvou.
+     Dieselfde patroon as die laag-sleep: ons skryf net 'n getal op die spec en
+     laagKas doen die res, so die voorskou en satori bly saam. */
+  const sleepBreedte = useCallback(
+    (i: number) => (e: React.PointerEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const raam = raamRef.current;
+      if (!raam) return;
+      const kas = raam.getBoundingClientRect();
+      const beweeg = (ev: PointerEvent) => {
+        const x = (ev.clientX - kas.left) / kas.width;
+        stelLaag(i, (l) => {
+          if (l.soort !== "teks") return l;
+          const anker = l.plek.x;
+          const rou =
+            l.belyn === "links" ? x - anker : l.belyn === "regs" ? anker - x : (x - anker) * 2;
+          return { ...l, breedte: Math.min(1, Math.max(0.05, rou)) };
+        });
+      };
+      const los = () => {
+        window.removeEventListener("pointermove", beweeg);
+        window.removeEventListener("pointerup", los);
+      };
+      window.addEventListener("pointermove", beweeg);
+      window.addEventListener("pointerup", los);
+    },
+    [stelLaag]
+  );
+
   // ---- sleep ----
   const sleep = useCallback(
     (i: number) => (e: React.PointerEvent) => {
@@ -228,7 +259,15 @@ export function DuimnaelStudio({
       ...d,
       lae: [
         ...d.lae,
-        { soort: "teks", teks: "NUWE TEKS", kleur: "wit", belyn: "links", plek: { x: 0.5, y: 0.12, grootte: 0.09 } },
+        {
+          soort: "teks",
+          teks: "NUWE TEKS",
+          kleur: "wit",
+          omlyn: "geen",
+          belyn: "links",
+          breedte: 0.45,
+          plek: { x: 0.5, y: 0.12, grootte: 0.09 },
+        },
       ],
     }));
   }
@@ -317,6 +356,22 @@ export function DuimnaelStudio({
                     outline: gekies === i ? `2px solid ${ROOI}` : "none",
                   }}
                 >
+                  {laag.soort === "teks" && gekies === i ? (
+                    <div
+                      onPointerDown={sleepBreedte(i)}
+                      title="Sleep om die blok smaller of wyer te maak"
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        right: -6,
+                        width: 12,
+                        height: "100%",
+                        cursor: "ew-resize",
+                        background: ROOI,
+                        opacity: 0.9,
+                      }}
+                    />
+                  ) : null}
                   {laag.soort === "teks" ? (
                     <div
                       style={{
@@ -331,6 +386,9 @@ export function DuimnaelStudio({
                         color: teksHex(laag.kleur),
                         textAlign: laag.belyn === "middel" ? "center" : laag.belyn === "regs" ? "right" : "left",
                         textShadow: teksSkaduwee(laag.kleur),
+                        ...(teksOmlyn(laag.omlyn, k.fontSize! * skaal)
+                          ? { WebkitTextStroke: teksOmlyn(laag.omlyn, k.fontSize! * skaal) }
+                          : {}),
                         userSelect: "none",
                       }}
                     >
@@ -567,6 +625,15 @@ export function DuimnaelStudio({
           ) : null}
         </section>
 
+        {!gekose ? (
+          <section>
+            <h2 className="text-sm font-extrabold uppercase tracking-wide">3 · Gekose laag</h2>
+            <p className="mt-2 text-sm text-ink/60">
+              Klik op AP, die teks of die logo in die voorskou om dit te verstel — omdraai, kleur,
+              omlyning, grootte.
+            </p>
+          </section>
+        ) : null}
         {gekose ? (
           <section>
             <h2 className="text-sm font-extrabold uppercase tracking-wide">3 · Gekose laag</h2>
@@ -608,6 +675,57 @@ export function DuimnaelStudio({
                     />
                   ))}
                 </div>
+
+                <label className="mt-3 block text-xs font-bold uppercase">Omlyning</label>
+                <div className="mt-1 flex gap-1.5">
+                  <button
+                    type="button"
+                    title="Geen omlyning"
+                    onClick={() =>
+                      stelLaag(gekies!, (l) => (l.soort === "teks" ? { ...l, omlyn: "geen" } : l))
+                    }
+                    className={`flex size-7 items-center justify-center border-2 text-xs font-bold ${
+                      gekose.omlyn === "geen" ? "border-red" : "border-ink"
+                    }`}
+                  >
+                    ∅
+                  </button>
+                  {TEKS_KLEURE.map((k) => (
+                    <button
+                      key={k.sleutel}
+                      type="button"
+                      title={`Omlyn in ${k.naam}`}
+                      aria-label={`Omlyn in ${k.naam}`}
+                      onClick={() =>
+                        stelLaag(gekies!, (l) =>
+                          l.soort === "teks" ? { ...l, omlyn: k.sleutel } : l
+                        )
+                      }
+                      className={`size-7 border-2 ${
+                        gekose.omlyn === k.sleutel ? "border-red" : "border-ink"
+                      }`}
+                      style={{ backgroundColor: k.hex }}
+                    />
+                  ))}
+                </div>
+
+                <label className="mt-3 block text-xs font-bold uppercase">Blok-breedte</label>
+                <input
+                  type="range"
+                  min={0.05}
+                  max={1}
+                  step={0.01}
+                  value={gekose.breedte}
+                  onChange={(e) =>
+                    stelLaag(gekies!, (l) =>
+                      l.soort === "teks" ? { ...l, breedte: Number(e.target.value) } : l
+                    )
+                  }
+                  className="w-full"
+                />
+                <p className="mt-1 text-xs text-ink/50">
+                  Of sleep die rooi handvatsel langs die blok in die voorskou.
+                </p>
               </>
             ) : null}
             <label className="mt-3 block text-xs font-bold uppercase">Grootte</label>
