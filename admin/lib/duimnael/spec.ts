@@ -6,7 +6,7 @@
    en die bou slaag stilweg. */
 
 import { normaliseerBeeld, type BeeldBron } from "@/lib/kaart/spec";
-import { ROOI } from "@/lib/kaart/tokens";
+import { INK, OFFWHITE, ROOI } from "@/lib/kaart/tokens";
 
 export const RAAM = { w: 1280, h: 720 } as const;
 
@@ -50,7 +50,32 @@ export type Laag =
       spieël: boolean;
     }
   | { soort: "logo"; kleur: "ink" | "wit"; plek: Plek }
-  | { soort: "teks"; teks: string; kleur: "wit" | "ink"; belyn: "links" | "middel" | "regs"; plek: Plek };
+  | { soort: "teks"; teks: string; kleur: TeksKleur; belyn: "links" | "middel" | "regs"; plek: Plek };
+
+/** Teks bly by Buitelyn se palet. 'n Vrye kleurkieser klink vriendeliker, maar
+ *  dit is presies hoe 'n huisstyl oor 'n paar episodes uitmekaar val — en die
+ *  huisreël is monochroom plus EEN aksent. */
+export type TeksKleur = "wit" | "ink" | "rooi";
+
+export const TEKS_KLEURE: { sleutel: TeksKleur; naam: string; hex: string }[] = [
+  { sleutel: "wit", naam: "Wit", hex: OFFWHITE },
+  { sleutel: "ink", naam: "Ink", hex: INK },
+  { sleutel: "rooi", naam: "Rooi", hex: ROOI },
+];
+
+const TEKS_HEX: Record<TeksKleur, string> = { wit: OFFWHITE, ink: INK, rooi: ROOI };
+
+/** Die hex vir 'n teks-kleur. Een plek, sodat die voorskou en satori nooit
+ *  verskillende kleure teken nie. */
+export function teksHex(k: TeksKleur): string {
+  return TEKS_HEX[k];
+}
+
+/** 'n Skaduwee help net waar die teks lig is op 'n donker plaat. Op ink is dit
+ *  'n vuil rand. */
+export function teksSkaduwee(k: TeksKleur): string {
+  return k === "ink" ? "none" : "0 4px 18px rgba(0,0,0,0.55)";
+}
 
 export type Duimnael = {
   agtergrond: BeeldBron | null;
@@ -72,63 +97,98 @@ export type Duimnael = {
 
    Ons moet dus UITDRUKLIK sê: moenie die verwysing weergee, kopieer, sny of
    plak nie — gebruik dit net as 'n leidraad oor wat vandag se storie is. */
-export type Styl = { sleutel: string; naam: string; wat: string; prompt: string };
+/** Waar AP in die raam sit. Die prompt MOET dit weet: die KI moet daardie kant
+ *  leeg hou, anders beland die interessante deel presies agter sy kop. */
+export type Kant = "links" | "regs";
+
+export type Styl = { sleutel: string; naam: string; wat: string; kern: string };
 
 const GEEN_AFGELEIDE =
   "The reference images indicate ONLY what today's story is about — do NOT reproduce, copy, crop, " +
   "collage or paste them, and never show the reference images themselves. Invent something new that " +
   "merely evokes those subjects. ";
 
-const RAAM_REELS =
-  "COMPOSITION: the LEFT THIRD must stay dark and visually empty — a cut-out person will be placed " +
-  "there. The visual weight sits to the right, but stays calm enough for a large headline on top. " +
-  "Absolutely no people, no faces, no text, no letters, no numbers, no logos, no watermarks.";
+/** Die reëls wat NIKS met styl te doen het nie: die medium, die leë kant vir AP,
+ *  en die absolute teks-verbod. Hulle geld vir elke voorafstelling. */
+function raamReels(kant: Kant): string {
+  const leeg = kant === "links" ? "LEFT" : "RIGHT";
+  const vol = kant === "links" ? "right" : "left";
+  return (
+    "MEDIUM: this is a 16:9 YouTube thumbnail, and it will often be seen as small as 320 pixels wide. " +
+    "Use big simple shapes, strong contrast and clear separation; avoid fine detail, thin lines and " +
+    "small busy elements, which all turn to mush at that size. " +
+    `COMPOSITION: the ${leeg} THIRD of the frame must stay dark, quiet and visually EMPTY — a cut-out ` +
+    `presenter is composited there afterwards, so nothing important may sit on that side. Place the ` +
+    `visual interest toward the ${vol}, but keep it calm enough for a large headline to sit on top of it. ` +
+    "NO PEOPLE: absolutely no people, no faces, no figures, no hands and no body parts anywhere in " +
+    "the image. A real presenter is composited on top afterwards, so anyone you draw ends up as a " +
+    "second person in the frame. " +
+    "NO WORDING AT ALL: absolutely no text, no letters, no numbers, no words, no captions, no labels, " +
+    "no logos, no watermarks and no signatures anywhere in the image. Every word on the final thumbnail " +
+    "is added afterwards by hand, so any lettering you draw is a defect."
+  );
+}
 
 export const STYLE: Styl[] = [
   {
     sleutel: "grafies",
     naam: "Grafies",
     wat: "Bold poster-kuns — groot vorms, skoon, lees goed klein.",
-    prompt:
+    kern:
       "Create an ORIGINAL bold graphic background plate for a business-news YouTube thumbnail. " +
       GEEN_AFGELEIDE +
       "Interpret the subjects ABSTRACTLY as symbols and forms. " +
       "STYLE: striking editorial poster art — oversized abstract shapes, hard diagonal light shafts, " +
       "layered depth, a restrained palette of near-black, charcoal and one vivid red, heavy texture " +
-      "and grain, subtle halftone. Dramatic and premium, not busy. " +
-      RAAM_REELS,
+      "and grain, subtle halftone. Dramatic and premium, not busy. ",
   },
   {
     sleutel: "kinematies",
     naam: "Kinematies",
     wat: "Filmiese diepte — lig, mis, atmosfeer.",
-    prompt:
+    kern:
       "Design an ORIGINAL, dramatic editorial background plate for a business-news YouTube thumbnail. " +
       GEEN_AFGELEIDE +
       "Invent a completely new abstract scene that evokes those subjects: bold geometric forms, " +
       "sweeping light, depth and atmosphere. " +
       "STYLE: cinematic, high-contrast, near-black with one deep red accent, volumetric haze, subtle " +
       "film grain, dramatic rim lighting, a sense of scale and motion. Like a modern financial " +
-      "documentary title card. " +
-      RAAM_REELS,
+      "documentary title card. ",
   },
   {
     sleutel: "rustig",
     naam: "Rustig",
     wat: "Amper leeg — laat die opskrif en AP die werk doen.",
-    prompt:
+    kern:
       "Create an ORIGINAL, restrained background plate for a business-news YouTube thumbnail. " +
       GEEN_AFGELEIDE +
       "STYLE: almost minimal — a deep near-black field with one soft red glow, a faint suggestion of " +
-      "abstract form far to the right, gentle vignetting and fine film grain. Quiet, expensive, and " +
-      "deliberately understated so the headline dominates. " +
-      RAAM_REELS,
+      "abstract form far to the side, gentle vignetting and fine film grain. Quiet, expensive, and " +
+      "deliberately understated so the headline dominates. ",
+  },
+  {
+    sleutel: "papier",
+    naam: "Papier",
+    wat: "Buitelyn se papier — room, ink en een rooi. Val op tussen donker duimnaels.",
+    kern:
+      "Create an ORIGINAL background plate for a business-news YouTube thumbnail, printed on PAPER. " +
+      GEEN_AFGELEIDE +
+      "Interpret the subjects ABSTRACTLY as bold printed shapes. " +
+      "STYLE: warm off-white paper stock (#F7F6F2) with visible fibre and tooth, a screenprinted " +
+      "editorial look in near-black ink and ONE vivid red, flat solid shapes with no gradients, slight " +
+      "print misregistration, halftone dots, and the paper showing through as negative space. " +
+      "Confident, graphic and analogue — like a printed financial broadsheet cover. ",
   },
 ];
 
+/** Bou die volledige prompt vir 'n styl en 'n kant. */
+export function bouPrompt(styl: Styl, kant: Kant): string {
+  return styl.kern + raamReels(kant);
+}
+
 /** Die voorafstelling wat voorgelaai word. Grafies lees die beste by
  *  duimnael-grootte: groot vorms oorleef die afskaal na 320px. */
-export const VERSTEK_PROMPT = STYLE[0].prompt;
+export const VERSTEK_PROMPT = bouPrompt(STYLE[0], "links");
 
 const LEEG: Duimnael = { agtergrond: null, lae: [] };
 
@@ -200,7 +260,7 @@ function laag(rou: unknown): Laag | null {
       return {
         soort: "teks",
         teks,
-        kleur: l.kleur === "ink" ? "ink" : "wit",
+        kleur: l.kleur === "ink" || l.kleur === "rooi" ? l.kleur : "wit",
         belyn: l.belyn === "middel" || l.belyn === "regs" ? l.belyn : "links",
         plek: plek(l.plek),
       };

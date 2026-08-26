@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { GLOED_VERSTEK, RAAM, VERSTEK_PROMPT, normaliseerDuimnael } from "./spec";
+import { GLOED_VERSTEK, RAAM, STYLE, VERSTEK_PROMPT, bouPrompt, normaliseerDuimnael } from "./spec";
 
 describe("RAAM", () => {
   it("is 'n 16:9 YouTube-duimnael", () => {
@@ -108,14 +108,44 @@ describe("normaliseerDuimnael", () => {
   });
 });
 
-describe("VERSTEK_PROMPT", () => {
-  it("vra geen sterre nie — die drama kom van die gloed", () => {
-    expect(VERSTEK_PROMPT.toLowerCase()).not.toContain("star");
+describe("prompte", () => {
+  it("verbied mense en teks in elke voorafstelling, nie net die verstek nie", () => {
+    /* Dit moet vir ELKE styl geld: AP word bo-op gecomposiet, so 'n gegenereerde
+       mens is 'n tweede persoon in die raam, en elke woord word agterna met die
+       hand bygesit. */
+    for (const styl of STYLE) {
+      for (const kant of ["links", "regs"] as const) {
+        const p = bouPrompt(styl, kant).toLowerCase();
+        expect(p, `${styl.sleutel}/${kant}`).toContain("no people");
+        expect(p, `${styl.sleutel}/${kant}`).toContain("no faces");
+        expect(p, `${styl.sleutel}/${kant}`).toContain("no text");
+        expect(p, `${styl.sleutel}/${kant}`).toContain("no letters");
+        expect(p, `${styl.sleutel}/${kant}`).toContain("no logos");
+      }
+    }
   });
 
-  it("verbied mense en teks in die plaat", () => {
+  it("sê vir die model dis 'n YouTube-duimnael wat klein gekyk word", () => {
     const p = VERSTEK_PROMPT.toLowerCase();
-    expect(p).toContain("no people");
-    expect(p).toContain("no text");
+    expect(p).toContain("youtube thumbnail");
+    expect(p).toContain("320");
+  });
+
+  it("hou die REGTE kant oop — die kant waar AP sit", () => {
+    /* Dit is die hele punt van die skakelaar: sit AP regs en die prompt vra
+       steeds 'n oop LINKERkant, beland die interessante deel agter sy kop. */
+    const links = bouPrompt(STYLE[0], "links");
+    const regs = bouPrompt(STYLE[0], "regs");
+    expect(links).toContain("LEFT THIRD");
+    expect(links).not.toContain("RIGHT THIRD");
+    expect(regs).toContain("RIGHT THIRD");
+    expect(regs).not.toContain("LEFT THIRD");
+  });
+
+  it("sê uitdruklik moenie die verwysing oorteken nie", () => {
+    for (const styl of STYLE) {
+      expect(bouPrompt(styl, "links")).toContain("do NOT reproduce");
+    }
   });
 });
+

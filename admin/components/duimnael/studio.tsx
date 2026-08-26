@@ -3,7 +3,18 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { gloedKas, gloedSvgUrl } from "@/lib/duimnael/gloed";
 import { laagKas } from "@/lib/duimnael/laag";
-import { GLOED_VERSTEK, RAAM, STYLE, type Duimnael, type Laag } from "@/lib/duimnael/spec";
+import {
+  GLOED_VERSTEK,
+  RAAM,
+  STYLE,
+  TEKS_KLEURE,
+  bouPrompt,
+  type Kant,
+  teksHex,
+  teksSkaduwee,
+  type Duimnael,
+  type Laag,
+} from "@/lib/duimnael/spec";
 import { ROOI } from "@/lib/kaart/tokens";
 import type { Reaksie } from "@/app/actions-duimnael";
 
@@ -35,6 +46,17 @@ export function DuimnaelStudio({
 }) {
   const [duimnael, setDuimnael] = useState<Duimnael>({ agtergrond: null, lae: [] });
   const [prompt, setPrompt] = useState(verstekPrompt);
+  const [styl, setStyl] = useState<string>(STYLE[0].sleutel);
+  const [kant, setKant] = useState<Kant>("links");
+
+  /* Styl en kant bou saam die prompt. Die teksblok bly vryevorm — 'n eie
+     wysiging bly staan totdat 'n knoppie weer gedruk word. */
+  function stelStyl(sleutel: string, k: Kant) {
+    const s = STYLE.find((x) => x.sleutel === sleutel) ?? STYLE[0];
+    setStyl(s.sleutel);
+    setKant(k);
+    setPrompt(bouPrompt(s, k));
+  }
   const [biblioteek, setBiblioteek] = useState<Reaksie[]>(reaksies);
   const [verwysings, setVerwysings] = useState<Verwysing[]>([]);
   const [besig, setBesig] = useState<string | null>(null);
@@ -302,9 +324,9 @@ export function DuimnaelStudio({
                         fontSize: k.fontSize! * skaal,
                         lineHeight: 1.02,
                         letterSpacing: "-0.02em",
-                        color: laag.kleur === "wit" ? "#FFFFFF" : "#111111",
+                        color: teksHex(laag.kleur),
                         textAlign: laag.belyn === "middel" ? "center" : laag.belyn === "regs" ? "right" : "left",
-                        textShadow: laag.kleur === "wit" ? "0 4px 18px rgba(0,0,0,0.55)" : "none",
+                        textShadow: teksSkaduwee(laag.kleur),
                         userSelect: "none",
                       }}
                     >
@@ -464,12 +486,30 @@ export function DuimnaelStudio({
                 key={s.sleutel}
                 type="button"
                 title={s.wat}
-                onClick={() => setPrompt(s.prompt)}
+                onClick={() => stelStyl(s.sleutel, kant)}
                 className={`border-2 border-ink px-2 py-1 text-xs font-bold ${
-                  prompt === s.prompt ? "bg-ink text-paper" : "hover:bg-paper"
+                  styl === s.sleutel ? "bg-ink text-paper" : "hover:bg-paper"
                 }`}
               >
                 {s.naam}
+              </button>
+            ))}
+          </div>
+
+          {/* Waar AP sit, moet die KI weet — anders hou dit die verkeerde kant
+              oop en die interessante deel beland agter sy kop. */}
+          <div className="mt-2 flex items-center gap-2">
+            <span className="text-xs font-bold uppercase text-ink/60">AP sit</span>
+            {(["links", "regs"] as const).map((k) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => stelStyl(styl, k)}
+                className={`border-2 border-ink px-2 py-1 text-xs font-bold ${
+                  kant === k ? "bg-ink text-paper" : "hover:bg-paper"
+                }`}
+              >
+                {k === "links" ? "◧ Links" : "◨ Regs"}
               </button>
             ))}
           </div>
@@ -489,6 +529,15 @@ export function DuimnaelStudio({
               : `Maak agtergrond uit ${verwysings.length} ${verwysings.length === 1 ? "beeld" : "beelde"}`}
           </button>
           <p className="mt-1 text-xs text-ink/50">Vat 30–60s en kos geld per druk.</p>
+          {duimnael.agtergrond ? (
+            <button
+              type="button"
+              onClick={() => setDuimnael((d) => ({ ...d, agtergrond: null }))}
+              className="mt-2 w-full border-2 border-ink px-3 py-1.5 text-sm font-bold hover:bg-paper"
+            >
+              × Verwyder agtergrond
+            </button>
+          ) : null}
         </section>
 
         {gekose ? (
@@ -511,6 +560,27 @@ export function DuimnaelStudio({
                   <option value="middel">Gesentreer</option>
                   <option value="regs">Regs belyn</option>
                 </select>
+
+                <label className="mt-3 block text-xs font-bold uppercase">Kleur</label>
+                <div className="mt-1 flex gap-1.5">
+                  {TEKS_KLEURE.map((k) => (
+                    <button
+                      key={k.sleutel}
+                      type="button"
+                      title={k.naam}
+                      aria-label={k.naam}
+                      onClick={() =>
+                        stelLaag(gekies!, (l) =>
+                          l.soort === "teks" ? { ...l, kleur: k.sleutel } : l
+                        )
+                      }
+                      className={`size-7 border-2 ${
+                        gekose.kleur === k.sleutel ? "border-red" : "border-ink"
+                      }`}
+                      style={{ backgroundColor: k.hex }}
+                    />
+                  ))}
+                </div>
               </>
             ) : null}
             <label className="mt-3 block text-xs font-bold uppercase">Grootte</label>
@@ -529,11 +599,14 @@ export function DuimnaelStudio({
               <>
                 <button
                   type="button"
-                  onClick={() =>
+                  onClick={() => {
                     stelLaag(gekies!, (l) =>
                       l.soort === "reaksie" ? { ...l, spieël: !l.spieël } : l
-                    )
-                  }
+                    );
+                    /* Draai jy hom om, sit hy amper altyd aan die ander kant.
+                       Die prompt volg saam sodat die KI die regte kant oophou. */
+                    stelStyl(styl, gekose.plek.x < 0.5 ? "links" : "regs");
+                  }}
                   className={`mt-3 w-full border-2 border-ink px-3 py-1.5 text-sm font-bold ${
                     gekose.spieël ? "bg-ink text-paper" : "hover:bg-paper"
                   }`}

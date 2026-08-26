@@ -14,7 +14,7 @@ import type { ReactNode } from "react";
 import { beeldPlasing } from "@/lib/kaart/beeld";
 import { gloedKas, gloedSvgUrl } from "./gloed";
 import { laagKas } from "./laag";
-import { RAAM, type Duimnael, type Laag } from "./spec";
+import { RAAM, teksHex, teksSkaduwee, type Duimnael, type Laag } from "./spec";
 
 /* Fonte EN die logo's word een keer van skyf gelees en gekas. Met 'n lewendige
    voorskou wat by elke sleutelaanslag herrender, is dit die goedkoopste wins.
@@ -63,9 +63,9 @@ function teken(laag: Laag, sleutel: number, logo: Record<"ink" | "wit", string>)
           fontSize: k.fontSize,
           lineHeight: 1.02,
           letterSpacing: "-0.02em",
-          color: laag.kleur === "wit" ? "#FFFFFF" : "#111111",
+          color: teksHex(laag.kleur),
           textAlign: laag.belyn === "middel" ? "center" : laag.belyn === "regs" ? "right" : "left",
-          textShadow: laag.kleur === "wit" ? "0 4px 18px rgba(0,0,0,0.55)" : "none",
+          textShadow: teksSkaduwee(laag.kleur),
         }}
       >
         {laag.teks}
