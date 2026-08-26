@@ -10,6 +10,7 @@ const reaksie = (gloed = GLOED_VERSTEK): Laag => ({
   hoogte: 1024,
   plek: { x: 0.25, y: 0.5, grootte: 0.5 },
   gloed,
+  spieël: false,
 });
 
 describe("gloedKas", () => {

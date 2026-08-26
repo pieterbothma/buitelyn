@@ -32,7 +32,19 @@ export type Gloed = {
 export const GLOED_VERSTEK: Gloed = { aan: true, kleur: "#E2231A", sterkte: 0.85, radius: 0.42 };
 
 export type Laag =
-  | { soort: "reaksie"; url: string; wydte: number; hoogte: number; plek: Plek; gloed: Gloed }
+  /** `spieël` draai die uitknipsel horisontaal om. Sit AP regs in die raam,
+   *  kyk hy andersins by die rand uit; omgedraai kyk hy die raam in, na die
+   *  opskrif toe. Dit raak net die reaksie — die gloed is 'n simmetriese
+   *  gradiënt en die logo mag nooit gespieël word nie. */
+  | {
+      soort: "reaksie";
+      url: string;
+      wydte: number;
+      hoogte: number;
+      plek: Plek;
+      gloed: Gloed;
+      spieël: boolean;
+    }
   | { soort: "logo"; kleur: "ink" | "wit"; plek: Plek }
   | { soort: "teks"; teks: string; kleur: "wit" | "ink"; belyn: "links" | "middel" | "regs"; plek: Plek };
 
@@ -163,7 +175,15 @@ function laag(rou: unknown): Laag | null {
       const wydte = getal(l.wydte, 0);
       const hoogte = getal(l.hoogte, 0);
       if (!url || wydte <= 0 || hoogte <= 0) return null;
-      return { soort: "reaksie", url, wydte, hoogte, plek: plek(l.plek), gloed: gloed(l.gloed) };
+      return {
+        soort: "reaksie",
+        url,
+        wydte,
+        hoogte,
+        plek: plek(l.plek),
+        gloed: gloed(l.gloed),
+        spieël: l.spieël === true,
+      };
     }
     case "logo":
       return { soort: "logo", kleur: l.kleur === "ink" ? "ink" : "wit", plek: plek(l.plek) };

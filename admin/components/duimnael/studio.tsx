@@ -188,6 +188,7 @@ export function DuimnaelStudio({
             hoogte: beeld.naturalHeight,
             plek: { x: 0.25, y: 0.55, grootte: 0.55 },
             gloed: GLOED_VERSTEK,
+            spieël: false,
           },
         ],
       }));
@@ -312,7 +313,16 @@ export function DuimnaelStudio({
                     <img
                       alt=""
                       src={laag.soort === "logo" ? `/logo-${laag.kleur}.png` : laag.url}
-                      style={{ width: "100%", height: "100%", objectFit: "contain", pointerEvents: "none" }}
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "contain",
+                        pointerEvents: "none",
+                        // Dieselfde transform as die renderaar — anders lieg die voorskou.
+                        ...(laag.soort === "reaksie" && laag.spieël
+                          ? { transform: "scaleX(-1)" }
+                          : {}),
+                      }}
                     />
                   )}
                 </div>
@@ -516,6 +526,22 @@ export function DuimnaelStudio({
             />
             {gekose.soort === "reaksie" ? (
               <>
+                <button
+                  type="button"
+                  onClick={() =>
+                    stelLaag(gekies!, (l) =>
+                      l.soort === "reaksie" ? { ...l, spieël: !l.spieël } : l
+                    )
+                  }
+                  className={`mt-3 w-full border-2 border-ink px-3 py-1.5 text-sm font-bold ${
+                    gekose.spieël ? "bg-ink text-paper" : "hover:bg-paper"
+                  }`}
+                >
+                  ⇄ Draai om {gekose.spieël ? "(aan)" : ""}
+                </button>
+                <p className="mt-1 text-xs text-ink/50">
+                  Sit jy AP regs, laat dit hom die raam in kyk.
+                </p>
                 <label className="mt-3 flex items-center gap-2 text-sm">
                   <input
                     type="checkbox"

@@ -77,6 +77,34 @@ describe("renderDuimnael", () => {
     expect(h(wit)).not.toBe(h(ink));
   });
 
+  it("spieël draai die uitknipsel werklik om — dieselfde plek, ander grepe", async () => {
+    /* 'n Onoplosbare URL werk NIE vir hierdie toets nie: satori teken dan 'n leë
+       boks, en 'n omgedraaide leë boks is greep-vir-greep dieselfde. Ons gee dus
+       'n piepklein ASIMMETRIESE beeld (rooi | rooi | blou | blou) as data:-URI,
+       wat aflyn laai en wél verskil wanneer dit omgedraai word.
+
+       normaliseerDuimnael verbied data:-URL's (satori haal beelde by elke render
+       weer af), so ons bou die spec hier direk — die verbod is 'n normaliserings-
+       reël, nie 'n beperking op die renderaar nie. */
+    const ASIM = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAABCAIAAAB2XpiaAAAAFUlEQVR4nGN8pCzFwMBgxLqOgYEBABE0AgYm3746AAAAAElFTkSuQmCC";
+    const maak = (spieel: boolean): Duimnael => ({
+      agtergrond: null,
+      lae: [
+        {
+          soort: "reaksie",
+          url: ASIM,
+          wydte: 4,
+          hoogte: 1,
+          plek: { x: 0.5, y: 0.5, grootte: 0.6 },
+          gloed: { ...GLOED_VERSTEK, aan: false },
+          spieël: spieel,
+        },
+      ],
+    });
+    const h = (b: Buffer) => createHash("sha256").update(b).digest("hex");
+    expect(h(await renderDuimnael(maak(false)))).not.toBe(h(await renderDuimnael(maak(true))));
+  });
+
   it("die gloed verander die uitset wanneer dit aangeskakel word", async () => {
     const af = normaliseerDuimnael({
       ...vol,

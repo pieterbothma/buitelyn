@@ -74,6 +74,9 @@ function teken(laag: Laag, sleutel: number, logo: Record<"ink" | "wit", string>)
   }
 
   const bron = laag.soort === "logo" ? logo[laag.kleur] : laag.url;
+  /* Net die reaksie kan gespieël word. Die logo mag nooit — 'n omgekeerde
+     Buitelyn-logo is 'n verkeerde logo. */
+  const spieël = laag.soort === "reaksie" && laag.spieël;
   return (
     <img
       key={sleutel}
@@ -81,7 +84,13 @@ function teken(laag: Laag, sleutel: number, logo: Record<"ink" | "wit", string>)
       src={bron}
       width={k.width}
       height={k.height}
-      style={{ position: "absolute", left: k.left, top: k.top, objectFit: "contain" }}
+      style={{
+        position: "absolute",
+        left: k.left,
+        top: k.top,
+        objectFit: "contain",
+        ...(spieël ? { transform: "scaleX(-1)" } : {}),
+      }}
     />
   );
 }

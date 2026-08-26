@@ -9,6 +9,7 @@ const reaksie = (plek: { x: number; y: number; grootte: number }): Laag => ({
   hoogte: 1024,
   plek,
   gloed: GLOED_VERSTEK,
+  spieël: false,
 });
 
 describe("laagKas — reaksie", () => {

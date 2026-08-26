@@ -46,6 +46,27 @@ describe("normaliseerDuimnael", () => {
     expect(d.lae).toEqual([]);
   });
 
+  it("spieël is standaard af, en word net deur 'n egte true aangeskakel", () => {
+    const sonder = normaliseerDuimnael({
+      agtergrond: null,
+      lae: [{ soort: "reaksie", url: "https://x/a.png", wydte: 10, hoogte: 10, plek: { x: 0.5, y: 0.5, grootte: 0.5 } }],
+    });
+    expect((sonder.lae[0] as { spieël: boolean }).spieël).toBe(false);
+
+    // "true" as string, 1, of enigiets anders is NIE true nie.
+    const string = normaliseerDuimnael({
+      agtergrond: null,
+      lae: [{ soort: "reaksie", url: "https://x/a.png", wydte: 10, hoogte: 10, plek: { x: 0.5, y: 0.5, grootte: 0.5 }, spieël: "true" }],
+    });
+    expect((string.lae[0] as { spieël: boolean }).spieël).toBe(false);
+
+    const aan = normaliseerDuimnael({
+      agtergrond: null,
+      lae: [{ soort: "reaksie", url: "https://x/a.png", wydte: 10, hoogte: 10, plek: { x: 0.5, y: 0.5, grootte: 0.5 }, spieël: true }],
+    });
+    expect((aan.lae[0] as { spieël: boolean }).spieël).toBe(true);
+  });
+
   it("gee 'n reaksie sy verstek-gloed as daar nie een is nie", () => {
     const d = normaliseerDuimnael({
       agtergrond: null,
