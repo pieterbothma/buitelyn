@@ -48,7 +48,14 @@ export async function POST(request: Request) {
   if (!prompt) return fout("leë prompt", 400);
 
   const verwysings = vorm.getAll("verwysing").filter((v): v is File => v instanceof File && v.size > 0);
-  if (verwysings.length === 0) return fout("stuur ten minste een verwysingsbeeld", 400);
+  const getikteOnderwerpe = String(vorm.get("onderwerpe") ?? "").trim();
+
+  /* Verwysings is nie meer verpligtend nie: tik AP die onderwerpe self, is daar
+     niks om uit te lees nie en die visie-stap word in elk geval oorgeslaan.
+     Sonder albei het ons egter geen idee waaroor die duimnael gaan nie. */
+  if (verwysings.length === 0 && !getikteOnderwerpe) {
+    return fout("Laai 'n verwysingsbeeld op óf tik die onderwerpe.", 400);
+  }
 
   for (const v of verwysings) {
     if (v.size > MAKS_BYTES) return fout("Die lêer is groter as 15MB.", 413);
@@ -87,7 +94,7 @@ export async function POST(request: Request) {
     }
   }
 
-  let onderwerpe = String(vorm.get("onderwerpe") ?? "").trim();
+  let onderwerpe = getikteOnderwerpe;
 
   /* Het AP self die onderwerpe getik, glo ons hom en slaan die visie-stap oor —
      dis vinniger en akkurater as raai uit 'n logo. */

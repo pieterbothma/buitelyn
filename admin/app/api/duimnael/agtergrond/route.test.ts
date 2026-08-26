@@ -47,11 +47,32 @@ describe("POST /api/duimnael/agtergrond", () => {
     expect(res.status).toBe(400);
   });
 
-  it("weier wanneer daar geen verwysingsbeeld is nie", async () => {
+  it("weier wanneer daar NIE 'n verwysing EN NIE onderwerpe is nie", async () => {
     getUser.mockResolvedValue({ data: { user: { id: "u" } } });
     const res = await POST(versoek({ prompt: "iets" }, 0));
     expect(res.status).toBe(400);
-    expect((await res.json()).fout).toMatch(/verwysing/i);
+    expect((await res.json()).fout).toMatch(/verwysing|onderwerp/i);
+  });
+
+  it("werk sonder 'n verwysing wanneer die onderwerpe getik is", async () => {
+    /* Die verwysing bestaan net om die onderwerpe uit te lees. Tik AP hulle
+       self, is daar niks om te lees nie — dan moet 'n oplaai nie verplig wees
+       nie. */
+    getUser.mockResolvedValue({ data: { user: { id: "u" } } });
+    vi.stubEnv("OPENAI_API_KEY", "sk-toets");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://sb.test");
+    const png =
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==";
+    const haal = vi.fn(async () => Response.json({ data: [{ b64_json: png }] }));
+    vi.stubGlobal("fetch", haal);
+    upload.mockResolvedValue({ error: null });
+
+    const res = await POST(versoek({ prompt: "iets", onderwerpe: "Naspers, Clicks, rugby" }, 0));
+    expect(res.status).toBe(200);
+    expect((await res.json()).onderwerpe).toBe("Naspers, Clicks, rugby");
+    // Geen visie-stap nodig nie: net die beeldmodel word gebel.
+    const urls = haal.mock.calls.map((c) => String((c as unknown as [string])[0]));
+    expect(urls.every((u) => !u.includes("/chat/completions"))).toBe(true);
   });
 
   it("weier WebP — satori dekodeer dit nie en die duimnael kom stil blank uit", async () => {

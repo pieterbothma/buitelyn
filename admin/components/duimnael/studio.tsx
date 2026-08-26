@@ -268,8 +268,8 @@ export function DuimnaelStudio({
 
   // ---- agtergrond genereer ----
   async function genereerAgtergrond() {
-    if (verwysings.length === 0) {
-      setBoodskap("Laai eers 'n verwysingsbeeld op.");
+    if (verwysings.length === 0 && !onderwerpe.trim()) {
+      setBoodskap("Laai 'n verwysingsbeeld op óf tik die onderwerpe.");
       return;
     }
     setBesig("Agtergrond word gemaak — dit vat 30-60s…");
@@ -679,7 +679,7 @@ export function DuimnaelStudio({
             2 · Agtergrond
           </h2>
           <p className="mt-1 text-xs leading-relaxed text-ink/60">
-            Laai vandag se onderwerpe op — die KI maak daaruit &apos;n agtergrond.
+            Laai vandag se onderwerpe op, óf tik hulle net hieronder — albei werk.
           </p>
 
           {verwysings.length > 0 ? (
@@ -808,11 +808,11 @@ export function DuimnaelStudio({
           ) : null}
           <button
             onClick={genereerAgtergrond}
-            disabled={besig !== null || verwysings.length === 0}
+            disabled={besig !== null || (verwysings.length === 0 && !onderwerpe.trim())}
             className="mt-2 w-full border-2 border-ink bg-ink px-3 py-1.5 text-sm font-bold text-paper hover:bg-ink/85 disabled:bg-ink/30"
           >
             {verwysings.length === 0
-              ? "Maak agtergrond"
+              ? "Maak agtergrond uit die onderwerpe"
               : `Maak agtergrond uit ${verwysings.length} ${verwysings.length === 1 ? "beeld" : "beelde"}`}
           </button>
           <p className="mt-1 text-xs text-ink/50">Vat 30–60s en kos geld per druk.</p>
