@@ -48,6 +48,11 @@ const GEREEDSKAP = [
     naam: "Grafiek-bouer",
     wat: "Publikasie-gereed grafieke: vergelyk aandele (%), prys oor tyd, of staaf 'n periode se wenners — in Buitelyn se raam.",
   },
+  {
+    pad: "duimnael",
+    naam: "Duimnaels",
+    wat: "Bou 'n YouTube-duimnael: kies AP se reaksie, laat die KI 'n agtergrond uit vandag se onderwerpe maak, en sleep die opskrif waar jy dit wil hê.",
+  },
 ];
 
 export default async function Studio({ params }: { params: Promise<{ slug: string }> }) {
