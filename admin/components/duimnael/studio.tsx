@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { gloedKas, gloedSvgUrl } from "@/lib/duimnael/gloed";
 import { laagKas } from "@/lib/duimnael/laag";
 import {
@@ -203,6 +203,24 @@ export function DuimnaelStudio({
     [stelLaag]
   );
 
+  /* Delete of Backspace verwyder die gekose laag. Die knoppie onderaan die
+     paneel is intussen ver onder die vou — die paneel het baie langer geword. */
+  useEffect(() => {
+    function tik(e: KeyboardEvent) {
+      if (gekies === null) return;
+      if (e.key !== "Delete" && e.key !== "Backspace") return;
+      const t = e.target as HTMLElement | null;
+      // Nie terwyl iemand in 'n veld tik nie.
+      const tikVeld =
+        t?.tagName === "INPUT" || t?.tagName === "TEXTAREA" || t?.isContentEditable;
+      if (tikVeld) return;
+      e.preventDefault();
+      verwyderLaag(gekies);
+    }
+    window.addEventListener("keydown", tik);
+    return () => window.removeEventListener("keydown", tik);
+  });
+
   // ---- sleep ----
   const sleep = useCallback(
     (i: number) => (e: React.PointerEvent) => {
@@ -382,10 +400,41 @@ export function DuimnaelStudio({
                     top: k.top * skaal,
                     width: k.width * skaal,
                     height: k.height ? k.height * skaal : undefined,
+                    // Teks het geen bekende hoogte nie; gee dit darem 'n
+                    // trefarea sodat dit maklik gekies kan word.
+                    minHeight: k.height ? undefined : (k.fontSize ?? 16) * skaal,
                     cursor: "grab",
                     outline: gekies === i ? `2px solid ${ROOI}` : "none",
                   }}
                 >
+                  {gekies === i ? (
+                    <button
+                      type="button"
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={() => verwyderLaag(i)}
+                      title="Verwyder hierdie laag"
+                      aria-label="Verwyder hierdie laag"
+                      style={{
+                        position: "absolute",
+                        top: -12,
+                        left: -12,
+                        width: 24,
+                        height: 24,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        border: "2px solid #1A1A1A",
+                        background: "#F7F6F2",
+                        color: "#1A1A1A",
+                        fontWeight: 700,
+                        lineHeight: 1,
+                        cursor: "pointer",
+                        zIndex: 5,
+                      }}
+                    >
+                      ×
+                    </button>
+                  ) : null}
                   {laag.soort === "teks" && gekies === i ? (
                     <div
                       onPointerDown={sleepBreedte(i)}
