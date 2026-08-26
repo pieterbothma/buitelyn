@@ -432,7 +432,7 @@ export function laagKas(laag: Laag, raam: Gleuf): LaagKas {
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run lib/duimnael/laag.test.ts`
-Expected: PASS — 9 tests.
+Expected: PASS — 7 tests.
 
 - [ ] **Step 5: Commit**
 
@@ -669,6 +669,23 @@ describe("renderDuimnael", () => {
     );
   });
 
+  it("bed die logo in — dit word van skyf gelees, nie oor HTTP gehaal nie", async () => {
+    /* NEXT_PUBLIC_SITE_URL wys na produksie, so 'n HTTP-logo sou plaaslik en in
+       CI stil verdwyn. Dié toets sou dit vang: 'n wit en 'n swart logo moet
+       verskillende grepe gee, wat net kan gebeur as albei werklik gelees is. */
+    const wit = await renderDuimnael(
+      normaliseerDuimnael({ agtergrond: null, lae: [{ soort: "logo", kleur: "wit", plek: { x: 0.85, y: 0.85, grootte: 0.2 } }] })
+    );
+    const ink = await renderDuimnael(
+      normaliseerDuimnael({ agtergrond: null, lae: [{ soort: "logo", kleur: "ink", plek: { x: 0.85, y: 0.85, grootte: 0.2 } }] })
+    );
+    const leegPng = await renderDuimnael(leeg);
+    const h = (b: Buffer) => createHash("sha256").update(b).digest("hex");
+    expect(h(wit)).not.toBe(h(leegPng));
+    expect(h(ink)).not.toBe(h(leegPng));
+    expect(h(wit)).not.toBe(h(ink));
+  });
+
   it("die gloed verander die uitset wanneer dit aangeskakel word", async () => {
     const af = normaliseerDuimnael({
       ...vol,
@@ -715,22 +732,35 @@ import { RAAM, type Duimnael, type Laag } from "./spec";
 
 /* Fonte is voorheen by ELKE versoek van skyf gelees. Met 'n lewendige
    voorskou wat by elke sleutelaanslag herrender, is dit die goedkoopste wins. */
-let fonteKas: Promise<{ bold: Buffer }> | null = null;
+let bateKas: Promise<{ bold: Buffer; logo: Record<"ink" | "wit", string> }> | null = null;
 
-function laaiFonte() {
-  fonteKas ??= (async () => {
-    const bold = await readFile(path.join(process.cwd(), "assets/LeagueSpartan-700.ttf"));
-    return { bold };
+/* Fonte EN die logo's word een keer van skyf gelees en gekas. Met 'n lewendige
+   voorskou wat by elke sleutelaanslag herrender, is dit die goedkoopste wins.
+
+   Die logo word as 'n data:-URI ingebed, NIE oor HTTP gehaal nie. satori sou
+   andersins NEXT_PUBLIC_SITE_URL moes gebruik — wat na produksie wys
+   (hq.buitelyn.com) — en 'n plaaslike of CI-render sou 'n logo probeer haal wat
+   nog nie ontplooi is nie. Die logo sou dan stil uit die duimnael verdwyn.
+   Van skyf af lees werk aflyn, in toetse, en voor die eerste ontplooiing. */
+function laaiBates() {
+  bateKas ??= (async () => {
+    const [bold, ink, wit] = await Promise.all([
+      readFile(path.join(process.cwd(), "assets/LeagueSpartan-700.ttf")),
+      readFile(path.join(process.cwd(), "assets/logo-ink.png")),
+      readFile(path.join(process.cwd(), "assets/logo-wit.png")),
+    ]);
+    return {
+      bold,
+      logo: {
+        ink: `data:image/png;base64,${ink.toString("base64")}`,
+        wit: `data:image/png;base64,${wit.toString("base64")}`,
+      },
+    };
   })();
-  return fonteKas;
+  return bateKas;
 }
 
-const LOGO_URL: Record<"ink" | "wit", string> = {
-  ink: "/logo-ink.png",
-  wit: "/logo-wit.png",
-};
-
-function teken(laag: Laag, sleutel: number, basis: string): ReactNode {
+function teken(laag: Laag, sleutel: number, logo: Record<"ink" | "wit", string>): ReactNode {
   const k = laagKas(laag, RAAM);
 
   if (laag.soort === "teks") {
@@ -759,7 +789,7 @@ function teken(laag: Laag, sleutel: number, basis: string): ReactNode {
     );
   }
 
-  const bron = laag.soort === "logo" ? `${basis}${LOGO_URL[laag.kleur]}` : laag.url;
+  const bron = laag.soort === "logo" ? logo[laag.kleur] : laag.url;
   return (
     <img
       key={sleutel}
@@ -772,9 +802,8 @@ function teken(laag: Laag, sleutel: number, basis: string): ReactNode {
 }
 
 export async function renderDuimnael(duimnael: Duimnael, skaal = 1): Promise<Buffer> {
-  const { bold } = await laaiFonte();
+  const { bold, logo } = await laaiBates();
   const s = skaal > 0 && skaal <= 1 ? skaal : 1;
-  const basis = process.env.NEXT_PUBLIC_SITE_URL ?? "";
 
   const agtergrond = duimnael.agtergrond
     ? beeldPlasing(duimnael.agtergrond, { w: RAAM.w, h: RAAM.h })
@@ -814,7 +843,7 @@ export async function renderDuimnael(duimnael: Duimnael, skaal = 1): Promise<Buf
                 style={{ position: "absolute", left: g.left, top: g.top }}
               />
             ) : null}
-            {teken(laag, i, basis)}
+            {teken(laag, i, logo)}
           </div>
         );
       })}
@@ -853,11 +882,11 @@ export async function renderDuimnael(duimnael: Duimnael, skaal = 1): Promise<Buf
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run lib/duimnael/render.test.ts`
-Expected: PASS — 5 tests.
+Expected: PASS — 6 tests.
 
-- [ ] **Step 5: Copy the logo assets into `public/` so satori can fetch them by URL**
+- [ ] **Step 5: Copy the logo assets into `public/` — for the BROWSER preview only**
 
-satori resolves `<img src>` over HTTP; it cannot read `assets/` from disk. The logos exist at `assets/logo-ink.png` and `assets/logo-wit.png` but are only reachable to `sharp`.
+The renderer embeds the logo as a data: URI read from `assets/` (see above), so satori needs nothing here. But the editor in Task 9 runs in the browser and references `/logo-ink.png`, which must be served from `public/`.
 
 ```bash
 cp assets/logo-ink.png public/logo-ink.png
@@ -957,7 +986,7 @@ git commit -m "feat(duimnael): emmers vir agtergronde en die reaksie-biblioteek"
 
 **Interfaces:**
 - Produces: `POST /api/duimnael/agtergrond`, `multipart/form-data` with `prompt` (string) and 1–4 `verwysing` files. Returns `{ ok: true, url, wydte, hoogte }` or `{ fout }`.
-- Also exports `VERSTEK_PROMPT: string` for the editor to preload.
+- Consumes `VERSTEK_PROMPT` from `@/lib/duimnael/spec` (Task 1). It lives there, not here, so the page can import it without dragging `sharp` into its module graph.
 
 - [ ] **Step 1: Write the failing test**
 
@@ -976,7 +1005,7 @@ vi.mock("@/lib/supabase/service", () => ({
   supabaseService: () => ({ storage: { from: () => ({ upload }) } }),
 }));
 
-import { POST, VERSTEK_PROMPT } from "./route";
+import { POST } from "./route";
 
 function versoek(velde: Record<string, string>, lêers: number = 1): Request {
   const vorm = new FormData();
@@ -1060,19 +1089,6 @@ describe("POST /api/duimnael/agtergrond", () => {
   });
 });
 
-describe("VERSTEK_PROMPT", () => {
-  it("vra geen sterre nie — die drama kom van die gloed", () => {
-    expect(VERSTEK_PROMPT.toLowerCase()).not.toContain("star");
-  });
-
-  it("verbied mense en teks in die plaat", () => {
-    const p = VERSTEK_PROMPT.toLowerCase();
-    expect(p).toContain("no people");
-    expect(p).toContain("no text");
-  });
-});
-```
-
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `npx vitest run app/api/duimnael/agtergrond/route.test.ts`
@@ -1087,6 +1103,7 @@ import { NextResponse } from "next/server";
 import sharp from "sharp";
 import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseService } from "@/lib/supabase/service";
+import { VERSTEK_PROMPT } from "@/lib/duimnael/spec";
 
 export const maxDuration = 120; // beeldgenerering vat 30-60s
 
@@ -1107,12 +1124,6 @@ const MAKS_VERWYSINGS = 4;
  *  1280×720 gesny met lib/kaart/beeld.ts se fokus/zoem-wiskunde. */
 const GROOTTE = "1536x1024";
 
-export const VERSTEK_PROMPT =
-  "A bold YouTube thumbnail BACKGROUND PLATE inspired by the reference images. " +
-  "Dark, near-black, richly textured, with subtle film grain and a deep red tint. " +
-  "Keep the LEFT THIRD darker and visually quiet — a person will be placed there. " +
-  "Keep the right two thirds calm enough for a headline to sit on top. " +
-  "Absolutely no people, no faces, no text, no lettering, no logos, no watermarks.";
 
 function fout(boodskap: string, status: number) {
   return NextResponse.json({ fout: boodskap }, { status });
@@ -1209,7 +1220,7 @@ export async function POST(request: Request) {
 - [ ] **Step 4: Run test to verify it passes**
 
 Run: `npx vitest run app/api/duimnael/agtergrond/route.test.ts`
-Expected: PASS — 9 tests.
+Expected: PASS — 7 tests.
 
 - [ ] **Step 5: Commit**
 
@@ -1951,7 +1962,10 @@ export function DuimnaelStudio({
                   {laag.soort === "teks" ? (
                     <div
                       style={{
-                        fontFamily: "var(--font-league-spartan, sans-serif)",
+                        // Geverifieer in app/layout.tsx: die next/font-veranderlike heet --font-spartan.
+                        // 'n Verkeerde naam val stil na sans-serif terug terwyl satori League
+                        // Spartan render — en dan lieg die voorskou.
+                        fontFamily: "var(--font-spartan), sans-serif",
                         fontWeight: 700,
                         fontSize: k.fontSize! * skaal,
                         lineHeight: 1.02,
@@ -2123,7 +2137,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 import { Shell, type Workspace } from "@/components/shell";
 import { DuimnaelStudio } from "@/components/duimnael/studio";
 import { lysReaksies } from "@/app/actions-duimnael";
-import { VERSTEK_PROMPT } from "@/app/api/duimnael/agtergrond/route";
+import { VERSTEK_PROMPT } from "@/lib/duimnael/spec";
 
 export const dynamic = "force-dynamic";
 
