@@ -34,6 +34,7 @@ export function DuimnaelStudio({
 }) {
   const [duimnael, setDuimnael] = useState<Duimnael>({ agtergrond: null, lae: [] });
   const [prompt, setPrompt] = useState(verstekPrompt);
+  const [biblioteek, setBiblioteek] = useState<Reaksie[]>(reaksies);
   const [verwysings, setVerwysings] = useState<Verwysing[]>([]);
   const [besig, setBesig] = useState<string | null>(null);
   const [boodskap, setBoodskap] = useState<string | null>(null);
@@ -76,6 +77,37 @@ export function DuimnaelStudio({
     });
 
     setBoodskap(geweier.length ? `Oorgeslaan: ${geweier.join(", ")}` : null);
+  }
+
+  // ---- die reaksie-biblioteek ----
+
+  /* Die bediener gee die lys by die eerste render; daarna hou ons dit hier by
+     sodat 'n oplaai of 'n verwydering dadelik wys sonder 'n herlaai. */
+  async function laaiReaksieOp(lêer: File) {
+    setBesig("Reaksie word uitgesny — dit vat 'n oomblik…");
+    setBoodskap(null);
+    const vorm = new FormData();
+    vorm.append("leer", lêer);
+    const res = await fetch("/api/duimnael/reaksie", { method: "POST", body: vorm });
+    const data = await res.json().catch(() => ({}));
+    setBesig(null);
+    if (!res.ok) {
+      setBoodskap(data.fout ?? "Die reaksie kon nie opgelaai word nie.");
+      return;
+    }
+    setBiblioteek((huidig) => [...huidig, { naam: data.naam, url: data.url }]);
+  }
+
+  async function verwyderReaksie(r: Reaksie) {
+    const res = await fetch(`/api/duimnael/reaksie?naam=${encodeURIComponent(r.naam)}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setBoodskap(data.fout ?? "Die reaksie kon nie verwyder word nie.");
+      return;
+    }
+    setBiblioteek((huidig) => huidig.filter((x) => x.naam !== r.naam));
   }
 
   function verwyderVerwysing(i: number) {
@@ -312,15 +344,51 @@ export function DuimnaelStudio({
         <section>
           <h2 className="text-sm font-extrabold uppercase tracking-wide">1 · Reaksie</h2>
           <div className="mt-2 grid grid-cols-3 gap-2">
-            {reaksies.map((r) => (
-              <button key={r.naam} onClick={() => kiesReaksie(r)} className="border-2 border-ink hover:bg-paper">
-                <img alt={r.naam} src={r.url} className="aspect-square w-full object-cover" />
-              </button>
+            {biblioteek.map((r) => (
+              <div key={r.naam} className="relative">
+                <button
+                  type="button"
+                  onClick={() => kiesReaksie(r)}
+                  className="block w-full border-2 border-ink hover:bg-paper"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img alt={r.naam} src={r.url} className="aspect-square w-full object-cover" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => verwyderReaksie(r)}
+                  aria-label={`Verwyder ${r.naam}`}
+                  className="absolute -right-1.5 -top-1.5 flex size-5 items-center justify-center border-2 border-ink bg-paper text-xs font-bold leading-none hover:bg-red hover:text-paper"
+                >
+                  ×
+                </button>
+              </div>
             ))}
           </div>
-          {reaksies.length === 0 ? (
-            <p className="mt-2 text-sm text-ink/60">Nog geen reaksies nie — loop die saai-skrip.</p>
+          {biblioteek.length === 0 ? (
+            <p className="mt-2 text-sm text-ink/60">Nog geen reaksies nie — laai een op.</p>
           ) : null}
+
+          {/* Die roete sny die agtergrond met Replicate uit, so 'n gewone foto
+              is genoeg — dit hoef nie vooraf uitgeknip te wees nie. */}
+          <label
+            className={`mt-2 block cursor-pointer border-2 border-ink px-3 py-1.5 text-center text-sm font-bold ${
+              besig ? "cursor-not-allowed opacity-40" : "hover:bg-paper"
+            }`}
+          >
+            + Laai &apos;n reaksie-skoot op
+            <input
+              type="file"
+              accept="image/png,image/jpeg"
+              disabled={besig !== null}
+              onChange={(e) => {
+                const lêer = e.target.files?.[0];
+                e.target.value = "";
+                if (lêer) laaiReaksieOp(lêer);
+              }}
+              className="hidden"
+            />
+          </label>
         </section>
 
         <section>
@@ -353,7 +421,16 @@ export function DuimnaelStudio({
             </ul>
           ) : null}
 
-          <label className="mt-2 block cursor-pointer border-2 border-dashed border-ink/40 px-3 py-2 text-center text-sm font-bold hover:border-ink hover:bg-paper">
+          {/* 'n <label> om 'n verborge invoer: die blaaier se eie kieser wys
+              "Choose files — images (11).jpeg", wat nie soos die res van die
+              werkruimte lyk nie en ook nie sê hoeveel jy al gekies het nie. */}
+          <label
+            className={`mt-2 block cursor-pointer border-2 border-ink px-3 py-1.5 text-center text-sm font-bold ${
+              verwysings.length >= MAKS_VERWYSINGS
+                ? "cursor-not-allowed opacity-40"
+                : "hover:bg-paper"
+            }`}
+          >
             {verwysings.length === 0
               ? "+ Kies verwysingsbeelde"
               : `+ Nog een (${verwysings.length}/${MAKS_VERWYSINGS})`}
