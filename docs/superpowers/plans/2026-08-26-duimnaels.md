@@ -1088,6 +1088,7 @@ describe("POST /api/duimnael/agtergrond", () => {
     expect(liggaam.hoogte).toBeGreaterThan(0);
   });
 });
+```
 
 - [ ] **Step 2: Run test to verify it fails**
 
