@@ -22,7 +22,7 @@ describe("gloedKas", () => {
 
   it("is vierkantig met deursnee 2 × radius", () => {
     const k = gloedKas(reaksie(), RAAM)!;
-    expect(k.width).toBe(Math.round(GLOED_VERSTEK.radius * 2 * RAAM.w));
+    expect(k.width).toBe(2 * Math.round(GLOED_VERSTEK.radius * RAAM.w));
     expect(k.height).toBe(k.width);
   });
 
