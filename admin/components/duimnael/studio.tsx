@@ -92,6 +92,7 @@ export function DuimnaelStudio({
   const [besig, setBesig] = useState<string | null>(null);
   const [boodskap, setBoodskap] = useState<string | null>(null);
   const [gekies, setGekies] = useState<number | null>(null);
+  const [sleepBron, setSleepBron] = useState<number | null>(null);
   const raamRef = useRef<HTMLDivElement>(null);
   const agtergrondRef = useRef<HTMLHeadingElement>(null);
   const promptRef = useRef<HTMLTextAreaElement>(null);
@@ -202,6 +203,27 @@ export function DuimnaelStudio({
     },
     [stelLaag]
   );
+
+  /* Die render-volgorde IS die skikking-volgorde: indeks 0 word eerste geteken
+     en is dus heel agter. Die lys hieronder wys dit omgekeerd — boaan die lys
+     is boaan die duimnael — want dis hoe 'n mens aan lae dink. */
+  function skuifLaag(van: number, na: number) {
+    if (van === na) return;
+    setDuimnael((d) => {
+      const lae = [...d.lae];
+      const [item] = lae.splice(van, 1);
+      lae.splice(na, 0, item);
+      return { ...d, lae };
+    });
+    // Die keuse volg die laag, nie die indeks nie.
+    setGekies(na);
+  }
+
+  function laagNaam(l: Laag): string {
+    if (l.soort === "reaksie") return "AP";
+    if (l.soort === "logo") return `Logo (${l.kleur === "wit" ? "wit" : "swart"})`;
+    return l.teks.length > 26 ? `${l.teks.slice(0, 26)}…` : l.teks;
+  }
 
   /* Delete of Backspace verwyder die gekose laag. Die knoppie onderaan die
      paneel is intussen ver onder die vou — die paneel het baie langer geword. */
@@ -524,6 +546,81 @@ export function DuimnaelStudio({
             Laai af (1280×720)
           </button>
         </div>
+
+        {duimnael.lae.length > 0 ? (
+          <section className="mt-6 max-w-md">
+            <h2 className="text-sm font-extrabold uppercase tracking-wide">Lae</h2>
+            <p className="mt-1 text-xs text-ink/60">
+              Boaan die lys is boaan die duimnael. Sleep om te herrangskik.
+            </p>
+            <ul className="mt-2 space-y-1">
+              {duimnael.lae
+                .map((laag, i) => ({ laag, i }))
+                .reverse()
+                .map(({ laag, i }) => (
+                  <li
+                    key={i}
+                    draggable
+                    onDragStart={() => setSleepBron(i)}
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      if (sleepBron !== null) skuifLaag(sleepBron, i);
+                      setSleepBron(null);
+                    }}
+                    onDragEnd={() => setSleepBron(null)}
+                    onClick={() => setGekies(i)}
+                    className={`flex cursor-grab items-center gap-2 border-2 px-2 py-1.5 text-sm ${
+                      gekies === i ? "border-red bg-paper font-bold" : "border-ink hover:bg-paper"
+                    } ${sleepBron === i ? "opacity-40" : ""}`}
+                  >
+                    <span aria-hidden className="text-ink/40">
+                      ⠿
+                    </span>
+                    <span className="flex-1 truncate">{laagNaam(laag)}</span>
+                    <button
+                      type="button"
+                      title="Skuif vorentoe"
+                      aria-label="Skuif vorentoe"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        skuifLaag(i, Math.min(duimnael.lae.length - 1, i + 1));
+                      }}
+                      disabled={i === duimnael.lae.length - 1}
+                      className="px-1 font-bold disabled:opacity-25"
+                    >
+                      ↑
+                    </button>
+                    <button
+                      type="button"
+                      title="Skuif agtertoe"
+                      aria-label="Skuif agtertoe"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        skuifLaag(i, Math.max(0, i - 1));
+                      }}
+                      disabled={i === 0}
+                      className="px-1 font-bold disabled:opacity-25"
+                    >
+                      ↓
+                    </button>
+                    <button
+                      type="button"
+                      title="Verwyder"
+                      aria-label="Verwyder"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        verwyderLaag(i);
+                      }}
+                      className="px-1 font-bold hover:text-red"
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+            </ul>
+          </section>
+        ) : null}
       </div>
 
       <aside className="space-y-6">

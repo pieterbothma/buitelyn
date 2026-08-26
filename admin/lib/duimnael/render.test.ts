@@ -44,6 +44,26 @@ describe("renderDuimnael", () => {
     expect(png.readUInt32BE(20)).toBe(RAAM.h / 2);
   });
 
+  it("die volgorde van die lae bepaal wat bo-op lê", async () => {
+    /* Die lys in die redigeerder herrangskik net hierdie skikking, so as die
+       volgorde nie die uitset verander nie, doen die hele lae-paneel niks. */
+    const blok = (kleur: "wit" | "ink", x: number) => ({
+      soort: "teks" as const,
+      teks: "XXXX",
+      kleur,
+      omlyn: "geen" as const,
+      omlynDikte: 0.06,
+      belyn: "links" as const,
+      breedte: 0.5,
+      plek: { x, y: 0.4, grootte: 0.12 },
+    });
+    // Twee blokke wat mekaar oorvleuel: watter een bo lê, verander die pixels.
+    const a = normaliseerDuimnael({ agtergrond: null, lae: [blok("wit", 0.2), blok("ink", 0.25)] });
+    const b = normaliseerDuimnael({ agtergrond: null, lae: [blok("ink", 0.25), blok("wit", 0.2)] });
+    const h = (buf: Buffer) => createHash("sha256").update(buf).digest("hex");
+    expect(h(await renderDuimnael(a))).not.toBe(h(await renderDuimnael(b)));
+  });
+
   it("is deterministies — dieselfde spec gee dieselfde grepe", async () => {
     const a = await renderDuimnael(vol);
     const b = await renderDuimnael(vol);
