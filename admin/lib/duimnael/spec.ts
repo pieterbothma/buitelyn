@@ -56,6 +56,10 @@ export type Laag =
       kleur: TeksKleur;
       /** Omlyning agter die letters. "geen" is geen omlyning nie. */
       omlyn: TeksKleur | "geen";
+      /** Hoe dik die omlyning is, as breukdeel van die FONTGROOTTE — nie in
+       *  pixels nie. So bly 'n rand wat op 'n groot opskrif reg lyk ook reg
+       *  wanneer die teks kleiner gemaak word. */
+      omlynDikte: number;
       belyn: "links" | "middel" | "regs";
       /** Die blok se breedte as breukdeel van die raam. Dit bepaal waar die
        *  woorde omvou — sonder dit loop 'n opskrif altyd tot by die rand en jy
@@ -94,11 +98,21 @@ export function teksSkaduwee(k: TeksKleur): string {
  *  Geverifieer teen satori op 2026-08-26: -webkit-text-stroke werk, en gee 'n
  *  skerper, egaliger rand as die ou truuk van agt textShadows. Blaaiers
  *  ondersteun dit natuurlik, so die voorskou en satori stem ooreen. */
-export function teksOmlyn(omlyn: TeksKleur | "geen", fontSize: number): string {
+export const OMLYN_MIN = 0.01;
+export const OMLYN_MAKS = 0.16;
+export const OMLYN_VERSTEK = 0.06;
+
+export function teksOmlyn(
+  omlyn: TeksKleur | "geen",
+  fontSize: number,
+  dikte: number = OMLYN_VERSTEK
+): string {
   if (omlyn === "geen") return "";
-  // Die rand skaal saam met die letters, anders is dit dik op klein teks.
-  const dikte = Math.max(2, Math.round(fontSize * 0.06));
-  return `${dikte}px ${TEKS_HEX[omlyn]}`;
+  /* Die dikte is 'n breukdeel van die fontgrootte, nie 'n pixel-waarde nie, so
+     die rand bly in verhouding wanneer die teks groter of kleiner word. Ten
+     minste 1px, anders verdwyn 'n dun rand heeltemal op klein teks. */
+  const px = Math.max(1, Math.round(fontSize * dikte));
+  return `${px}px ${TEKS_HEX[omlyn]}`;
 }
 
 export type Duimnael = {
@@ -288,6 +302,7 @@ function laag(rou: unknown): Laag | null {
         teks,
         kleur: l.kleur === "ink" || l.kleur === "rooi" ? l.kleur : "wit",
         omlyn,
+        omlynDikte: Math.min(OMLYN_MAKS, Math.max(OMLYN_MIN, getal(l.omlynDikte, OMLYN_VERSTEK))),
         belyn: l.belyn === "middel" || l.belyn === "regs" ? l.belyn : "links",
         /* Nooit 0 nie: 'n blok van breedte 0 kan geen woord bevat nie en is
            onsleepbaar. */

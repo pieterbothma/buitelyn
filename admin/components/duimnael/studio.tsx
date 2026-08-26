@@ -7,6 +7,9 @@ import {
   GLOED_VERSTEK,
   RAAM,
   STYLE,
+  OMLYN_MAKS,
+  OMLYN_MIN,
+  OMLYN_VERSTEK,
   TEKS_KLEURE,
   bouPrompt,
   type Kant,
@@ -264,6 +267,7 @@ export function DuimnaelStudio({
           teks: "NUWE TEKS",
           kleur: "wit",
           omlyn: "geen",
+          omlynDikte: OMLYN_VERSTEK,
           belyn: "links",
           breedte: 0.45,
           plek: { x: 0.5, y: 0.12, grootte: 0.09 },
@@ -386,8 +390,14 @@ export function DuimnaelStudio({
                         color: teksHex(laag.kleur),
                         textAlign: laag.belyn === "middel" ? "center" : laag.belyn === "regs" ? "right" : "left",
                         textShadow: teksSkaduwee(laag.kleur),
-                        ...(teksOmlyn(laag.omlyn, k.fontSize! * skaal)
-                          ? { WebkitTextStroke: teksOmlyn(laag.omlyn, k.fontSize! * skaal) }
+                        ...(teksOmlyn(laag.omlyn, k.fontSize! * skaal, laag.omlynDikte)
+                          ? {
+                              WebkitTextStroke: teksOmlyn(
+                                laag.omlyn,
+                                k.fontSize! * skaal,
+                                laag.omlynDikte
+                              ),
+                            }
                           : {}),
                         userSelect: "none",
                       }}
@@ -708,6 +718,29 @@ export function DuimnaelStudio({
                     />
                   ))}
                 </div>
+
+                {gekose.omlyn !== "geen" ? (
+                  <>
+                    <label className="mt-3 block text-xs font-bold uppercase">
+                      Omlyn-dikte
+                    </label>
+                    <input
+                      type="range"
+                      min={OMLYN_MIN}
+                      max={OMLYN_MAKS}
+                      step={0.005}
+                      value={gekose.omlynDikte}
+                      onChange={(e) =>
+                        stelLaag(gekies!, (l) =>
+                          l.soort === "teks"
+                            ? { ...l, omlynDikte: Number(e.target.value) }
+                            : l
+                        )
+                      }
+                      className="w-full"
+                    />
+                  </>
+                ) : null}
 
                 <label className="mt-3 block text-xs font-bold uppercase">Blok-breedte</label>
                 <input

@@ -66,7 +66,9 @@ function teken(laag: Laag, sleutel: number, logo: Record<"ink" | "wit", string>)
           color: teksHex(laag.kleur),
           textAlign: laag.belyn === "middel" ? "center" : laag.belyn === "regs" ? "right" : "left",
           textShadow: teksSkaduwee(laag.kleur),
-          ...(teksOmlyn(laag.omlyn, k.fontSize!) ? { WebkitTextStroke: teksOmlyn(laag.omlyn, k.fontSize!) } : {}),
+          ...(teksOmlyn(laag.omlyn, k.fontSize!, laag.omlynDikte)
+            ? { WebkitTextStroke: teksOmlyn(laag.omlyn, k.fontSize!, laag.omlynDikte) }
+            : {}),
         }}
       >
         {laag.teks}
