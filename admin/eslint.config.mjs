@@ -23,7 +23,7 @@ const eslintConfig = defineConfig([
   /* Die kaart-style render deur satori na 'n PNG — daar is geen blaaier, geen
      LCP en geen next/image nie. Die <img>-waarskuwing is hier 'n vals positief. */
   {
-    files: ["lib/kaart/**/*.tsx", "lib/*-render.tsx"],
+    files: ["lib/kaart/**/*.tsx", "lib/duimnael/**/*.tsx", "lib/*-render.tsx"],
     rules: { "@next/next/no-img-element": "off" },
   },
 
@@ -35,9 +35,15 @@ const eslintConfig = defineConfig([
         {
           patterns: [
             {
-              group: ["@/lib/kaart/render", "@/lib/kaart/raam", "@/lib/kaart/styles/*", "@/lib/kaart-render"],
+              group: [
+                "@/lib/kaart/render",
+                "@/lib/kaart/raam",
+                "@/lib/kaart/styles/*",
+                "@/lib/kaart-render",
+                "@/lib/duimnael/render",
+              ],
               message:
-                "Bediener-alleen: dit sleep satori/resvg/yoga.wasm die blaaierbundel in. Gebruik @/lib/kaart/spec of @/lib/kaart/register.",
+                "Bediener-alleen: dit sleep satori/resvg/yoga.wasm die blaaierbundel in. Gebruik @/lib/duimnael/spec, laag of gloed.",
             },
           ],
         },
