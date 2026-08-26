@@ -7,7 +7,7 @@ import { VERSTEK_PROMPT } from "@/lib/duimnael/spec";
 
 export const dynamic = "force-dynamic";
 
-export default async function Duimnael({ params }: { params: Promise<{ slug: string }> }) {
+export default async function Thumbnails({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   if (slug !== "buitelyn") redirect(`/w/${slug}`);
   const sb = await supabaseServer();
@@ -20,7 +20,7 @@ export default async function Duimnael({ params }: { params: Promise<{ slug: str
   return (
     <Shell workspaces={(workspaces ?? []) as Workspace[]} active={active as Workspace}>
       <h1 className="flex items-center gap-2.5 text-3xl font-extrabold tracking-tight">
-        Duimnaels
+        Thumbnails
         <span aria-hidden className="size-2.5 rounded-full bg-red" />
       </h1>
       <p className="mt-2 max-w-lg text-sm text-ink/60">

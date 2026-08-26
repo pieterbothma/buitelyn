@@ -49,8 +49,8 @@ const GEREEDSKAP = [
     wat: "Publikasie-gereed grafieke: vergelyk aandele (%), prys oor tyd, of staaf 'n periode se wenners — in Buitelyn se raam.",
   },
   {
-    pad: "duimnael",
-    naam: "Duimnaels",
+    pad: "thumbnails",
+    naam: "Thumbnails",
     wat: "Bou 'n YouTube-duimnael: kies AP se reaksie, laat die KI 'n agtergrond uit vandag se onderwerpe maak, en sleep die opskrif waar jy dit wil hê.",
   },
 ];
