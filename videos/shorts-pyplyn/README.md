@@ -102,6 +102,3 @@ in elk geval. CRF 23 gee 19MB wat ná hulle herkodering presies dieselfde lyk.
 
 - Die reaksie-uitknipsels vir die duimnael-gereedskap is ~1,8MB elk en satori
   haal hulle by ELKE render weer af. Saampers sal die voorskou vinniger maak.
-- `REGSTELLINGS` in `transkribeer.mjs` skryf steeds "E Media" op twee reëls,
-  terwyl die borg volgens die e-posadresse Seepunt Media is. Piet moet besleg
-  of "E Media" 'n aparte maatskappy is en of daardie twee reëls verkeerd is.

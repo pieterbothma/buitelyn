@@ -218,15 +218,12 @@ if (geskuif) console.error(`  ${geskuif} onderskrifte 'n raam vorentoe geskuif o
    heeltemal verkeerd teruggekom. Hier eerder as met die hand, sodat dit elke
    herbou oorleef. */
 const REGSTELLINGS = [
-  /* Seepunt Media. Gemini hoor die naam elke lopie anders: op 26 Augustus het
-     dit een keer "Seepunt Media" reg gekry en een keer "c.media" gegee. Die
-     e-posadresse hieronder is @seepunt.com, wat die naam bevestig.
+  /* ALBEI name is reg, en dit is nie 'n teenstrydigheid nie: Seepunt is die
+     houermaatskappy, E Media die bedryfsmaatskappy. Moenie die een na die ander
+     toe regmaak nie.
 
-     LET WEL: die twee reëls daaronder skryf "E Media" — dit kom uit die vorige
-     episode se skrip. As die borg eintlik altyd Seepunt Media was, is daardie
-     twee reëls verkeerd en moet hulle ook na "Seepunt Media" wys. Ek het hulle
-     NIE self verander nie, want ek weet nie of "E Media" 'n aparte maatskappy
-     is nie — Piet moet dit besleg. */
+     Gemini hoor "Seepunt" elke lopie anders — op 26 Augustus een keer reg en
+     een keer as "c.media". */
   [/\bc\.?\s?media\b/gi, "Seepunt Media"],
   [/\bsee\s?punt\s+media\b/gi, "Seepunt Media"],
   [/\bIdia\b/gi, "E Media"],
