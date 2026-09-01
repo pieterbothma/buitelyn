@@ -17,6 +17,11 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "substackcdn.com" },
       { protocol: "https", hostname: "cdn.substack.com" },
       { protocol: "https", hostname: "*.s3.amazonaws.com" },
+      {
+        protocol: "https",
+        hostname: "mstrumkcyfikbddfmjti.supabase.co",
+        pathname: "/storage/v1/object/public/winkel-fotos/**",
+      },
     ],
   },
 };

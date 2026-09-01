@@ -57,7 +57,7 @@ export function MandjieLys() {
       <div>
         <p className="text-sm text-ink/70">Jou mandjie is leeg.</p>
         <Link href="/winkel" className="mt-4 inline-block text-sm font-semibold underline underline-offset-4">
-          Gaan wins toe
+          Gaan winkel toe
         </Link>
       </div>
     );

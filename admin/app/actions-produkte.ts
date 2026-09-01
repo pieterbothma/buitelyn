@@ -38,11 +38,17 @@ function valideerId(id: string, veld: string): void {
    komma-desimale druk. Gooi 'n Afrikaanse fout vir NaN/≤0 pleks daarvan om
    'n ongeldige produk stilweg te skep. */
 function prysNaSent(f: FormData): number {
-  const rou = String(f.get("prysRand") ?? "")
+  const gestroop = String(f.get("prysRand") ?? "")
     .trim()
     .replace(/^R/i, "")
-    .replace(/\s+/g, "")
-    .replace(",", ".");
+    .replace(/\s+/g, "");
+  /* Meer as een komma+punt saam beteken 'n US-formaat ("1,299.00") of 'n
+     tikfout ("1,2,3") — nie ons SA-komma-desimaal nie. Eén skeidingsteken
+     (komma OF punt) bly die desimaal, soos voorheen; twee of meer gooi 'n
+     Afrikaanse fout i.p.v. stilweg verkeerde sent te bereken. */
+  const skeidingstekens = (gestroop.match(/[,.]/g) ?? []).length;
+  if (skeidingstekens > 1) throw new Error("Ongeldige prys.");
+  const rou = gestroop.replace(",", ".");
   const sent = Math.round(parseFloat(rou) * 100);
   if (Number.isNaN(sent) || sent <= 0) throw new Error("Ongeldige prys.");
   return sent;

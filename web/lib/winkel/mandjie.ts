@@ -2,11 +2,19 @@
 
 /* Mandjie-kern: suiwer helpers (geen DOM-toegang nie, so vitest se node-
    omgewing kan hulle sonder jsdom toets) plus die useMandjie-hoek wat die
-   lys in localStorage laat woon. Die hoek raak localStorage/window net in
-   lasy-init/effekte aan, en altyd in try/catch — 'n privaat-blaaiervenster
-   of SSR mag dit weier. */
+   lys in localStorage laat woon.
 
-import { useCallback, useEffect, useState } from "react";
+   Die hoek lees uit ÉÉN gedeelde module-vlak stoor (nie per-instansie state
+   nie) via useSyncExternalStore, sodat Koopkaart se voegBy en die
+   MandjieKenteken-oortjie in dieselfde blad-instansie altyd dieselfde lys
+   sien — en elke mutasie skryf SINKROON na localStorage in dieselfde oproep
+   (geen aparte write-through-effek wat 'n oomblik agterloop nie). Die
+   kruis-oortjie storage-luisteraar registreer net een keer, op die eerste
+   subscribe. Die hoek raak localStorage/window net in lasy-init/effekte
+   aan, en altyd in try/catch — 'n privaat-blaaiervenster of SSR mag dit
+   weier. */
+
+import { useCallback, useSyncExternalStore } from "react";
 
 export type MandjieItem = { variantId: string; aantal: number };
 
@@ -64,68 +72,100 @@ function skryfNaStoor(items: MandjieItem[]) {
   }
 }
 
-export function useMandjie() {
-  // Eerste render is ALTYD [] — op die bediener sowel as die kliënt se
-  // hidrasie-passie — sodat 'n gevulde mandjie nie 'n hidrasie-verskil
-  // veroorsaak nie (sien ProfielKenteken se `gelaai`-patroon). Die regte
-  // lys word eers ná montering ingelees.
-  const [items, setItems] = useState<MandjieItem[]>([]);
-  const [gelaai, setGelaai] = useState(false);
+/* --- Gedeelde module-vlak stoor ------------------------------------- */
 
-  useEffect(() => {
-    try {
-      setItems(laaiUitStoor());
-    } catch {
-      setItems([]);
-    } finally {
-      setGelaai(true);
-    }
-  }, []);
+// Stabiele leë-lys-konstante: die bediener-passie EN die eerste kliënt-
+// snapshot (voor die stoor geïnisialiseer is) gee altyd DIESELFDE
+// verwysing terug, sodat hidrasie nooit 'n verskil sien nie.
+const LEEG: MandjieItem[] = [];
 
-  useEffect(() => {
-    // Skryf niks totdat die inlaai-effek klaar is nie — anders loop hierdie
-    // effek EERSTE op montering (met die aanvanklike [] state) en oorskryf
-    // dit 'n reeds-gestoorde mandjie met [] nog voordat die regte lys
-    // ingelees is.
-    if (!gelaai) return;
-    try {
-      skryfNaStoor(items);
-    } catch {
-      // sien skryfNaStoor
-    }
-  }, [items, gelaai]);
+// null = die stoor het nog nie uit localStorage gelaai nie.
+let stoorItems: MandjieItem[] | null = null;
+let stoorGeinisialiseer = false;
+const luisteraars = new Set<() => void>();
 
-  useEffect(() => {
-    function opStoorVerandering(e: StorageEvent) {
-      if (e.key !== SLEUTEL) return;
-      try {
-        setItems(laaiUitStoor());
-      } catch {
-        setItems([]);
-      }
-    }
+function kennisGee() {
+  for (const luister of luisteraars) luister();
+}
+
+function inisialiseerStoorIndienNodig() {
+  if (stoorItems !== null) return;
+  try {
+    stoorItems = laaiUitStoor();
+  } catch {
+    stoorItems = [];
+  }
+}
+
+function opStoorVerandering(e: StorageEvent) {
+  if (e.key !== SLEUTEL) return;
+  try {
+    stoorItems = laaiUitStoor();
+  } catch {
+    stoorItems = [];
+  }
+  kennisGee();
+}
+
+function subscribe(luister: () => void): () => void {
+  luisteraars.add(luister);
+  if (!stoorGeinisialiseer) {
+    stoorGeinisialiseer = true;
+    inisialiseerStoorIndienNodig();
     try {
       window.addEventListener("storage", opStoorVerandering);
-      return () => window.removeEventListener("storage", opStoorVerandering);
     } catch {
-      return undefined;
+      // sien laaiUitStoor — 'n privaat-venster mag dit weier
     }
-  }, []);
+    // Stel elke reeds-ingeskrewe luisteraar (insluitend hierdie een) in
+    // kennis dat die stoor nou gelaai is — React se eie useSyncExternalStore-
+    // snapshot-kontrole vang dit ook op elke commit, maar hierdie roep dit
+    // dadelik aan sodat die eerste render ná montering nie op 'n toevallige
+    // volgende hersroei hoef te wag nie.
+    kennisGee();
+  }
+  return () => {
+    luisteraars.delete(luister);
+  };
+}
+
+function getSnapshot(): MandjieItem[] {
+  return stoorItems ?? LEEG;
+}
+
+function getServerSnapshot(): MandjieItem[] {
+  return LEEG;
+}
+
+function pasStoorAan(wysig: (huidig: MandjieItem[]) => MandjieItem[]) {
+  inisialiseerStoorIndienNodig();
+  const nuwe = wysig(stoorItems ?? []);
+  stoorItems = nuwe;
+  skryfNaStoor(nuwe);
+  kennisGee();
+}
+
+export function useMandjie() {
+  const items = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  // Dieselfde snapshot-verwysing dryf items EN gelaai — sodra die stoor
+  // gelaai het, is stoorItems (en dus items) nooit meer die LEEG-konstante
+  // nie, al is die werklike mandjie leeg.
+  const gelaai = items !== LEEG;
 
   const voegByFn = useCallback((variantId: string, aantal: number) => {
-    setItems((huidig) => voegBy(huidig, variantId, aantal));
+    pasStoorAan((huidig) => voegBy(huidig, variantId, aantal));
   }, []);
 
   const verwyderFn = useCallback((variantId: string) => {
-    setItems((huidig) => verwyder(huidig, variantId));
+    pasStoorAan((huidig) => verwyder(huidig, variantId));
   }, []);
 
   const stelAantalFn = useCallback((variantId: string, aantal: number) => {
-    setItems((huidig) => stelAantal(huidig, variantId, aantal));
+    pasStoorAan((huidig) => stelAantal(huidig, variantId, aantal));
   }, []);
 
   const maakLeeg = useCallback(() => {
-    setItems([]);
+    pasStoorAan(() => []);
   }, []);
 
   return { items, gelaai, voegBy: voegByFn, verwyder: verwyderFn, stelAantal: stelAantalFn, maakLeeg };
