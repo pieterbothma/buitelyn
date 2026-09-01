@@ -1,4 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
+import { TopBar } from "@/components/top-bar";
+import { Footer } from "@/components/footer";
 import { Koopvorm } from "./koopvorm";
 
 export const metadata = { title: "Winkel — Buitelyn" };
@@ -15,10 +17,27 @@ export default async function WinkelBlad() {
     .eq("aktief", true)
     .limit(1)
     .single<Produk>();
-  if (!produk) return <main className="mx-auto max-w-2xl px-6 py-24"><p>Die winkel is binnekort oop.</p></main>;
+  if (!produk)
+    return (
+      <>
+        <TopBar />
+        <main className="flex-1">
+          <section className="mx-auto max-w-2xl px-6 py-24">
+            <p>Die winkel is binnekort oop.</p>
+          </section>
+        </main>
+        <Footer />
+      </>
+    );
   return (
-    <main className="mx-auto max-w-2xl px-6 py-16">
-      <Koopvorm produk={produk} />
-    </main>
+    <>
+      <TopBar />
+      <main className="flex-1">
+        <section className="mx-auto max-w-2xl px-6 py-16">
+          <Koopvorm produk={produk} />
+        </section>
+      </main>
+      <Footer />
+    </>
   );
 }
