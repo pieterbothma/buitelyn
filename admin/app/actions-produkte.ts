@@ -19,10 +19,27 @@ async function hek(): Promise<SupabaseClient> {
   return winkelKlient();
 }
 
-/* "R199,00" (of "199") -> 19900 sent. Gooi 'n Afrikaanse fout vir NaN/≤0
-   pleks daarvan om 'n ongeldige produk stilweg te skep. */
+/* Selfde patroon as web/lib/winkel/valideer.ts se UUID. Elke aksie wat 'n
+   id/produkId/variantId aanneem, valideer dit hiermee EERSTE — voor enige
+   DB- of berging-oproep — sodat 'n misvormde id nooit 'n weesobjek in
+   winkel-fotos of 'n .eq()-vraag met 'n onbetroubare string veroorsaak nie. */
+const UUID_PATROON = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+function valideerId(id: string, veld: string): void {
+  if (!UUID_PATROON.test(id)) throw new Error(`Ongeldige ${veld}.`);
+}
+
+/* "199,50" (SA komma-desimaal) of "R249" -> sent. Stroop spasies en 'n
+   voorvoegende "R" en verander die komma na 'n punt VOOR parseFloat —
+   "199,50" -> 19950, "R249" -> 24900. 'n Kaal parseFloat sou "199,50" by
+   die komma afkap en stilweg 19900 gee, wat sent laat verdwyn in 'n app
+   wie se eie rand() komma-desimale druk. Gooi 'n Afrikaanse fout vir
+   NaN/≤0 pleks daarvan om 'n ongeldige produk stilweg te skep. */
 function prysNaSent(f: FormData): number {
-  const rou = String(f.get("prysRand") ?? "").trim();
+  const rou = String(f.get("prysRand") ?? "")
+    .trim()
+    .replace(/^R/i, "")
+    .trim()
+    .replace(",", ".");
   const sent = Math.round(parseFloat(rou) * 100);
   if (Number.isNaN(sent) || sent <= 0) throw new Error("Ongeldige prys.");
   return sent;
@@ -44,18 +61,23 @@ export async function skepProduk(f: FormData): Promise<{ id: string }> {
   const beskrywing = String(f.get("beskrywing") ?? "").trim();
   const prys_sent = prysNaSent(f);
   const slug = slugVanNaam(naam);
+  if (!slug) throw new Error("Kon nie 'n slug uit die naam aflei nie — gee 'n naam met letters of syfers.");
   const { data, error } = await wk
     .from("winkel_produkte")
     .insert({ naam, beskrywing, prys_sent, slug, aktief: false })
     .select("id")
     .single();
-  if (error) throw new Error(`Kon nie produk skep nie: ${error.message}`);
+  if (error) {
+    if (error.code === "23505") throw new Error("Daardie slug bestaan reeds — kies 'n ander naam of slug.");
+    throw new Error(`Kon nie produk skep nie: ${error.message}`);
+  }
   revalidatePath("/produkte");
   return { id: data.id as string };
 }
 
 export async function wysigProduk(id: string, f: FormData): Promise<void> {
   const wk = await hek();
+  valideerId(id, "produk-id");
   const naam = String(f.get("naam") ?? "").trim();
   if (!naam) throw new Error("Naam is verpligtend.");
   const beskrywing = String(f.get("beskrywing") ?? "").trim();
@@ -63,12 +85,16 @@ export async function wysigProduk(id: string, f: FormData): Promise<void> {
   const slug = String(f.get("slug") ?? "").trim();
   if (!slug) throw new Error("Slug is verpligtend.");
   const { error } = await wk.from("winkel_produkte").update({ naam, beskrywing, prys_sent, slug }).eq("id", id);
-  if (error) throw new Error(`Kon nie produk wysig nie: ${error.message}`);
+  if (error) {
+    if (error.code === "23505") throw new Error("Daardie slug bestaan reeds — kies 'n ander naam of slug.");
+    throw new Error(`Kon nie produk wysig nie: ${error.message}`);
+  }
   revalidatePath("/produkte");
 }
 
 export async function stelProdukAktief(id: string, aktief: boolean): Promise<void> {
   const wk = await hek();
+  valideerId(id, "produk-id");
   const { error } = await wk.from("winkel_produkte").update({ aktief }).eq("id", id);
   if (error) throw new Error(`Kon nie produk se status wysig nie: ${error.message}`);
   revalidatePath("/produkte");
@@ -77,6 +103,7 @@ export async function stelProdukAktief(id: string, aktief: boolean): Promise<voi
 export async function stelVoorraad(variantId: string, voorraad: number): Promise<void> {
   if (!Number.isInteger(voorraad) || voorraad < 0) throw new Error("Voorraad moet 'n heelgetal ≥ 0 wees.");
   const wk = await hek();
+  valideerId(variantId, "variant-id");
   const { error } = await wk.from("winkel_variante").update({ voorraad }).eq("id", variantId);
   if (error) throw new Error(`Kon nie voorraad opdateer nie: ${error.message}`);
   revalidatePath("/produkte");
@@ -84,6 +111,7 @@ export async function stelVoorraad(variantId: string, voorraad: number): Promise
 
 export async function stelVariantAktief(variantId: string, aktief: boolean): Promise<void> {
   const wk = await hek();
+  valideerId(variantId, "variant-id");
   const { error } = await wk.from("winkel_variante").update({ aktief }).eq("id", variantId);
   if (error) throw new Error(`Kon nie variant se status wysig nie: ${error.message}`);
   revalidatePath("/produkte");
@@ -96,6 +124,7 @@ export async function stelVariantAktief(variantId: string, aktief: boolean): Pro
    agtervanger — ons vang 'n 23505 en gee dieselfde vriendelike boodskap. */
 export async function voegKleurBy(produkId: string, kleur: string): Promise<void> {
   const wk = await hek();
+  valideerId(produkId, "produk-id");
   const kleurGeskoon = kleur.trim();
   if (!kleurGeskoon) throw new Error("Kleur is verpligtend.");
   const { data: bestaande, error: leesFout } = await wk
@@ -122,6 +151,7 @@ export async function voegKleurBy(produkId: string, kleur: string): Promise<void
    kombinasies oor wat reeds bestaan i.p.v. op die DB-beperking te bots. */
 export async function voegGrootteBy(produkId: string, grootte: string): Promise<void> {
   const wk = await hek();
+  valideerId(produkId, "produk-id");
   const grootteGeskoon = grootte.trim();
   if (!grootteGeskoon) throw new Error("Grootte is verpligtend.");
   const { data: bestaande, error: leesFout } = await wk
@@ -151,6 +181,7 @@ const MAKS_FOTO_GROOTTE = 4 * 1024 * 1024;
 
 export async function laaiFotoOp(produkId: string, f: FormData): Promise<void> {
   const wk = await hek();
+  valideerId(produkId, "produk-id");
   const foto = f.get("foto");
   if (!(foto instanceof File) || foto.size === 0) throw new Error("Geen foto gekies nie.");
   if (foto.size > MAKS_FOTO_GROOTTE) throw new Error("Foto is te groot (maks 4MB).");
@@ -186,6 +217,7 @@ export async function laaiFotoOp(produkId: string, f: FormData): Promise<void> {
    staan (goedkoop, en bestellings/eposse kan steeds daarna verwys). */
 export async function verwyderFoto(produkId: string, url: string): Promise<void> {
   const wk = await hek();
+  valideerId(produkId, "produk-id");
   const { data: produk, error: leesFout } = await wk
     .from("winkel_produkte")
     .select("fotos")
@@ -200,6 +232,7 @@ export async function verwyderFoto(produkId: string, url: string): Promise<void>
 
 export async function skuifFoto(produkId: string, url: string, rigting: "op" | "af"): Promise<void> {
   const wk = await hek();
+  valideerId(produkId, "produk-id");
   const { data: produk, error: leesFout } = await wk
     .from("winkel_produkte")
     .select("fotos")
