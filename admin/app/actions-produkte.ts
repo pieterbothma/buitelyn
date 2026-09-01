@@ -28,17 +28,20 @@ function valideerId(id: string, veld: string): void {
   if (!UUID_PATROON.test(id)) throw new Error(`Ongeldige ${veld}.`);
 }
 
-/* "199,50" (SA komma-desimaal) of "R249" -> sent. Stroop spasies en 'n
-   voorvoegende "R" en verander die komma na 'n punt VOOR parseFloat —
-   "199,50" -> 19950, "R249" -> 24900. 'n Kaal parseFloat sou "199,50" by
-   die komma afkap en stilweg 19900 gee, wat sent laat verdwyn in 'n app
-   wie se eie rand() komma-desimale druk. Gooi 'n Afrikaanse fout vir
-   NaN/≤0 pleks daarvan om 'n ongeldige produk stilweg te skep. */
+/* "199,50" (SA komma-desimaal), "R249" of "R 1 234,00" (SA duisende-spasie)
+   -> sent. Stroop 'n voorvoegende "R", stroop ALLE spasies (nie net aan die
+   punte nie — "1 234" is duisende-groepering, nie 'n skeiding tussen twee
+   getalle nie), en verander DAN die komma na 'n punt, VOOR parseFloat —
+   "199,50" -> 19950, "R249" -> 24900, "R 1 234,00" -> 123400. 'n Kaal
+   parseFloat sou "199,50" by die komma afkap (19900) en "1 234,00" by die
+   spasie afkap (100) — stilweg verkeerde sent in 'n app wie se eie rand()
+   komma-desimale druk. Gooi 'n Afrikaanse fout vir NaN/≤0 pleks daarvan om
+   'n ongeldige produk stilweg te skep. */
 function prysNaSent(f: FormData): number {
   const rou = String(f.get("prysRand") ?? "")
     .trim()
     .replace(/^R/i, "")
-    .trim()
+    .replace(/\s+/g, "")
     .replace(",", ".");
   const sent = Math.round(parseFloat(rou) * 100);
   if (Number.isNaN(sent) || sent <= 0) throw new Error("Ongeldige prys.");
