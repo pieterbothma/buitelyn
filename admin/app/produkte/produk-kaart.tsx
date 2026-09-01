@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   skepProduk,
@@ -89,7 +89,15 @@ function VariantRy({ v, besig, begin, setFout }: {
   const router = useRouter();
   const [eieFout, setEieFout] = useState<string | null>(null);
 
-  function stoorVoorraad(waarde: string) {
+  function stoorVoorraad(inputEl: HTMLInputElement) {
+    const waarde = inputEl.value.trim();
+    /* 'n leë veld beteken "geen wysiging nie", nie "stel op 0" nie —
+       Number("") === 0 sou dit stilweg op 0 gestel het. Herstel die veld
+       na die huidige waarde en gaan nie na die bediener toe nie. */
+    if (waarde === "") {
+      inputEl.value = String(v.voorraad);
+      return;
+    }
     const n = Number(waarde);
     if (!Number.isInteger(n) || n < 0) {
       setEieFout("Voorraad moet 'n heelgetal ≥ 0 wees.");
@@ -127,7 +135,7 @@ function VariantRy({ v, besig, begin, setFout }: {
         key={`${v.id}-${v.voorraad}`}
         defaultValue={v.voorraad}
         disabled={besig}
-        onBlur={(e) => stoorVoorraad(e.target.value)}
+        onBlur={(e) => stoorVoorraad(e.currentTarget)}
         className="w-20 border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red disabled:opacity-50"
       />
       <button
@@ -159,6 +167,8 @@ export function ProdukKaart({ produk, variante }: { produk: Produk; variante: Va
   const [nuweKleur, setNuweKleur] = useState("");
   const [nuweGrootte, setNuweGrootte] = useState("");
   const [foutPerVariant, setFoutPerVariant] = useState<Record<string, string | null>>({});
+  const [verwyderBevestig, setVerwyderBevestig] = useState<string | null>(null);
+  const verwyderTydhouer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const setVariantFout = (id: string, fout: string | null) =>
     setFoutPerVariant((f) => ({ ...f, [id]: fout }));
@@ -168,7 +178,22 @@ export function ProdukKaart({ produk, variante }: { produk: Produk; variante: Va
   const groottesInGebruik = Array.from(
     new Set(variante.map((v) => v.grootte).filter((g): g is string => g !== null))
   ).sort((a, b) => GROOTTES.indexOf(a as (typeof GROOTTES)[number]) - GROOTTES.indexOf(b as (typeof GROOTTES)[number]));
-  const oorGroottes = (GROOTTES as readonly string[]).filter((g) => !groottesInGebruik.includes(g));
+  /* "Voeg grootte by" moet presies die groottes wys waarvoor voegGrootteBy
+     iets sal doen — dit vul 'n grootte in vir ELKE kleur wat dit nog nie het
+     nie. 'n Grootte wat reeds op ENIGE kleur is, is dus nog steeds aanbiedbaar
+     solank minstens EEN ander kleur dit ontbreek (die opvul-geval: kleur A
+     het net M, kleur B het S/M/L/XL/XXL — S/L/XL/XXL moet steeds kies-baar
+     wees om kleur A op te vul). Sluit slegs groottes uit wat AL die kleure
+     reeds het. */
+  const groottesPerKleur = new Map<string, Set<string>>(
+    kleure.map((kleur) => [
+      kleur,
+      new Set(variante.filter((v) => v.kleur === kleur && v.grootte !== null).map((v) => v.grootte as string)),
+    ])
+  );
+  const oorGroottes = (GROOTTES as readonly string[]).filter((g) =>
+    kleure.some((kleur) => !groottesPerKleur.get(kleur)!.has(g))
+  );
 
   function wisselAktief() {
     setFoutAktief(null);
@@ -224,6 +249,25 @@ export function ProdukKaart({ produk, variante }: { produk: Produk; variante: Va
         setFoutFoto(boodskap(e, "Kon nie foto verwyder nie."));
       }
     });
+  }
+
+  /* Twee-stap bevestiging sonder window.confirm() (blokkeer die sessie).
+     Eerste klik wissel die knop na "Regtig verwyder?"; 'n tweede klik
+     daarop binne 3s verwyder werklik. 'n Klik elders (via onBlur) of die
+     tydhouer stel dit terug. */
+  function klikVerwyder(url: string) {
+    if (verwyderTydhouer.current) clearTimeout(verwyderTydhouer.current);
+    if (verwyderBevestig === url) {
+      setVerwyderBevestig(null);
+      verwyder(url);
+      return;
+    }
+    setVerwyderBevestig(url);
+    verwyderTydhouer.current = setTimeout(() => setVerwyderBevestig(null), 3000);
+  }
+
+  function stelVerwyderTerug(url: string) {
+    setVerwyderBevestig((huidige) => (huidige === url ? null : huidige));
   }
 
   function skuif(url: string, rigting: "op" | "af") {
@@ -370,10 +414,15 @@ export function ProdukKaart({ produk, variante }: { produk: Produk; variante: Va
                 <button
                   type="button"
                   disabled={besig}
-                  onClick={() => verwyder(url)}
-                  className="text-red/80 hover:text-red disabled:opacity-30"
+                  onClick={() => klikVerwyder(url)}
+                  onBlur={() => stelVerwyderTerug(url)}
+                  className={
+                    verwyderBevestig === url
+                      ? "font-extrabold text-red"
+                      : "text-red/80 hover:text-red disabled:opacity-30"
+                  }
                 >
-                  verwyder
+                  {verwyderBevestig === url ? "Regtig verwyder?" : "verwyder"}
                 </button>
               </div>
             </div>
