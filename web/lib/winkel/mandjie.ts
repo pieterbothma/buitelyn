@@ -65,21 +65,35 @@ function skryfNaStoor(items: MandjieItem[]) {
 }
 
 export function useMandjie() {
-  const [items, setItems] = useState<MandjieItem[]>(() => {
-    try {
-      return laaiUitStoor();
-    } catch {
-      return [];
-    }
-  });
+  // Eerste render is ALTYD [] — op die bediener sowel as die kliënt se
+  // hidrasie-passie — sodat 'n gevulde mandjie nie 'n hidrasie-verskil
+  // veroorsaak nie (sien ProfielKenteken se `gelaai`-patroon). Die regte
+  // lys word eers ná montering ingelees.
+  const [items, setItems] = useState<MandjieItem[]>([]);
+  const [gelaai, setGelaai] = useState(false);
 
   useEffect(() => {
+    try {
+      setItems(laaiUitStoor());
+    } catch {
+      setItems([]);
+    } finally {
+      setGelaai(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Skryf niks totdat die inlaai-effek klaar is nie — anders loop hierdie
+    // effek EERSTE op montering (met die aanvanklike [] state) en oorskryf
+    // dit 'n reeds-gestoorde mandjie met [] nog voordat die regte lys
+    // ingelees is.
+    if (!gelaai) return;
     try {
       skryfNaStoor(items);
     } catch {
       // sien skryfNaStoor
     }
-  }, [items]);
+  }, [items, gelaai]);
 
   useEffect(() => {
     function opStoorVerandering(e: StorageEvent) {
