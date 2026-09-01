@@ -3,9 +3,10 @@
    Feite kom uit wetlik.ts — nooit hier oorgetik nie. */
 import { BELEID, BESIGHEID } from "../wetlik";
 
+export type BestelLyn = { variant_id: string; naam: string; kleur: string; grootte: string | null; prys_sent: number; aantal: number };
 export type BestellingRy = {
   verwysing: string;
-  item: { naam: string; kleur: string; prys_sent: number; aantal: number };
+  items: BestelLyn[];
   koper: { naam: string; van: string; epos: string; selfoon: string };
   adres: { straat: string; woonbuurt: string; stad: string; provinsie: string; poskode: string; nota: string };
   item_sent: number; versending_sent: number; totaal_sent: number;
@@ -17,12 +18,16 @@ const esc = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replac
 const adresBlok = (b: BestellingRy) =>
   [b.adres.straat, b.adres.woonbuurt, b.adres.stad, `${b.adres.provinsie} ${b.adres.poskode}`]
     .map(esc).join("<br/>");
+/* Een reël per mandjie-lyn — kleur+grootte in hakies, grootte net as dit bestaan. */
+const lynReels = (items: BestelLyn[]) => items.map((l) =>
+  `${l.aantal} x ${esc(l.naam)} (${esc(l.kleur)}${l.grootte ? `, ${esc(l.grootte)}` : ""}) — ${rand(l.prys_sent * l.aantal)}`
+).join("<br/>\n  ");
 
 export function koperEposHtml(b: BestellingRy): string {
   return `<div style="font-family:system-ui;max-width:560px;margin:auto;color:#1a1a1a">
   <h2>Dankie vir jou bestelling, ${esc(b.koper.naam)}.</h2>
   <p>Bestelnommer <strong>${esc(b.verwysing)}</strong></p>
-  <p>${b.item.aantal} x ${esc(b.item.naam)} (${esc(b.item.kleur)}) — ${rand(b.item_sent)}<br/>
+  <p>${lynReels(b.items)}<br/>
   Versending — ${rand(b.versending_sent)}<br/><strong>Totaal — ${rand(b.totaal_sent)}</strong></p>
   <p><strong>Aflewering</strong> (${BELEID.afleweringsDae}):<br/>${adresBlok(b)}</p>
   <p>Lyk die adres verkeerd? Antwoord dadelik op hierdie e-pos.</p>
@@ -36,7 +41,7 @@ export function koperEposHtml(b: BestellingRy): string {
 export function eienaarEposHtml(b: BestellingRy): string {
   return `<div style="font-family:system-ui;max-width:560px;margin:auto;color:#1a1a1a">
   <h2>Nuwe bestelling ${esc(b.verwysing)}</h2>
-  <p><strong>${b.item.aantal} x ${esc(b.item.naam)} — ${esc(b.item.kleur)}</strong> · ${rand(b.totaal_sent)} betaal</p>
+  <p><strong>${lynReels(b.items)}</strong><br/>${rand(b.totaal_sent)} betaal</p>
   <p>${esc(b.koper.naam)} ${esc(b.koper.van)}<br/>${esc(b.koper.epos)} · ${esc(b.koper.selfoon)}</p>
   <p>${adresBlok(b)}${b.adres.nota ? `<br/><em>Nota: ${esc(b.adres.nota)}</em>` : ""}</p></div>`;
 }
