@@ -16,6 +16,9 @@ describe("valideerBestelling", () => {
   it("weier 'n slegte selfoon", () => {
     expect(valideerBestelling({ ...goed, koper: { ...goed.koper, selfoon: "123" } }).ok).toBe(false);
   });
+  it("aanvaar selfoon met spasies net voor afkap", () => {
+    expect(valideerBestelling({ ...goed, koper: { ...goed.koper, selfoon: "+27 82 123 45 67" } }).ok).toBe(true);
+  });
   it("weier 'n onbekende provinsie en 'n slegte poskode", () => {
     expect(valideerBestelling({ ...goed, adres: { ...goed.adres, provinsie: "Narnia" } }).ok).toBe(false);
     expect(valideerBestelling({ ...goed, adres: { ...goed.adres, poskode: "80" } }).ok).toBe(false);

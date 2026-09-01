@@ -44,7 +44,7 @@ create policy "variante publiek leesbaar" on winkel_variante for select using (t
 -- dieselfde verwysing kry klaar_verwerk=true en verander niks — Paystack
 -- herprobeer webhooks, en 'n dubbele e-pos is 'n fout.
 create or replace function winkel_betaal(p_verwysing text)
-returns jsonb language plpgsql security definer as $$
+returns jsonb language plpgsql security definer set search_path = public as $$
 declare b winkel_bestellings;
 begin
   update winkel_bestellings set status='betaal', betaal_op=now()

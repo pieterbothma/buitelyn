@@ -23,9 +23,10 @@ export function valideerBestelling(liggaam: unknown):
   const l = (liggaam ?? {}) as Record<string, unknown>;
   const k = (l.koper ?? {}) as Record<string, unknown>;
   const a = (l.adres ?? {}) as Record<string, unknown>;
+  const selfoonRou = typeof k.selfoon === "string" ? k.selfoon : "";
   const data: BestellingInvoer = {
     variantId: s(l.variantId, 40), aantal: Number(l.aantal),
-    koper: { naam: s(k.naam, 80), van: s(k.van, 80), epos: s(k.epos, 254).toLowerCase(), selfoon: s(k.selfoon, 15).replace(/[\s-]/g, "") },
+    koper: { naam: s(k.naam, 80), van: s(k.van, 80), epos: s(k.epos, 254).toLowerCase(), selfoon: selfoonRou.replace(/[\s-]/g, "").trim().slice(0, 15) },
     adres: { straat: s(a.straat, 160), woonbuurt: s(a.woonbuurt, 80), stad: s(a.stad, 80),
              provinsie: s(a.provinsie, 30), poskode: s(a.poskode, 4), nota: s(a.nota, 300) },
   };
