@@ -9,12 +9,21 @@ export function winkelKlient(): SupabaseClient {
 
 export const rand = (sent: number) => `R${Math.floor(sent / 100)},${String(sent % 100).padStart(2, "0")}`;
 
+export type BestelLyn = {
+  variant_id: string;
+  naam: string;
+  kleur: string;
+  grootte: string | null;
+  prys_sent: number;
+  aantal: number;
+};
+
 export type Bestelling = {
   id: string;
   verwysing: string;
   status: "begin" | "betaal" | "gestuur";
   modus: "toets" | "regte";
-  item: { naam: string; kleur: string; prys_sent: number; aantal: number };
+  items: BestelLyn[];
   koper: { naam: string; van: string; epos: string; selfoon: string };
   adres: {
     straat: string;
@@ -28,4 +37,23 @@ export type Bestelling = {
   geskep_op: string;
 };
 
-export type Variant = { id: string; kleur: string; voorraad: number };
+export const GROOTTES = ["S", "M", "L", "XL", "XXL"] as const;
+
+export type Produk = {
+  id: string;
+  naam: string;
+  beskrywing: string;
+  prys_sent: number;
+  aktief: boolean;
+  slug: string;
+  fotos: string[];
+};
+
+export type Variant = {
+  id: string;
+  produk_id: string;
+  kleur: string;
+  grootte: string | null;
+  voorraad: number;
+  aktief: boolean;
+};
