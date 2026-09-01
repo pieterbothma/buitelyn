@@ -9,6 +9,7 @@ export type BestellingRy = {
   koper: { naam: string; van: string; epos: string; selfoon: string };
   adres: { straat: string; woonbuurt: string; stad: string; provinsie: string; poskode: string; nota: string };
   item_sent: number; versending_sent: number; totaal_sent: number;
+  modus?: string;
 };
 export const rand = (sent: number) =>
   `R${Math.floor(sent / 100)},${String(sent % 100).padStart(2, "0")}`;
@@ -40,20 +41,41 @@ export function eienaarEposHtml(b: BestellingRy): string {
   <p>${adresBlok(b)}${b.adres.nota ? `<br/><em>Nota: ${esc(b.adres.nota)}</em>` : ""}</p></div>`;
 }
 
-export async function stuurBestellingEposse(b: BestellingRy): Promise<void> {
+/* Onderwerp-bou apart uitgevoer sodat dit sonder netwerk-mocks toetsbaar is:
+   'n [TOETS]-bestelling (Paystack se toets-modus) mag NOOIT met 'n regte
+   bestelling verwar word in die eienaar se inkassie. */
+export function eienaarOnderwerp(b: BestellingRy): string {
+  return `${b.modus === "toets" ? "[TOETS] " : ""}Nuwe winkelbestelling ${b.verwysing}`;
+}
+
+/* Gedeelde stuur-stap vir stuurBestellingEposse en stuurEienaarWaarskuwing.
+   Faal NOOIT met 'n verworpe belofte nie — 'n e-pos-mislukking (ontbrekende
+   sleutel, Resend-fout, netwerkfout) mag nooit die webhook self laat faal
+   nie; die betaling is klaar en Paystack sou net weer probeer. */
+async function stuurEpos(aan: string[], onderwerp: string, html: string): Promise<void> {
   const sleutel = process.env.RESEND_API_KEY;
-  const eienaars = (process.env.BESTELLING_EPOSTE ?? "").split(",").map(s => s.trim()).filter(Boolean);
   if (!sleutel) { console.error("winkel: RESEND_API_KEY ontbreek — geen eposse gestuur"); return; }
-  const stuur = (aan: string[], onderwerp: string, html: string) =>
-    fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: { authorization: `Bearer ${sleutel}`, "content-type": "application/json" },
-      body: JSON.stringify({ from: "Buitelyn Winkel <bestellings@buitelyn.com>", to: aan, subject: onderwerp, html }),
-    }).then(async r => { if (!r.ok) console.error(`winkel: e-pos misluk (${r.status})`, await r.text()); });
-  /* E-pos-mislukking mag NOOIT die webhook laat faal nie — die betaling is
-     klaar; Paystack sou net weer probeer en die voorraad-logika verwar. */
+  await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { authorization: `Bearer ${sleutel}`, "content-type": "application/json" },
+    body: JSON.stringify({ from: "Buitelyn Winkel <bestellings@buitelyn.com>", to: aan, subject: onderwerp, html }),
+  }).then(async r => { if (!r.ok) console.error(`winkel: e-pos misluk (${r.status})`, await r.text()); })
+    .catch((e) => console.error("winkel: e-pos-versoek misluk", e));
+}
+
+export async function stuurBestellingEposse(b: BestellingRy): Promise<void> {
+  const eienaars = (process.env.BESTELLING_EPOSTE ?? "").split(",").map(s => s.trim()).filter(Boolean);
   await Promise.allSettled([
-    stuur([b.koper.epos], `Buitelyn — bestelling ${b.verwysing} bevestig`, koperEposHtml(b)),
-    ...(eienaars.length ? [stuur(eienaars, `Nuwe winkelbestelling ${b.verwysing}`, eienaarEposHtml(b))] : []),
+    stuurEpos([b.koper.epos], `Buitelyn — bestelling ${b.verwysing} bevestig`, koperEposHtml(b)),
+    ...(eienaars.length ? [stuurEpos(eienaars, eienaarOnderwerp(b), eienaarEposHtml(b))] : []),
   ]);
+}
+
+/* Vir gevalle waar die webhook NIE 'n bestelling kan koppel of vertrou nie
+   (onbekende verwysing, bedrag-wanverhouding) — die eienaar moet dit sien,
+   maar die koper kry geen epos nie want ons weet nie eers wie hy is nie. */
+export async function stuurEienaarWaarskuwing(onderwerp: string, html: string): Promise<void> {
+  const eienaars = (process.env.BESTELLING_EPOSTE ?? "").split(",").map(s => s.trim()).filter(Boolean);
+  if (!eienaars.length) return;
+  await stuurEpos(eienaars, onderwerp, html);
 }

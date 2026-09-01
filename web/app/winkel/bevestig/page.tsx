@@ -1,5 +1,5 @@
 import { verifieerTransaksie } from "@/lib/winkel/paystack";
-import { BELEID } from "@/lib/wetlik";
+import { BELEID, BESIGHEID } from "@/lib/wetlik";
 import { TopBar } from "@/components/top-bar";
 import { Footer } from "@/components/footer";
 import Link from "next/link";
@@ -25,7 +25,7 @@ export default async function BevestigBlad({ searchParams }: { searchParams: Pro
             aflewering neem {BELEID.afleweringsDae}.</p>
           </>) : (<>
             <h1 className="text-2xl font-semibold">Ons kon nie die betaling bevestig nie.</h1>
-            <p className="mt-4 text-sm opacity-70">As geld afgegaan het, kontak hallo@buitelyn.com met verwysing {verwysing || "—"}.</p>
+            <p className="mt-4 text-sm opacity-70">As geld afgegaan het, kontak {BESIGHEID.epos} met verwysing {verwysing || "—"}.</p>
           </>)}
           <Link className="mt-8 inline-block underline" href="/winkel">Terug winkel toe</Link>
         </section>

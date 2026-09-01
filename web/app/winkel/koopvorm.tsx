@@ -166,95 +166,147 @@ export function Koopvorm({ produk }: { produk: Produk }) {
           <div>
             <p className="text-xs font-semibold tracking-[0.16em]">JOU BESONDERHEDE</p>
             <div className="mt-2 grid gap-2 sm:grid-cols-2">
-              <input
-                value={naam}
-                onChange={(e) => setNaam(e.target.value)}
-                placeholder="Naam"
-                required
-                className="border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
-              />
-              <input
-                value={van}
-                onChange={(e) => setVan(e.target.value)}
-                placeholder="Van"
-                required
-                className="border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
-              />
-              <input
-                value={epos}
-                onChange={(e) => setEpos(e.target.value)}
-                type="email"
-                placeholder="E-pos"
-                required
-                className="border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
-              />
-              <input
-                value={selfoon}
-                onChange={(e) => setSelfoon(e.target.value)}
-                type="tel"
-                placeholder="Selfoon (bv. 082 123 4567)"
-                required
-                className="border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
-              />
+              <div>
+                <label htmlFor="naam" className="mb-1 block text-xs text-ink/50">Naam</label>
+                <input
+                  id="naam"
+                  name="naam"
+                  value={naam}
+                  onChange={(e) => setNaam(e.target.value)}
+                  autoComplete="given-name"
+                  required
+                  className="w-full border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
+                />
+              </div>
+              <div>
+                <label htmlFor="van" className="mb-1 block text-xs text-ink/50">Van</label>
+                <input
+                  id="van"
+                  name="van"
+                  value={van}
+                  onChange={(e) => setVan(e.target.value)}
+                  autoComplete="family-name"
+                  required
+                  className="w-full border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
+                />
+              </div>
+              <div>
+                <label htmlFor="epos" className="mb-1 block text-xs text-ink/50">E-pos</label>
+                <input
+                  id="epos"
+                  name="epos"
+                  value={epos}
+                  onChange={(e) => setEpos(e.target.value)}
+                  type="email"
+                  autoComplete="email"
+                  required
+                  className="w-full border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
+                />
+              </div>
+              <div>
+                <label htmlFor="selfoon" className="mb-1 block text-xs text-ink/50">Selfoon</label>
+                <input
+                  id="selfoon"
+                  name="selfoon"
+                  value={selfoon}
+                  onChange={(e) => setSelfoon(e.target.value)}
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  placeholder="082 123 4567"
+                  required
+                  className="w-full border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
+                />
+              </div>
             </div>
           </div>
 
           <div>
             <p className="text-xs font-semibold tracking-[0.16em]">AFLEWERINGSADRES</p>
             <div className="mt-2 grid gap-2">
-              <input
-                value={straat}
-                onChange={(e) => setStraat(e.target.value)}
-                placeholder="Straatadres"
-                required
-                className="border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
-              />
-              <div className="grid gap-2 sm:grid-cols-2">
+              <div>
+                <label htmlFor="straat" className="mb-1 block text-xs text-ink/50">Straatadres</label>
                 <input
-                  value={woonbuurt}
-                  onChange={(e) => setWoonbuurt(e.target.value)}
-                  placeholder="Woonbuurt"
+                  id="straat"
+                  name="straat"
+                  value={straat}
+                  onChange={(e) => setStraat(e.target.value)}
+                  autoComplete="street-address"
                   required
-                  className="border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
-                />
-                <input
-                  value={stad}
-                  onChange={(e) => setStad(e.target.value)}
-                  placeholder="Stad"
-                  required
-                  className="border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
+                  className="w-full border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
                 />
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
-                <select
-                  value={provinsie}
-                  onChange={(e) => setProvinsie(e.target.value)}
-                  required
-                  className="border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
-                >
-                  <option value="">Kies provinsie…</option>
-                  {PROVINSIES.map((p) => (
-                    <option key={p} value={p}>
-                      {p}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  value={poskode}
-                  onChange={(e) => setPoskode(e.target.value)}
-                  placeholder="Poskode"
-                  inputMode="numeric"
-                  required
-                  className="border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
+                <div>
+                  <label htmlFor="woonbuurt" className="mb-1 block text-xs text-ink/50">Woonbuurt</label>
+                  <input
+                    id="woonbuurt"
+                    name="woonbuurt"
+                    value={woonbuurt}
+                    onChange={(e) => setWoonbuurt(e.target.value)}
+                    required
+                    className="w-full border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="stad" className="mb-1 block text-xs text-ink/50">Stad</label>
+                  <input
+                    id="stad"
+                    name="stad"
+                    value={stad}
+                    onChange={(e) => setStad(e.target.value)}
+                    autoComplete="address-level2"
+                    required
+                    className="w-full border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
+                  />
+                </div>
+              </div>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <div>
+                  <label htmlFor="provinsie" className="mb-1 block text-xs text-ink/50">Provinsie</label>
+                  <select
+                    id="provinsie"
+                    name="provinsie"
+                    value={provinsie}
+                    onChange={(e) => setProvinsie(e.target.value)}
+                    autoComplete="address-level1"
+                    required
+                    className="w-full border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
+                  >
+                    <option value="">Kies provinsie…</option>
+                    {PROVINSIES.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label htmlFor="poskode" className="mb-1 block text-xs text-ink/50">Poskode</label>
+                  <input
+                    id="poskode"
+                    name="poskode"
+                    value={poskode}
+                    onChange={(e) => setPoskode(e.target.value)}
+                    inputMode="numeric"
+                    autoComplete="postal-code"
+                    required
+                    className="w-full border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
+                  />
+                </div>
+              </div>
+              <div>
+                <label htmlFor="nota" className="mb-1 block text-xs text-ink/50">Nota vir die koerier (opsioneel)</label>
+                <textarea
+                  id="nota"
+                  name="nota"
+                  value={nota}
+                  onChange={(e) => setNota(e.target.value)}
+                  autoComplete="off"
+                  rows={2}
+                  className="w-full border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
                 />
               </div>
-              <textarea
-                value={nota}
-                onChange={(e) => setNota(e.target.value)}
-                placeholder="Nota vir die koerier (opsioneel)"
-                rows={2}
-                className="border-2 border-ink bg-paper px-2 py-1.5 text-sm outline-none focus:border-red"
-              />
             </div>
           </div>
 

@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { toegelaat } from "@/lib/toegang";
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -27,7 +28,11 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/auth");
   const isApi = request.nextUrl.pathname.startsWith("/api");
 
-  if (!user && !isAuthRoute && !isApi) {
+  /* 'n Aangemelde gebruiker is nie noodwendig 'n TOEGELATE gebruiker nie —
+     die publieke /markte-registrasie deel dieselfde Supabase-projek, so
+     enigiemand kan 'n sessie kry. Behandel "aangemeld maar nie toegelaat
+     nie" presies soos "afgemeld": stuur na /login. */
+  if ((!user || !toegelaat(user.email)) && !isAuthRoute && !isApi) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
