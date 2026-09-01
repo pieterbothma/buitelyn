@@ -9,9 +9,10 @@ import { PROVINSIES, VERSENDING_SENT } from "@/lib/winkel/valideer";
 import { rand } from "@/lib/winkel/epos";
 
 export function Betaalvorm() {
-  const { items, maakLeeg } = useMandjie();
+  const { items, gelaai: mandjieGelaai, maakLeeg } = useMandjie();
   const ids = items.map((it) => it.variantId);
-  const { variante, gelaai } = useMandjieResolusie(ids);
+  const { variante, gelaai: resolusieGelaai, fout: laaiFout } = useMandjieResolusie(ids, mandjieGelaai);
+  const gelaai = mandjieGelaai && resolusieGelaai;
   const { lyne, itemSent, alleBeskikbaar } = mandjieOpsomming(items, variante);
   const totaalSent = itemSent + VERSENDING_SENT;
 
@@ -69,6 +70,21 @@ export function Betaalvorm() {
     return <p className="text-sm text-ink/60">Laai…</p>;
   }
 
+  if (laaiFout) {
+    return (
+      <div>
+        <p className="text-sm text-red">Kon nie die mandjie laai nie — probeer weer.</p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="mt-4 text-sm font-semibold underline underline-offset-4"
+        >
+          Herlaai die bladsy
+        </button>
+      </div>
+    );
+  }
+
   if (items.length === 0) {
     return (
       <div>
@@ -84,18 +100,35 @@ export function Betaalvorm() {
     <div>
       <p className="text-xs font-semibold tracking-[0.16em]">JOU BESTELLING</p>
       <ul className="mt-2 divide-y divide-ink/15 border-y-2 border-ink">
-        {lyne.map((l) =>
-          !l.beskikbaar ? (
-            <li key={l.variantId} className="py-4">
-              <p className="text-sm text-red">
-                Nie meer beskikbaar nie —{" "}
-                <Link href="/winkel/mandjie" className="underline underline-offset-4">
-                  gaan terug na jou mandjie
-                </Link>
-                .
-              </p>
-            </li>
-          ) : (
+        {lyne.map((l) => {
+          if (l.status === "onbeskikbaar") {
+            return (
+              <li key={l.variantId} className="py-4">
+                <p className="text-sm text-red">
+                  Nie meer beskikbaar nie —{" "}
+                  <Link href="/winkel/mandjie" className="underline underline-offset-4">
+                    gaan terug na jou mandjie
+                  </Link>
+                  .
+                </p>
+              </li>
+            );
+          }
+          if (l.status === "uitverkoop") {
+            return (
+              <li key={l.variantId} className="py-4">
+                <p className="text-sm text-red">
+                  {l.naam} ({l.kleur}
+                  {l.grootte ? `, ${l.grootte}` : ""}) is uitverkoop —{" "}
+                  <Link href="/winkel/mandjie" className="underline underline-offset-4">
+                    gaan terug na jou mandjie
+                  </Link>
+                  .
+                </p>
+              </li>
+            );
+          }
+          return (
             <li
               key={l.variantId}
               className={`flex items-center gap-4 py-4 ${foutVariantId === l.variantId ? "bg-red/10" : ""}`}
@@ -122,8 +155,8 @@ export function Betaalvorm() {
               </div>
               <p className="text-sm tabular-nums">{rand(l.prysSent! * l.aantal)}</p>
             </li>
-          ),
-        )}
+          );
+        })}
       </ul>
       <p className="mt-4 text-sm tabular-nums">
         {rand(itemSent)} + {rand(VERSENDING_SENT)} versending = <strong>{rand(totaalSent)}</strong>

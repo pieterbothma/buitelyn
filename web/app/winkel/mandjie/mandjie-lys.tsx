@@ -11,9 +11,10 @@ import { rand } from "@/lib/winkel/epos";
 const AANTALLE = [1, 2, 3, 4, 5] as const;
 
 export function MandjieLys() {
-  const { items, stelAantal, verwyder } = useMandjie();
+  const { items, gelaai: mandjieGelaai, stelAantal, verwyder } = useMandjie();
   const ids = items.map((it) => it.variantId);
-  const { variante, gelaai } = useMandjieResolusie(ids);
+  const { variante, gelaai: resolusieGelaai, fout } = useMandjieResolusie(ids, mandjieGelaai);
+  const gelaai = mandjieGelaai && resolusieGelaai;
   const { lyne, itemSent, alleBeskikbaar } = mandjieOpsomming(items, variante);
   const totaalSent = itemSent + VERSENDING_SENT;
 
@@ -36,6 +37,21 @@ export function MandjieLys() {
     return <p className="text-sm text-ink/60">Laai…</p>;
   }
 
+  if (fout) {
+    return (
+      <div>
+        <p className="text-sm text-red">Kon nie die mandjie laai nie — probeer weer.</p>
+        <button
+          type="button"
+          onClick={() => window.location.reload()}
+          className="mt-4 text-sm font-semibold underline underline-offset-4"
+        >
+          Herlaai die bladsy
+        </button>
+      </div>
+    );
+  }
+
   if (items.length === 0) {
     return (
       <div>
@@ -50,19 +66,54 @@ export function MandjieLys() {
   return (
     <>
       <ul className="divide-y divide-ink/15 border-y-2 border-ink">
-        {lyne.map((l) =>
-          !l.beskikbaar ? (
-            <li key={l.variantId} className="flex items-center justify-between gap-4 py-4">
-              <p className="text-sm text-ink/60">Nie meer beskikbaar nie</p>
-              <button
-                type="button"
-                onClick={() => verwyder(l.variantId)}
-                className="text-sm underline underline-offset-4"
-              >
-                Verwyder
-              </button>
-            </li>
-          ) : (
+        {lyne.map((l) => {
+          if (l.status === "onbeskikbaar") {
+            return (
+              <li key={l.variantId} className="flex items-center justify-between gap-4 py-4">
+                <p className="text-sm text-ink/60">Nie meer beskikbaar nie</p>
+                <button
+                  type="button"
+                  onClick={() => verwyder(l.variantId)}
+                  className="text-sm underline underline-offset-4"
+                >
+                  Verwyder
+                </button>
+              </li>
+            );
+          }
+          if (l.status === "uitverkoop") {
+            return (
+              <li key={l.variantId} className="flex items-center gap-4 py-4">
+                {l.foto ? (
+                  <Image
+                    src={l.foto}
+                    alt={l.naam!}
+                    width={80}
+                    height={80}
+                    className="size-20 shrink-0 border border-ink/20 object-cover opacity-50"
+                  />
+                ) : (
+                  <div className="size-20 shrink-0 bg-offwhite" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold">{l.naam}</p>
+                  <p className="text-sm text-ink/60">
+                    {l.kleur}
+                    {l.grootte ? `, ${l.grootte}` : ""}
+                  </p>
+                  <p className="mt-1 text-xs text-red">Uitverkoop</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => verwyder(l.variantId)}
+                  className="text-sm underline underline-offset-4"
+                >
+                  Verwyder
+                </button>
+              </li>
+            );
+          }
+          return (
             <li key={l.variantId} className="flex items-center gap-4 py-4">
               {l.foto ? (
                 <Image
@@ -103,8 +154,8 @@ export function MandjieLys() {
                 Verwyder
               </button>
             </li>
-          ),
-        )}
+          );
+        })}
       </ul>
 
       <div className="mt-6 space-y-1 text-sm tabular-nums">

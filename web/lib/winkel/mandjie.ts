@@ -128,5 +128,5 @@ export function useMandjie() {
     setItems([]);
   }, []);
 
-  return { items, voegBy: voegByFn, verwyder: verwyderFn, stelAantal: stelAantalFn, maakLeeg };
+  return { items, gelaai, voegBy: voegByFn, verwyder: verwyderFn, stelAantal: stelAantalFn, maakLeeg };
 }
