@@ -56,7 +56,8 @@ tak-voorskou; produksie kry eers die winkel wanneer Piet en AP dit deurgeklik he
   afkoelreg met skakels na /kansellasie en /terugbetalings, Promenader-identiteit
   in die voetskrif (ECTA art. 43 geld ook vir die e-pos).
 - **AP + Piet** (`BESTELLING_EPOSTE` env): volle bestelling + adres, gereed om te
-  stuur. AP se adres NOG NODIG van Piet.
+  stuur. AP = apduplessis@gmail.com (Piet, 2026-09-01; reeds die adres waarheen
+  AP HQ sy nuusbrief-opsom stuur).
 - "Gestuur"-e-pos: DOELBEWUS uitgestel; AP hanteer dit eers per hand.
 
 ## POPIA & ECTA
@@ -82,6 +83,19 @@ Produksie: merge na main, Live-sleutels in Vercel env, Live webhook/callback op
 buitelyn.com, een regte R1-toets... nee — Paystack Live minimum is 'n regte koop;
 AP koop sy eie pet as die eerste bestelling.
 
+## AP HQ — Bestellings-afdeling (bygevoeg 2026-09-01)
+
+admin/ (AP HQ, ap-hq.vercel.app) deel dieselfde Supabase-projek as web/, so die
+afdeling lees winkel_bestellings direk — geen kruis-projek-loodgietery nie.
+
+- `app/bestellings`: lys (nuutste eerste) met status-kentekens, koper, kleur,
+  bedrag; oopklap vir die volle afleweringsadres en kontak.
+- Aksie: "Merk as gestuur" (status `betaal` → `gestuur`). Dit is die enigste
+  skryf-aksie; als anders is lees.
+- Voorraad-strokie boaan: pette oor per kleur, sodat AP nie Supabase hoef oop
+  te maak nie.
+- Agter AP HQ se bestaande aanmelding; die service role bly bedien-kant.
+
 ## Buite bestek (doelbewus)
 
 Geen mandjie (een produk; hoeveelheid-kieser), geen koper-rekeninge, geen
@@ -90,5 +104,4 @@ gestuur-e-pos-outomasie.
 
 ## Oop feite
 
-- AP se bestelling-e-posadres (env-plekhouer tot dan)
 - Werklike voorraad per kleur (Kakie / Seegroen / Houtskool)
