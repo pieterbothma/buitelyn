@@ -65,7 +65,7 @@ export default async function BestellingsBlad({
   let vraag = wk
     .from("winkel_bestellings")
     .select(
-      "id, verwysing, status, modus, items, koper, adres, totaal_sent, geskep_op"
+      "id, verwysing, status, modus, items, koper, adres, totaal_sent, geskep_op, koerier, spoornommer"
     )
     .order("geskep_op", { ascending: false })
     .limit(200);
@@ -172,11 +172,44 @@ export default async function BestellingsBlad({
                   </details>
 
                   {b.status === "betaal" ? (
-                    <form action={merkGestuur.bind(null, b.id)}>
-                      <button className="border-2 border-ink bg-ink px-3 py-1.5 text-xs font-semibold text-offwhite hover:bg-ink/85">
-                        Merk as gestuur
+                    <form action={merkGestuur.bind(null, b.id)} className="flex flex-wrap items-end gap-2">
+                      {/* Koerier + spoornommer is opsioneel — 'n handaflewering
+                          het nie 'n spoornommer nie. Die koper kry dadelik die
+                          op-pad-e-pos met wat hier ingevul is. */}
+                      <label className="flex flex-col gap-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink/60">
+                        Koerier
+                        <input
+                          name="koerier"
+                          list="koeriers"
+                          placeholder="bv. The Courier Guy"
+                          className="w-40 border-2 border-ink/30 bg-transparent px-2 py-1.5 text-xs font-normal normal-case tracking-normal text-ink focus:border-ink focus:outline-none"
+                        />
+                      </label>
+                      <datalist id="koeriers">
+                        <option value="The Courier Guy" />
+                        <option value="Pudo" />
+                        <option value="PostNet" />
+                        <option value="Aramex" />
+                        <option value="Fastway" />
+                      </datalist>
+                      <label className="flex flex-col gap-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink/60">
+                        Spoornommer
+                        <input
+                          name="spoornommer"
+                          placeholder="opsioneel"
+                          className="w-40 border-2 border-ink/30 bg-transparent px-2 py-1.5 text-xs font-normal normal-case tracking-normal text-ink focus:border-ink focus:outline-none"
+                        />
+                      </label>
+                      <button className="border-2 border-ink bg-ink px-3 py-2 text-xs font-semibold text-offwhite hover:bg-ink/85">
+                        Merk as gestuur &amp; stuur e-pos
                       </button>
                     </form>
+                  ) : null}
+                  {b.status === "gestuur" && (b.koerier || b.spoornommer) ? (
+                    <p className="text-xs text-ink/60">
+                      Gestuur{b.koerier ? ` met ${b.koerier}` : ""}
+                      {b.spoornommer ? <> · spoornommer <span className="font-mono text-ink">{b.spoornommer}</span></> : null}
+                    </p>
                   ) : null}
                 </div>
               </li>
