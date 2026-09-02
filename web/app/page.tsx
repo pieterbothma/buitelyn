@@ -2,6 +2,7 @@ import { Footer } from "@/components/footer";
 import { Koerantkop } from "@/components/tuisblad/koerantkop";
 import { PrysStrook } from "@/components/tuisblad/prysstrook";
 import { Dagoorsig } from "@/components/tuisblad/dagoorsig";
+import { NuutsteVideo } from "@/components/tuisblad/nuutste-video";
 import { BewegersKort } from "@/components/tuisblad/bewegers-kort";
 import { VanBuitelyn } from "@/components/tuisblad/van-buitelyn";
 import { MarkNuus } from "@/components/tuisblad/marknuus";
@@ -62,7 +63,8 @@ export default async function Home() {
               toeganklikheidsboom te verloor nie. */}
           <div className="grid gap-6 lg:grid-cols-[1.35fr_1fr] lg:items-start lg:gap-12">
             <div className="contents lg:block lg:space-y-6">
-              <div className="order-1">
+              <div className="order-1 space-y-6">
+                <NuutsteVideo />
                 <Dagoorsig oorsig={oorsig} kwotasies={kwotasies} />
               </div>
               <div className="order-2">
