@@ -2,7 +2,7 @@ import Link from "next/link";
 import { supabaseServer } from "@/lib/supabase/server";
 import { Shell, type Workspace } from "@/components/shell";
 import { winkelKlient, rand, type Bestelling, type Produk, type Variant } from "@/lib/winkel";
-import { merkGestuur } from "@/app/actions-winkel";
+import { merkGestuur, stoorSpoor } from "@/app/actions-winkel";
 
 export const dynamic = "force-dynamic";
 
@@ -205,11 +205,39 @@ export default async function BestellingsBlad({
                       </button>
                     </form>
                   ) : null}
-                  {b.status === "gestuur" && (b.koerier || b.spoornommer) ? (
-                    <p className="text-xs text-ink/60">
-                      Gestuur{b.koerier ? ` met ${b.koerier}` : ""}
-                      {b.spoornommer ? <> · spoornommer <span className="font-mono text-ink">{b.spoornommer}</span></> : null}
-                    </p>
+                  {b.status === "gestuur" ? (
+                    b.koerier || b.spoornommer ? (
+                      <p className="text-xs text-ink/60">
+                        Gestuur{b.koerier ? ` met ${b.koerier}` : ""}
+                        {b.spoornommer ? <> · spoornommer <span className="font-mono text-ink">{b.spoornommer}</span></> : null}
+                      </p>
+                    ) : (
+                      /* Gestuur sonder spoorbesonderhede — die koerier gee dit
+                         dikwels eers later. Invul stuur (of herstuur) die
+                         op-pad-e-pos aan die koper. */
+                      <form action={stoorSpoor.bind(null, b.id)} className="flex flex-wrap items-end gap-2">
+                        <label className="flex flex-col gap-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink/60">
+                          Koerier
+                          <input
+                            name="koerier"
+                            list="koeriers"
+                            placeholder="bv. The Courier Guy"
+                            className="w-40 border-2 border-ink/30 bg-transparent px-2 py-1.5 text-xs font-normal normal-case tracking-normal text-ink focus:border-ink focus:outline-none"
+                          />
+                        </label>
+                        <label className="flex flex-col gap-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink/60">
+                          Spoornommer
+                          <input
+                            name="spoornommer"
+                            placeholder="opsioneel"
+                            className="w-40 border-2 border-ink/30 bg-transparent px-2 py-1.5 text-xs font-normal normal-case tracking-normal text-ink focus:border-ink focus:outline-none"
+                          />
+                        </label>
+                        <button className="border-2 border-ink px-3 py-2 text-xs font-semibold text-ink hover:bg-ink hover:text-offwhite">
+                          Stoor spoor &amp; stuur e-pos
+                        </button>
+                      </form>
+                    )
                   ) : null}
                 </div>
               </li>

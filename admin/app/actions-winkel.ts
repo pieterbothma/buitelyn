@@ -37,3 +37,21 @@ export async function merkGestuur(id: string, f?: FormData): Promise<void> {
   if (ry) await stuurSpoorEpos(ry as BestellingRy, koerier, spoornommer);
   revalidatePath("/bestellings");
 }
+
+/* Spoorbesonderhede NÁ die gestuur-merk — die koerier gee dikwels eers later
+   'n spoornommer. Werk net op 'n gestuur-bestelling en stuur (of herstuur)
+   die op-pad-e-pos met wat ingevul is. */
+export async function stoorSpoor(id: string, f: FormData): Promise<void> {
+  await hek();
+  const koerier = (f.get("koerier") ?? "").toString().trim().slice(0, 60) || null;
+  const spoornommer = (f.get("spoornommer") ?? "").toString().trim().slice(0, 60) || null;
+  const { data: ry } = await winkelKlient()
+    .from("winkel_bestellings")
+    .update({ koerier, spoornommer })
+    .eq("id", id)
+    .eq("status", "gestuur")
+    .select()
+    .single();
+  if (ry) await stuurSpoorEpos(ry as BestellingRy, koerier, spoornommer);
+  revalidatePath("/bestellings");
+}
