@@ -63,14 +63,9 @@ async function stuurEpos(aan: string[], onderwerp: string, html: string): Promis
   await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { authorization: `Bearer ${sleutel}`, "content-type": "application/json" },
-    body: JSON.stringify({
-        from: "Buitelyn Winkel <bestellings@buitelyn.com>",
-        /* buitelyn.com kan STUUR (Resend) maar het geen posbus nie — 'n antwoord
-           op bestellings@ sou in die niet verdwyn. reply_to stuur antwoorde na
-           'n regte inboks (AP se Gmail, oorskryfbaar per env). */
-        reply_to: process.env.BESTELLING_ANTWOORD_EPOS ?? "apduplessis@gmail.com",
-        to: aan, subject: onderwerp, html,
-      }),
+    /* hallo@buitelyn.com het 'n regte posbus (Piet, 2026-09-02) — stuur van
+       daar af, dan land 'n koper se antwoord vanself op die regte plek. */
+    body: JSON.stringify({ from: "Buitelyn <hallo@buitelyn.com>", to: aan, subject: onderwerp, html }),
   }).then(async r => { if (!r.ok) console.error(`winkel: e-pos misluk (${r.status})`, await r.text()); })
     .catch((e) => console.error("winkel: e-pos-versoek misluk", e));
 }
