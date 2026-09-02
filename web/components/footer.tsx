@@ -9,6 +9,9 @@ export function Footer() {
         <a href="/aandele" className="text-sm font-semibold underline-offset-4 hover:underline">
           Aandeelpryse
         </a>
+        <a href="/winkel" className="text-sm font-semibold underline-offset-4 hover:underline">
+          Winkel
+        </a>
         {/* Die wetlike bladsye moet vanaf ELKE blad bereikbaar wees sonder om
             aan te meld — dit is wat 'n betalingsverskaffer se nasienspan soek,
             en 'n beleid wat bestaan maar nêrens geskakel is nie, tel nie. */}
@@ -20,6 +23,9 @@ export function Footer() {
         </a>
         <a href="/kansellasie" className="text-sm underline-offset-4 hover:underline">
           Kansellasie
+        </a>
+        <a href="/privaatheid" className="text-sm underline-offset-4 hover:underline">
+          Privaatheid
         </a>
         <a
           href="https://buitelyn.substack.com"

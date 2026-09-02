@@ -16,7 +16,12 @@ export default function Login() {
     );
     const { error } = await supabase.auth.signInWithOtp({
       email: epos,
-      options: { emailRedirectTo: `${window.location.origin}/auth/confirm` },
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/confirm`,
+        /* Moenie nuwe gebruikers skep nie — die toelatingslys (toegang.ts)
+           is die enigste plek wat besluit wie AP HQ mag gebruik. */
+        shouldCreateUser: false,
+      },
     });
     setStatus(error ? "fout" : "gestuur");
   }
