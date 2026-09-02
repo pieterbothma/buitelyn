@@ -18,6 +18,7 @@ import { Hamburger } from "@/components/hamburger";
 const AFDELINGS = [
   { naam: "MARKTE", href: "/markte" },
   { naam: "AANDELE", href: "/aandele" },
+  { naam: "WINKEL", href: "/winkel" },
 ];
 
 export function Koerantkop() {

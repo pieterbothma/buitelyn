@@ -17,12 +17,7 @@ export function TopBar() {
           <a href="/markte" className="hidden text-[15px] font-semibold underline-offset-4 hover:underline md:block">
             Markte
           </a>
-          <a
-            href="https://buitelyn-shop.fourthwall.com/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden text-[15px] font-semibold underline-offset-4 hover:underline md:block"
-          >
+          <a href="/winkel" className="hidden text-[15px] font-semibold underline-offset-4 hover:underline md:block">
             Winkel
           </a>
           <a
