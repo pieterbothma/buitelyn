@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 
 type VarianteRy = {
   id: string; kleur: string; grootte: string | null; voorraad: number; aktief: boolean;
-  winkel_produkte?: { naam: string; prys_sent: number; aktief: boolean } | null;
+  winkel_produkte?: { naam: string; prys_sent: number; aktief: boolean; fotos?: unknown } | null;
 };
 
 /* Skep die bestelling (status: begin) en stuur die koper na Paystack.
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
   /* Al die mandjie se lyne in EEN bevraging — nie N+1 nie. */
   const ids = v.data.items.map((i) => i.variantId);
   const { data: varianteRou } = await sb.from("winkel_variante")
-    .select("id, kleur, grootte, voorraad, aktief, winkel_produkte(naam, prys_sent, aktief)")
+    .select("id, kleur, grootte, voorraad, aktief, winkel_produkte(naam, prys_sent, aktief, fotos)")
     .in("id", ids);
   const variante = (varianteRou ?? []) as unknown as VarianteRy[];
   const deurId = new Map(variante.map((rij) => [rij.id, rij]));
@@ -55,6 +55,13 @@ export async function POST(request: NextRequest) {
     items.push({
       variant_id: variant.id, naam: produk.naam, kleur: variant.kleur, grootte: variant.grootte,
       prys_sent: produk.prys_sent, aantal: lyn.aantal,
+      /* Absolute foto-URL vir die e-posse: werf-relatiewe paaie kry die
+         versoek se oorsprong; berging-URL's is reeds absoluut. */
+      foto: (() => {
+        const eerste = Array.isArray(produk.fotos) ? (produk.fotos as string[])[0] : undefined;
+        if (!eerste) return undefined;
+        return eerste.startsWith("/") ? `${new URL(request.url).origin}${eerste}` : eerste;
+      })(),
     });
   }
 

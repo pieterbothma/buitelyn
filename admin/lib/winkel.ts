@@ -35,6 +35,8 @@ export type Bestelling = {
   };
   totaal_sent: number;
   geskep_op: string;
+  koerier: string | null;
+  spoornommer: string | null;
 };
 
 export const GROOTTES = ["S", "M", "L", "XL", "XXL"] as const;
