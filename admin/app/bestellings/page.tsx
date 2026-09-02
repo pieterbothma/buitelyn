@@ -6,22 +6,31 @@ import { merkGestuur, stoorSpoor } from "@/app/actions-winkel";
 
 export const dynamic = "force-dynamic";
 
-const STATUS_NAAM: Record<Bestelling["status"], string> = {
-  begin: "Begin",
-  betaal: "Betaal",
-  gestuur: "Gestuur",
-};
+/* 'n begin-bestelling is nie dadelik "verlaat" nie — die koper kan nog op
+   Paystack se blad wees. Vars = wag vir betaling; ouer as 'n uur = die mandjie
+   is verlaat en niemand gaan meer betaal nie. */
+const VERLAAT_NA_MS = 60 * 60 * 1000;
 
-function StatusBadge({ status }: { status: Bestelling["status"] }) {
+function StatusBadge({ status, geskepOp }: { status: Bestelling["status"]; geskepOp: string }) {
+  const naam =
+    status === "betaal"
+      ? "BETAAL"
+      : status === "gestuur"
+        ? "GESTUUR"
+        : Date.now() - new Date(geskepOp).getTime() > VERLAAT_NA_MS
+          ? "MANDJIE VERLAAT"
+          : "WAG VIR BETALING";
   const klas =
     status === "betaal"
       ? "bg-ink text-offwhite"
       : status === "gestuur"
         ? "border-2 border-ink/30 text-ink/50"
-        : "border-2 border-ink/30 text-ink/60";
+        : naam === "MANDJIE VERLAAT"
+          ? "border-2 border-ink/20 text-ink/40"
+          : "border-2 border-ink/30 text-ink/60";
   return (
     <span className={`px-2 py-0.5 text-[11px] font-semibold tracking-[0.08em] ${klas}`}>
-      {STATUS_NAAM[status].toUpperCase()}
+      {naam}
     </span>
   );
 }
@@ -128,7 +137,7 @@ export default async function BestellingsBlad({
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5">
                     <span className="font-semibold">{b.verwysing}</span>
-                    <StatusBadge status={b.status} />
+                    <StatusBadge status={b.status} geskepOp={b.geskep_op} />
                     {b.modus === "toets" ? (
                       <span className="px-2 py-0.5 text-[11px] font-semibold tracking-[0.08em] text-red">
                         TOETS
