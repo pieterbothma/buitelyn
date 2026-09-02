@@ -103,7 +103,7 @@ const SKAKELS: { naam: string; href: string; ikoon: string; sub?: boolean; ekste
   { naam: "Sakgeld", href: "/markte?blad=sakgeld", ikoon: "sakgeld", sub: true },
   { naam: "SENS", href: "/markte?blad=sens", ikoon: "sens", sub: true },
   { naam: "Telegram", href: "/markte?blad=telegram", ikoon: "telegram", sub: true },
-  { naam: "Winkel", href: "https://buitelyn-shop.fourthwall.com/", ikoon: "winkel", ekstern: true },
+  { naam: "Winkel", href: "/winkel", ikoon: "winkel" },
   { naam: "Nuusbrief", href: "https://buitelyn.substack.com/subscribe", ikoon: "nuusbrief", ekstern: true },
 ];
 
