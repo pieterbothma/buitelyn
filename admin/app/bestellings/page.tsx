@@ -125,13 +125,6 @@ export default async function BestellingsBlad({
           <li className="px-4 py-6 text-sm text-ink/50">Nog geen bestellings nie.</li>
         ) : (
           (bestellings ?? []).map((b) => {
-            const somAantal = b.items.reduce((t, l) => t + l.aantal, 0);
-            const eersteLyn = b.items[0];
-            const opsomming = eersteLyn
-              ? `${somAantal} item${somAantal === 1 ? "" : "s"} — ${eersteLyn.naam}${
-                  b.items.length > 1 ? " …" : ""
-                }`
-              : "Geen items";
             return (
               <li key={b.id} className="px-4 py-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -148,10 +141,25 @@ export default async function BestellingsBlad({
                 </div>
 
                 <div className="mt-1.5 flex flex-wrap items-center justify-between gap-3">
-                  <p className="text-sm text-ink/80">
-                    {b.koper.naam} {b.koper.van} · {opsomming}
-                  </p>
+                  <p className="text-sm text-ink/80">{b.koper.naam} {b.koper.van}</p>
                   <p className="text-sm font-semibold">{rand(b.totaal_sent)}</p>
+                </div>
+
+                {/* Die items self is die grootste ding in die ry — dis wat AP
+                    moet raaksien en inpak, met die kleur die hardste. */}
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {b.items.map((l, i) => (
+                    <span
+                      key={l.variant_id ?? i}
+                      className="inline-flex items-center gap-2 border-2 border-ink bg-offwhite px-2.5 py-1.5 text-sm"
+                    >
+                      <span className="font-bold">{l.aantal}×</span>
+                      <span className="font-semibold">{l.naam}</span>
+                      <span className="bg-ink px-1.5 py-0.5 text-[11px] font-bold tracking-[0.08em] text-offwhite">
+                        {l.kleur.toUpperCase()}{l.grootte ? ` · ${l.grootte}` : ""}
+                      </span>
+                    </span>
+                  ))}
                 </div>
 
                 <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
