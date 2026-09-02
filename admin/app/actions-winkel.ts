@@ -3,10 +3,8 @@ import { revalidatePath } from "next/cache";
 import { supabaseServer } from "@/lib/supabase/server";
 import { winkelKlient } from "@/lib/winkel";
 import { toegelaat } from "@/lib/toegang";
-/* Die e-pos-ontwerp leef by die winkel self (web/lib/winkel/epos.ts) — een
-   bron vir al drie e-posse. Turbopack hanteer die kruis-app-import; as dit
-   ooit breek, is die terugval 'n plaaslike kopie soos rand(). */
-import { stuurSpoorEpos, type BestellingRy } from "../../web/lib/winkel/epos";
+import { stuurSpoorEpos } from "@/lib/epos";
+import type { Bestelling } from "@/lib/winkel";
 
 async function hek(): Promise<void> {
   /* Aksie-hek: die middleware beskerm blaaie, maar 'n server action is 'n
@@ -34,7 +32,7 @@ export async function merkGestuur(id: string, f?: FormData): Promise<void> {
     .select()
     .single();
   /* Geen ry = reeds gestuur of nie betaal nie — stil klaar, geen dubbele e-pos. */
-  if (ry) await stuurSpoorEpos(ry as BestellingRy, koerier, spoornommer);
+  if (ry) await stuurSpoorEpos(ry as Bestelling, koerier, spoornommer);
   revalidatePath("/bestellings");
 }
 
@@ -52,6 +50,6 @@ export async function stoorSpoor(id: string, f: FormData): Promise<void> {
     .eq("status", "gestuur")
     .select()
     .single();
-  if (ry) await stuurSpoorEpos(ry as BestellingRy, koerier, spoornommer);
+  if (ry) await stuurSpoorEpos(ry as Bestelling, koerier, spoornommer);
   revalidatePath("/bestellings");
 }

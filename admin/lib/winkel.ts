@@ -16,6 +16,7 @@ export type BestelLyn = {
   grootte: string | null;
   prys_sent: number;
   aantal: number;
+  foto?: string;
 };
 
 export type Bestelling = {
