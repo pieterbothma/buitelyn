@@ -22,8 +22,12 @@ const AFDELINGS = [
 ];
 
 export function Koerantkop() {
+  /* relative is nie versiering nie: die Hamburger se oop kieslys is
+     absolute/top-full en anker op die naaste geposisioneerde voorouer. Sonder
+     relative anker dit op die bladsywortel en land ONDER die hele blad — oop
+     maar onsigbaar. TopBar dra dieselfde klas om dieselfde rede. */
   return (
-    <header className="border-b border-ink/15">
+    <header className="relative border-b border-ink/15">
       <div className="mx-auto flex max-w-[1440px] items-center gap-6 px-6 py-2 md:px-14">
         <Link href="/" className="flex shrink-0 items-center" aria-label="Buitelyn — tuis">
           <Image src="/logo-transparent.png" alt="Buitelyn" width={72} height={72} priority />

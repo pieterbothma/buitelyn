@@ -22,7 +22,11 @@ async function nuutsteEpisode(): Promise<Video | null> {
     const xml = await res.text();
     const inskrywings = xml.split("<entry>").slice(1);
     for (const stuk of inskrywings) {
-      const titel = stuk.match(/<title>([^<]+)<\/title>/)?.[1] ?? "";
+      /* RSS lewer XML-ontsnapte teks ("&amp;"); React ontsnap weer en die
+         kyker sien die entiteit rou. Ontsnap dus hier terug. */
+      const titel = (stuk.match(/<title>([^<]+)<\/title>/)?.[1] ?? "")
+        .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"').replace(/&#39;/g, "'");
       if (titel.includes("#")) continue; // Short — slaan oor
       const id = stuk.match(/<yt:videoId>([^<]+)<\/yt:videoId>/)?.[1];
       const datum = stuk.match(/<published>([^<]+)<\/published>/)?.[1] ?? "";
