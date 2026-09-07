@@ -15,10 +15,8 @@ const nextConfig: NextConfig = {
          lêer-spoorsny (en serverExternalPackages) sien dit nooit en dit beland
          nie in die funksie nie → "cannot open shared object file". Dwing die
          inheemse @img-pakkette (bindings + libvips-.so) dus eksplisiet in.
-         Net die linux-binaries bestaan op Vercel se bou-masjien; die res van
-         die glob pas eenvoudig niks. */
-      "../node_modules/@img/sharp-linux-x64/**",
-      "../node_modules/@img/sharp-libvips-linux-x64/**",
+         admin word standalone ontplooi (npm ci in admin/), so ./node_modules is
+         die enigste plek; net die linux-binaries bestaan op die bou-masjien. */
       "./node_modules/@img/sharp-linux-x64/**",
       "./node_modules/@img/sharp-libvips-linux-x64/**",
     ],
