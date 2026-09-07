@@ -139,7 +139,7 @@ export function AudioStudio({ posts }: { posts: Pos[] }) {
             ) : null}
           </>
         ) : (
-          <p className="text-sm text-ink/50">Kies 'n nuusbrief links.</p>
+          <p className="text-sm text-ink/50">Kies &apos;n nuusbrief links.</p>
         )}
       </div>
     </div>

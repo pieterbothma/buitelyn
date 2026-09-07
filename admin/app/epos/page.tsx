@@ -76,7 +76,7 @@ export default async function EposBlad({
         <h1 className="text-3xl font-extrabold tracking-tight">E-pos</h1>
         <form action="/api/unipile/connect" method="post">
           <button className="text-sm font-semibold underline-offset-2 hover:underline">
-            + Koppel nog 'n rekening
+            + Koppel nog &apos;n rekening
           </button>
         </form>
       </div>
@@ -110,7 +110,7 @@ export default async function EposBlad({
 
       {koppel === "sukses" ? (
         <p className="mt-3 max-w-xl border-2 border-green bg-offwhite p-3 text-sm font-semibold">
-          Rekening gekoppel ✓ — as dit nog nie hier lys nie, gee dit 'n minuut en herlaai.
+          Rekening gekoppel ✓ — as dit nog nie hier lys nie, gee dit &apos;n minuut en herlaai.
         </p>
       ) : null}
       {koppel === "fout" ? (

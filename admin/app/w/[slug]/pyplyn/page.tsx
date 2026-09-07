@@ -23,6 +23,10 @@ export default async function Pyplyn({ params }: { params: Promise<{ slug: strin
   const active = workspaces?.find((w) => w.slug === slug);
   if (!active) notFound();
 
+  /* Dit is 'n async SERVER-komponent: Date.now() loop een keer per
+     versoek op die bediener, nie in 'n kliënt-render nie. Die
+     purity-reël mik op kliënt-renders en gee hier 'n vals positief. */
+  // eslint-disable-next-line react-hooks/purity
   const week = new Date(Date.now() + 8 * 86_400_000).toISOString();
   const { data: kaarte } = await sb
     .from("cards")
@@ -39,6 +43,10 @@ export default async function Pyplyn({ params }: { params: Promise<{ slug: strin
     hour: "2-digit",
     minute: "2-digit",
   });
+  /* Dit is 'n async SERVER-komponent: Date.now() loop een keer per
+     versoek op die bediener, nie in 'n kliënt-render nie. Die
+     purity-reël mik op kliënt-renders en gee hier 'n vals positief. */
+  // eslint-disable-next-line react-hooks/purity
   const nou = Date.now();
 
   return (

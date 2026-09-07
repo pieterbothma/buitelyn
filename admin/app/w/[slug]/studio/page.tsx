@@ -29,6 +29,16 @@ const GEREEDSKAP = [
     wat: "Maak 'n ElevenLabs-audio-weergawe van 'n nuusbrief-uitgawe.",
   },
   {
+    pad: "kaarte",
+    naam: "Kaart-bouer",
+    wat: "Bou 'n Buitelyn-kaart in enige formaat: kop + beeld, 'n groot getal, 'n aanhaling of 'n lys. Vierkant, portret, storie of landskap.",
+  },
+  {
+    pad: "beeld",
+    naam: "Beeld-gereedskap",
+    wat: "Verwyder 'n agtergrond, sny 'n beeld en laai dit af — alles in die blaaier, sonder om na Canva toe te gaan.",
+  },
+  {
     pad: "sosiaal",
     naam: "Sosiale Media",
     wat: "Vandag se nuusbrief as plasings: branded poskaarte, platform-tekste, en binnekort video met audio.",
@@ -37,6 +47,11 @@ const GEREEDSKAP = [
     pad: "grafiek",
     naam: "Grafiek-bouer",
     wat: "Publikasie-gereed grafieke: vergelyk aandele (%), prys oor tyd, of staaf 'n periode se wenners — in Buitelyn se raam.",
+  },
+  {
+    pad: "thumbnails",
+    naam: "Thumbnails",
+    wat: "Bou 'n YouTube-duimnael: kies AP se reaksie, laat die KI 'n agtergrond uit vandag se onderwerpe maak, en sleep die opskrif waar jy dit wil hê.",
   },
 ];
 

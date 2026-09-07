@@ -20,8 +20,8 @@ export default async function Grafiek({ params }: { params: Promise<{ slug: stri
     <Shell workspaces={(workspaces ?? []) as Workspace[]} active={active as Workspace}>
       <h1 className="text-3xl font-extrabold tracking-tight">Grafiek-bouer</h1>
       <p className="mt-2 max-w-lg text-sm text-ink/60">
-        Publikasie-gereed grafieke in Buitelyn se taal — vergelyk aandele, wys 'n prys oor
-        tyd, of staaf 'n periode se wenners en verloorders. Landskap, klaar vir die
+        Publikasie-gereed grafieke in Buitelyn se taal — vergelyk aandele, wys &apos;n prys oor
+        tyd, of staaf &apos;n periode se wenners en verloorders. Landskap, klaar vir die
         nuusbrief en sosiale media.
       </p>
       <div className="mt-6">

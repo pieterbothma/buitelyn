@@ -58,7 +58,7 @@ export default async function NuusbriefKonsep({
     <Shell workspaces={(workspaces ?? []) as Workspace[]} active={active as Workspace}>
       <h1 className="text-3xl font-extrabold tracking-tight">Nuusbrief-konsep</h1>
       <p className="mt-2 max-w-lg text-sm text-ink/60">
-        Gemini skryf 'n eerste weergawe uit die /markte-pyplyn — dagoorsig, top-nuus met
+        Gemini skryf &apos;n eerste weergawe uit die /markte-pyplyn — dagoorsig, top-nuus met
         skakels, en live syfers. Jy redigeer en plak in Substack.
       </p>
       <div className="mt-5 flex flex-wrap gap-1.5">

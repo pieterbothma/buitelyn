@@ -101,7 +101,7 @@ export function parseFeedMetTeks(xml: string): PostMetTeks[] {
   if (!channel) return [];
   const items = channel.item == null ? [] : Array.isArray(channel.item) ? channel.item : [channel.item];
   const basis = parseFeed(xml).posts;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   return basis.map((p, i) => ({ ...p, teks: htmlNaLeesbareTeks(text(items[i]?.["content:encoded"])) }));
 }
 

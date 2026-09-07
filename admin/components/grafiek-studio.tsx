@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { soekTikkers, type TikkerTreffer } from "@/app/actions-grafiek";
+import { haalJson } from "@/lib/haal";
 
 const KLEURE = ["#F03028", "#1A1A1A", "#3E7C6F", "#B0736F", "#8A6FB0", "#C08A2D"];
 const TIPES = [
@@ -67,11 +68,9 @@ export function GrafiekStudio() {
     setStoorBesig(true);
     setBoodskap(null);
     try {
-      const res = await fetch(`${url}&stoor=1`);
-      const d = await res.json();
-      setBoodskap(d.url ? "Gestoor in die galery." : d.fout ?? "Kon nie stoor nie.");
-    } catch {
-      setBoodskap("Netwerkfout.");
+      const u = await haalJson<{ url?: string }>(`${url}&stoor=1`);
+      if (u.ok) setBoodskap(u.data.url ? "Gestoor in die galery." : "Kon nie stoor nie.");
+      else setBoodskap(u.fout);
     } finally {
       setStoorBesig(false);
     }
@@ -124,7 +123,7 @@ export function GrafiekStudio() {
           ))}
         </div>
       ) : (
-        <p className="mt-3 text-sm text-ink/50">Voeg 2 of meer aandele by vir 'n vergelyking.</p>
+        <p className="mt-3 text-sm text-ink/50">Voeg 2 of meer aandele by vir &apos;n vergelyking.</p>
       )}
 
       <div className="mt-4 flex flex-wrap items-center gap-2">

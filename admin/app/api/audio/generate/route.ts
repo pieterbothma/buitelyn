@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { supabaseServer } from "@/lib/supabase/server";
 import { supabaseService } from "@/lib/supabase/service";
+import { kiesStem } from "@/lib/stemme";
 
 export const maxDuration = 300;
 
@@ -38,16 +39,19 @@ export async function POST(request: NextRequest) {
   } = await sb.auth.getUser();
   if (!user) return NextResponse.json({ fout: "verbode" }, { status: 401 });
 
-  const { titel, teks, bron_url } = (await request.json()) as {
+  const { titel, teks, bron_url, stem } = (await request.json()) as {
     titel: string;
     teks: string;
     bron_url?: string;
+    stem?: string;
   };
   if (!teks?.trim()) return NextResponse.json({ fout: "geen teks" }, { status: 400 });
   if (teks.length > 40_000)
     return NextResponse.json({ fout: "teks te lank (>40k karakters)" }, { status: 400 });
 
-  const voiceId = process.env.ELEVENLABS_VOICE_ID;
+  /* Geen `stem` → Alida, presies soos voorheen. Die oorsig-studio, die
+     oudio-blad en die crons stuur niks en werk dus onveranderd voort. */
+  const voiceId = kiesStem(stem);
   const sleutel = process.env.ELEVENLABS_API_KEY;
   if (!voiceId || !sleutel)
     return NextResponse.json(

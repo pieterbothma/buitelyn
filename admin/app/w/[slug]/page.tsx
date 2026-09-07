@@ -30,7 +30,7 @@ export default async function WorkspaceHome({
         <h1 className="text-3xl font-extrabold tracking-tight">{active.naam}</h1>
       </div>
       <p className="mt-4 max-w-lg text-sm text-ink/60">
-        Kies 'n module in die kantbalk — Pyplyn, Idees, Kliënte, Fakture
+        Kies &apos;n module in die kantbalk — Pyplyn, Idees, Kliënte, Fakture
         {slug === "promenader" ? ", Stories" : ""}
         {slug === "buitelyn" ? ", Nuusbrief → Audio" : ""}. (Modules kom aanlyn soos
         ons M1–M6 aflewer.)
