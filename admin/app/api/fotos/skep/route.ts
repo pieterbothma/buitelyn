@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       ? `Single-panel editorial cartoon for a South African financial publication: a witty, clever scene of ${prompt.trim()}. STYLE — authentic 1950s mid-century commercial book illustration, like vintage screenprint/lithograph spot art: a strictly limited TWO-COLOUR palette of black plus ONE muted accent (either dusty rose-mauve or sage-teal) printed as flat shapes on cream/off-white textured paper (#F7F6F2); loose, confident ink-brush linework; charmingly elongated, expressive characters with skinny limbs and big noses; flat colour fills with the paper showing through as negative-space highlights; slight print misregistration charm; absolutely NO gradients, NO shading, NO photorealism, NO digital smoothness. IMPORTANT composition constraints: keep the top 18% of the image completely empty plain paper background (headline space will be added later); keep the bottom-right corner (roughly 18% width, 12% height) empty plain paper (logo space). Absolutely no text, lettering, captions, watermarks or logos anywhere in the image.`
       : prompt.trim();
 
-  const model = process.env.OPENAI_IMAGE_MODEL || "gpt-image-2";
+  const model = process.env.OPENAI_IMAGE_MODEL || "gpt-image-2.5-flare";
   let res = await genereer(model, finalePrompt, grootte);
   if (!res.ok && res.status < 500 && model !== "gpt-image-1") {
     res = await genereer("gpt-image-1", finalePrompt, grootte);

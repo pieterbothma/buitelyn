@@ -148,7 +148,7 @@ export async function POST(request: Request) {
     });
   }
 
-  const model = process.env.OPENAI_IMAGE_MODEL || "gpt-image-2";
+  const model = process.env.OPENAI_IMAGE_MODEL || "gpt-image-2.5-flare";
   let res = await genereer(model);
   if (!res.ok && res.status < 500 && model !== "gpt-image-1") {
     res = await genereer("gpt-image-1");
