@@ -1,5 +1,6 @@
 import { XMLParser } from "fast-xml-parser";
 import { createClient } from "@supabase/supabase-js";
+import { lunaJson, metLuna } from "../luna";
 
 export type NuusItem = {
   titel: string;
@@ -164,32 +165,65 @@ async function haalBronne(): Promise<RouItem[][]> {
 
 type Vertaling = { opskrif: string; opsomming: string; vrae: string[] };
 
-async function skryfVertalings(items: RouItem[]): Promise<Vertaling[]> {
+const VERTAAL_SKEMA = {
+  naam: "nuus_vertalings",
+  skema: {
+    type: "object",
+    properties: {
+      artikels: {
+        type: "array",
+        items: {
+          type: "object",
+          properties: {
+            opskrif: { type: "string" },
+            opsomming: { type: "string" },
+            vrae: { type: "array", items: { type: "string" } },
+          },
+          required: ["opskrif", "opsomming", "vrae"],
+          additionalProperties: false,
+        },
+      },
+    },
+    required: ["artikels"],
+    additionalProperties: false,
+  },
+};
+
+/* Uitgevoer vir die A/B-/rooktoetse; die cron roep dit net via vertaalNuweNuus. */
+export async function skryfVertalings(items: RouItem[]): Promise<Vertaling[]> {
   const lys = items
     .map((i, n) => `${n + 1}. [${i.bron}] ${i.titel} — ${i.beskrywing || "(geen uittreksel)"}`)
     .join("\n");
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-    {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: `Hier is ${items.length} finansiële nuusberigte (Engels). Vir elkeen, skryf:\n1. "opskrif" — 'n kort Afrikaanse nuusopskrif (vertaal die opskrif natuurlik, nie woord-vir-woord nie; hou name en syfers presies).\n2. "opsomming" — een-sin Afrikaanse opsomming in jou eie woorde (±18 woorde, feitelik, Buitelyn se stem: helder, geen clichés, geen aanhalings uit die bron).\n3. "vrae" — presies 2 kort, kliekbare vervolgvrae in Afrikaans wat 'n leser oor dié storie aan 'n mark-assistent sou vra (bv. "Hoe raak dit die rand?"); elke vraag hoogstens 8 woorde, selfstandig verstaanbaar met die maatskappy/onderwerp by die naam genoem.\nSkryf suiwer hedendaagse Afrikaans — NOOIT Nederlandse, Vlaamse of Duitse woorde nie (bv. 'achtbaan' is Nederlands). As jy twyfel of 'n woord regte Afrikaans is, gebruik eerder die Engelse leenwoord (bv. 'rollercoaster') of 'n gewone Afrikaanse alternatief.\nVAKTAAL: los NOOIT 'n Engelse finansiële term kaal in 'n Afrikaanse sin nie. Woorde soos carry, yield, hedge, spread, short, bond, swap, easing en tapering beteken niks vir 'n Afrikaanse leser as hulle net so oorstaan nie — skryf wat gebeur het in gewone Afrikaans, al moet die opskrif heeltemal herskryf word. 'n Letterlike opskrif wat nonsens is, is erger as 'n vryer een wat klop.\nVoorbeelde van presies wat om NIE te doen nie:\n  'World-class rand carry lures traders to SA bonds' → NIE 'Wêreldklas rand carry lok handelaars na SA effekte' nie, maar iets soos 'Hoë rentekoerse op die rand lok handelaars na SA-staatseffekte'.\n  'Fed signals tapering' → NIE 'Fed dui tapering aan' nie, maar 'Die Fed gaan stadiger inkoop'.\nToets elke opskrif hardop: as 'n Afrikaanssprekende dit nie so sou sê nie, skryf dit oor.\nAntwoord as 'n JSON-lys van ${items.length} objekte {"opskrif": "...", "opsomming": "...", "vrae": ["...", "..."]} in dieselfde volgorde.\n\n${lys}`,
-              },
-            ],
-          },
-        ],
-        generationConfig: { temperature: 0.4, responseMimeType: "application/json" },
-      }),
-      signal: AbortSignal.timeout(30_000),
+  const prompt = `Hier is ${items.length} finansiële nuusberigte (Engels). Vir elkeen, skryf:\n1. "opskrif" — 'n kort Afrikaanse nuusopskrif (vertaal die opskrif natuurlik, nie woord-vir-woord nie; hou name en syfers presies).\n2. "opsomming" — een-sin Afrikaanse opsomming in jou eie woorde (±18 woorde, feitelik, Buitelyn se stem: helder, geen clichés, geen aanhalings uit die bron).\n3. "vrae" — presies 2 kort, kliekbare vervolgvrae in Afrikaans wat 'n leser oor dié storie aan 'n mark-assistent sou vra (bv. "Hoe raak dit die rand?"); elke vraag hoogstens 8 woorde, selfstandig verstaanbaar met die maatskappy/onderwerp by die naam genoem; moenie die opskrif net as vraag herhaal nie — vra wat die leser volgende wil weet.\nSkryf suiwer hedendaagse Afrikaans — NOOIT Nederlandse, Vlaamse of Duitse woorde nie (bv. 'achtbaan' is Nederlands). As jy twyfel of 'n woord regte Afrikaans is, gebruik eerder die Engelse leenwoord (bv. 'rollercoaster') of 'n gewone Afrikaanse alternatief.\nVAKTAAL: los NOOIT 'n Engelse finansiële term kaal in 'n Afrikaanse sin nie. Woorde soos carry, yield, hedge, spread, short, bond, swap, easing en tapering beteken niks vir 'n Afrikaanse leser as hulle net so oorstaan nie — skryf wat gebeur het in gewone Afrikaans, al moet die opskrif heeltemal herskryf word. 'n Letterlike opskrif wat nonsens is, is erger as 'n vryer een wat klop.\nVoorbeelde van presies wat om NIE te doen nie:\n  'World-class rand carry lures traders to SA bonds' → NIE 'Wêreldklas rand carry lok handelaars na SA effekte' nie, maar iets soos 'Hoë rentekoerse op die rand lok handelaars na SA-staatseffekte'.\n  'Fed signals tapering' → NIE 'Fed dui tapering aan' nie, maar 'Die Fed gaan stadiger inkoop'.\nToets elke opskrif hardop: as 'n Afrikaanssprekende dit nie so sou sê nie, skryf dit oor.\nAntwoord as 'n JSON-lys van ${items.length} objekte {"opskrif": "...", "opsomming": "...", "vrae": ["...", "..."]} in dieselfde volgorde.\n\n${lys}`;
+
+  const geparseer: unknown = await metLuna(
+    "nuus",
+    async () => {
+      const uit = await lunaJson<{ artikels: unknown[] }>(
+        `${prompt}\n\n(Die antwoord-skema vou die lys in {"artikels": [...]}.)`,
+        VERTAAL_SKEMA,
+        { maksUit: 4000, timeoutMs: 45_000 }
+      );
+      if (uit.artikels.length !== items.length) throw new Error(`vertaling-vorm ${uit.artikels.length}/${items.length}`);
+      return uit.artikels;
+    },
+    async () => {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.4, responseMimeType: "application/json" },
+          }),
+          signal: AbortSignal.timeout(30_000),
+        }
+      );
+      const data = await res.json();
+      return JSON.parse(data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "[]");
     }
   );
-  const data = await res.json();
-  const geparseer = JSON.parse(data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "[]");
   if (!Array.isArray(geparseer) || geparseer.length !== items.length) throw new Error("vertaling-vorm");
   return geparseer.map((v) => ({
     opskrif: String(v?.opskrif ?? ""),
