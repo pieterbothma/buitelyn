@@ -22,11 +22,11 @@
     },
     {
       "path": "/api/cron/sens",
-      "schedule": "*/30 4-16 * * 1-5"
+      "schedule": "30 4-16 * * 1-5"
     },
     {
       "path": "/api/cron/nuus",
-      "schedule": "*/15 4-19 * * *"
+      "schedule": "0 4-20 * * *"
     },
     {
       "path": "/api/cron/liga-maand",

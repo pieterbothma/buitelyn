@@ -4,7 +4,7 @@ import { cronGeweier } from "@/lib/cron-hek";
 
 export const maxDuration = 300;
 
-/* SENS Vertaal — elke 30 min gedurende beursdae. Bron: Sharenet se vrye
+/* SENS Vertaal — elke uur (op die halfuur) gedurende beursdae. Bron: Sharenet se vrye
    SENS-blad (lys + volteks in 'n <pre>-blok). Nuwe items met 'n JSE-kode
    word gehaal, Gemini klassifiseer + skryf een Afrikaanse sin, en
    gekoppelde gebruikers wie se aandele aankondig, kry 'n bot-boodskap. */
