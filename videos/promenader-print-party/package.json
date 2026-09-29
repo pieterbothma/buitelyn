@@ -6,6 +6,9 @@
     "dev": "npx --yes hyperframes@0.7.61 preview",
     "check": "npx --yes hyperframes@0.7.61 check",
     "render": "npx --yes hyperframes@0.7.61 render",
+    "variants": "python3 scripts/make_variants.py",
+    "render:9x16": "npx --yes hyperframes@0.7.61 render -c index-9x16.html -o renders/promenader-print-party-9x16.mp4",
+    "render:16x9": "npx --yes hyperframes@0.7.61 render -c index-16x9.html -o renders/promenader-print-party-16x9.mp4",
     "music": "node scripts/elevenlabs-music.mjs",
     "audio": "python3 scripts/build_audio.py"
   }

@@ -34,6 +34,14 @@ then the print-party poster builds itself on the beat, piece by piece, and holds
 
 The map is stylised, not surveyed: a diagonal CBD grid with Loop St between Bree and Long.
 
+## Other formats
+
+`scripts/make_variants.py` generates `index-9x16.html` (stories/reels, 1080×1920) and `index-16x9.html`
+(YouTube, 1920×1080) from index.html: the 4:5 poster sits inside, intro cards and wipes go full-bleed.
+- 9:16: poster centred; two ticker tapes above and below (in the platform UI zones, so decoration only).
+- 16:9: poster scaled 0.8 in the middle; vertical Promenader wordmark on the left, a big Sunday / 25 / Oct / 4pm / @toneelhuis / 61 Loop St column on the right.
+Edit index.html, then `npm run variants && npm run render:9x16 && npm run render:16x9`.
+
 ## Assets
 
 Everything is pulled from the designer's poster PDF (Volume 2 launch, 800×800 Instagram post 45),
