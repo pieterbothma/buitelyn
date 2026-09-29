@@ -3,7 +3,7 @@ workflow: motion-graphics
 message: "What to expect at the Promenader print party — Sunday 25 Oct, 4pm, @toneelhuis, 61 Loop St. Tickets on Quicket, R200."
 destination: instagram (feed, 4:5)
 aspect: 1080x1350
-length: 24s @ 30fps
+length: 31s @ 30fps
 bpm: 120 (drop at 4.0s)
 narration: no
 ---
@@ -23,7 +23,16 @@ then the print-party poster builds itself on the beat, piece by piece, and holds
 - 9.5–14: the what-to-expect list, one item every 1.5 beats (Jessica Fletcher punches in).
 - 14–16: Arthur's Mini front page, then the talk line.
 - 16.5–19.5: blue band, the giant "pro" rises, date/venue, tickets, "for the love of print".
-- 20–24: hold; the poster breathes on the beat.
+- 20–22.5: hold; the poster breathes on the beat.
+- 22.5: magenta + yellow panels sweep across to the end card (when & where).
+- 23–24: the sun-and-sea circle from the logo rolls in like a wheel; the wordmark unfolds out of it both ways.
+- 24–25: "print party" typed over a yellow highlighter strip.
+- 25–27: a stylised map card lands: sea, street grid drawing on, Loop St lit yellow (Bree St / Long St either side), then a dashed route from Sea Point along the coast to the venue.
+- 27.5: the pin (the logo circle in its head) drops on 61 Loop St on the beat, squashes, and ripples every beat; the @toneelhuis / 61 Loop St tag pops out.
+- 28–30: blue band: Sunday 25 Oct · 4pm, tickets on Quicket @ R200 (copy of Promenader + Seepunt hat), "for the love of print", Toneelhuis mark.
+- 30–31: final hit, hold.
+
+The map is stylised, not surveyed: a diagonal CBD grid with Loop St between Bree and Long.
 
 ## Assets
 
@@ -34,6 +43,7 @@ so the layout matches it 1:1 (PDF points × 4/3 = px):
 - assets/beach.jpg, assets/waterblommetjies.png: photo + alpha cutout (the cutout overlaps the tape)
 - assets/wordmark.png, assets/wordmark-tagline.png: Promenader marks (the tagline one doubles as the giant "pro")
 - assets/front-page.jpg, assets/jessica.jpg, assets/tb.png
+- assets/o-mark.png, assets/wordmark-no-o.png: the logo circle cut out of the wordmark (centre 248,121, r≈69 in the 1080px source) for the end-card roll-in
 - assets/fonts/*-subset.ttf: the poster's own fonts (LumiosTW Old/New/Used/Tape, Major Mono Display, Libre Baskerville Italic), **subset to the poster's glyphs only**. New copy in those faces falls back to Special Elite / Libre Baskerville.
 - assets/fonts/museomoderno-latin-800-normal.woff2: MuseoModerno, the Promenader font from the seepunt site
 - assets/vendor/gsap.min.js: vendored (the render sandbox can't reach the CDN)

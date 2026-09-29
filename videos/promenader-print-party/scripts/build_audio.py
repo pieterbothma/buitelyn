@@ -2,7 +2,7 @@
 
 Music: if assets/audio/elevenlabs.mp3 exists (see scripts/elevenlabs-music.mjs) it is used as the
 music bed; otherwise a temp 120 BPM disco-funk bed is synthesised here with numpy so the cut can be
-timed and reviewed offline. Both share the beat grid: 120 BPM, downbeat 0.0s, drop 4.0s, 24s long.
+timed and reviewed offline. Both share the beat grid: 120 BPM, downbeat 0.0s, drop 4.0s, end card 22.5s, final hit 30.0s, 31s long.
 
 SFX (typewriter clacks, carriage bell, tape slaps, stamps) are always synthesised; their cue times
 mirror the GSAP timeline in index.html — keep them in sync if you retime.
@@ -19,7 +19,7 @@ import numpy as np
 SR = 44100
 BPM = 120
 BEAT = 60 / BPM
-LEN = 24.0
+LEN = 31.0
 N = int(SR * LEN)
 rng = np.random.default_rng(7)  # fixed seed: the track re-renders identically
 
@@ -189,7 +189,7 @@ add(bass_note(45, 0.2), 3.5, 0.7)
 add(bass_note(47, 0.2), 3.75, 0.7)
 
 # 4–23s: the groove
-groove_end = 23.0
+groove_end = 30.0
 t = 4.0
 bar = 0
 while t < groove_end - 1e-6:
@@ -217,10 +217,14 @@ hook = [(20.0, 76), (20.25, 79), (20.5, 81), (21.0, 79), (21.25, 76), (21.5, 74)
 for th, m in hook:
     add(keys([m, m + 12], 0.3), th, 1.1, pan=0.1)
 
+# the hook again under the end card's sign-off (28–30s)
+for th, m in hook:
+    add(keys([m, m + 12], 0.3), th + 8.0, 1.1, pan=-0.1)
+
 # final hit
-add(kick(), 23.0, 1.1)
-add(stab([45, 57, 69, 72, 76], 1.0), 23.0, 1.0)
-add(crash(), 23.0, 0.8)
+add(kick(), 30.0, 1.1)
+add(stab([45, 57, 69, 72, 76], 1.0), 30.0, 1.0)
+add(crash(), 30.0, 0.8)
 
 # ── SFX (mirror index.html) ────────────────────────────────
 bus = SFX
@@ -271,6 +275,63 @@ typing(15.1, ["And a talk about how the analogue", "world got its groove back"],
 typing(18.0, ["Tickets on Quicket", "@ R200 includes a copy of", "Promenader & a Seepunt hat"], 0.02)
 add(whoosh(0.3), 16.45, 0.9)  # blue band
 add(thud(), 17.0, 0.5)
+
+
+# ── end card SFX (E = 22.5) ────────────────────────────────
+def rumble(dur):
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    body = onepole_lp(rng.standard_normal(n), 220) * 3.0
+    ticks = np.sin(2 * np.pi * 9 * t) ** 16  # wheel clicks
+    return body * (0.6 + 0.4 * ticks) * np.exp(-t / (dur * 0.8)) * 0.5
+
+
+def whistle(dur, f0, f1):
+    n = int(dur * SR)
+    t = np.arange(n) / SR
+    f = f0 * (f1 / f0) ** (t / dur)
+    return np.sin(2 * np.pi * np.cumsum(f) / SR) * np.minimum(1, t / 0.02) * 0.12
+
+
+def plop():
+    n = int(0.25 * SR)
+    t = np.arange(n) / SR
+    f = 180 + 500 * np.exp(-t / 0.03)
+    return np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-t / 0.07) * 0.5
+
+
+def ping():
+    n = int(0.6 * SR)
+    t = np.arange(n) / SR
+    return (np.sin(2 * np.pi * 1760 * t) + 0.3 * np.sin(2 * np.pi * 2640 * t)) * np.exp(-t / 0.18) * 0.06
+
+
+E = 22.5
+add(whoosh(0.3), E, 1.0, pan=-0.4)
+add(whoosh(0.3), E + 0.06, 0.9, pan=0.4)
+add(whoosh(0.3), E + 0.34, 0.8)
+add(rumble(0.8), E + 0.5, 1.0)
+add(thud(), E + 1.2, 0.6)
+add(whoosh(0.35), E + 1.35, 0.7)
+for i in range(len("print party")):
+    add(clack(True), E + 1.5 + i * 0.07, 0.8)
+add(bell(), E + 1.5 + 11 * 0.07, 0.6)
+add(thud(), E + 2.6, 0.4)  # map card lands
+add(whoosh(0.8), E + 2.7, 0.5)  # streets draw
+add(whistle(1.0, 500, 1400), E + 3.75, 0.8)  # route travels
+add(whistle(0.4, 1500, 300), E + 4.6, 1.0)  # pin falls
+add(thud(), E + 5.0, 0.9)
+add(plop(), E + 5.0, 1.0)
+for i in range(7):
+    add(ping(), E + 5.0 + i * BEAT, 1.0 - 0.1 * i, pan=0.2)
+add(clack(True), E + 5.25, 0.7)  # tag
+add(whoosh(0.3), E + 5.45, 0.9)  # blue band
+add(thud(), E + 5.82, 0.7)
+add(thud(), E + 6.07, 0.7)
+typing(E + 6.1, ["Tickets on Quicket @ R200"], 0.018)
+typing(E + 6.1 + 25 * 0.018, ["includes a copy of Promenader & a Seepunt hat"], 0.014)
+add(whoosh(0.5), E + 6.85, 0.7)
+add(plop(), E + 7.0, 0.6)
 
 # ── master ─────────────────────────────────────────────────
 here = os.path.dirname(os.path.abspath(__file__))

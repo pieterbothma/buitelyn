@@ -48,10 +48,23 @@
       #cardType .old { position: relative; font-size: 300px; line-height: 0.8; color: var(--ink); }
       #introWomen { position: absolute; left: 90px; top: 700px; width: 900px; }
       #introMark { position: absolute; left: 60px; top: 520px; width: 960px; }
+
+      /* ── end card ── */
+      #end { position: absolute; inset: 0; z-index: 40; overflow: hidden; }
+      .wipe { position: absolute; left: -200px; top: -200px; width: 1480px; height: 1750px; z-index: 60; transform: rotate(-6deg); }
+      #endLogo { position: absolute; left: 70px; top: 80px; width: 940px; height: 201px; }
+      #endLogo img { position: absolute; display: block; }
+      #mapCard { position: absolute; left: 70px; top: 440px; width: 940px; height: 420px; }
+      #mapCard svg { position: absolute; left: 0; top: 0; overflow: visible; }
+      .street { fill: none; stroke: var(--ink); stroke-width: 3; stroke-linecap: round; opacity: 0.5; }
+      .slabel { font-family: "MuseoModerno", sans-serif; font-weight: 800; fill: var(--ink); }
+      #pin { position: absolute; width: 120px; height: 160px; }
+      #tag { position: absolute; background: var(--ink); padding: 10px 18px 12px 18px; }
+      #tag .t { position: relative; color: var(--cream); }
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-start="0" data-duration="24" data-width="1080" data-height="1350">
+    <div id="root" data-composition-id="main" data-start="0" data-duration="31" data-width="1080" data-height="1350">
       <!-- ══════════ POSTER (the destination) ══════════ -->
       <div id="stage" class="fill">
         <img id="paper" class="abs" src="assets/paper.jpg" style="left:0;top:0;width:1080px;height:1350px" />
@@ -160,6 +173,79 @@
         </div>
       </div>
 
+
+      <!-- ══════════ END CARD (when & where) ══════════ -->
+      <div id="end">
+        <img class="abs" src="assets/paper.jpg" style="left:0;top:0;width:1080px;height:1350px" />
+        <div class="abs" style="left:28px;top:28px;width:1024px;height:1294px;background:var(--cream)"></div>
+        <div id="endCyan" class="abs" style="left:28px;top:28px;width:22px;height:1294px;background:var(--cyan)"></div>
+        <div id="endCyan2" class="abs" style="left:1030px;top:28px;width:22px;height:1294px;background:var(--cyan)"></div>
+
+        <!-- logo: the sun-and-sea circle rolls in, the wordmark unfolds from it -->
+        <div id="endLogo">
+          <img id="wmL" src="assets/wordmark-no-o.png" style="left:0;top:0;width:940px;height:201px" />
+          <img id="wmR" src="assets/wordmark-no-o.png" style="left:0;top:0;width:940px;height:201px" />
+          <img id="oMark" src="assets/o-mark.png" style="left:154.9px;top:44.4px;width:121.9px;height:121.9px" />
+        </div>
+
+        <div id="endTape" class="abs" style="left:60px;top:352px;width:560px;height:40px;background:var(--yellow);clip-path:polygon(0 14px,560px 0,560px 26px,0 40px)"></div>
+        <div id="endPP" class="t old type" style="left:70px;top:268px;font-size:112px">print party</div>
+
+        <!-- the map: Sea Point along the coast to Loop St -->
+        <div id="mapCard">
+          <div id="mapPaper" class="abs" style="left:0;top:0;width:940px;height:420px;background:#f6ecd6;border:4px solid var(--ink)"></div>
+          <svg id="map" width="940" height="420" viewBox="0 0 940 420">
+            <defs>
+              <clipPath id="landClip"><path id="landPath" d="" /></clipPath>
+              <clipPath id="cardClip"><rect x="4" y="4" width="932" height="412" /></clipPath>
+              <mask id="routeMask" maskUnits="userSpaceOnUse" x="0" y="0" width="940" height="420">
+                <path id="routeReveal" d="M72,222 C170,205 250,160 360,142 S560,122 660,117.8 L560,285" fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round" />
+              </mask>
+            </defs>
+            <g clip-path="url(#cardClip)">
+              <path id="sea" d="" fill="var(--cyan)" />
+              <g id="waves" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round" opacity="0.45"></g>
+              <path id="coast" d="" fill="none" stroke="var(--ink)" stroke-width="4" />
+              <g clip-path="url(#landClip)">
+                <g id="streets"></g>
+                <path id="loopHi" class="street" d="" style="stroke:var(--yellow);stroke-width:22;opacity:1" />
+                <path id="loopLine" class="street" d="" style="stroke-width:5;opacity:1" />
+              </g>
+              <path id="route" d="M72,222 C170,205 250,160 360,142 S560,122 660,117.8 L560,285" fill="none" stroke="var(--magenta)" stroke-width="7" stroke-dasharray="16 11" stroke-linecap="round" mask="url(#routeMask)" />
+              <g id="labels"></g>
+            </g>
+            <circle id="spDot" r="11" fill="var(--magenta)" stroke="var(--ink)" stroke-width="4" />
+            <g id="ripples"></g>
+            <ellipse id="pinShadow" rx="30" ry="9" fill="var(--ink)" opacity="0.28" />
+          </svg>
+          <svg id="pin" viewBox="0 0 120 160">
+            <path d="M60 156 C52 142 8 96 8 58 A52 52 0 1 1 112 58 C112 96 68 142 60 156 Z" fill="var(--magenta)" stroke="var(--ink)" stroke-width="5" stroke-linejoin="round" />
+            <circle cx="60" cy="58" r="40" fill="var(--cream)" stroke="var(--ink)" stroke-width="3" />
+            <image href="assets/o-mark.png" x="24" y="22" width="72" height="72" />
+          </svg>
+          <div id="tag">
+            <div class="t used" style="font-size:36px">@toneelhuis</div>
+            <div class="t used" style="font-size:36px">61 Loop St</div>
+          </div>
+        </div>
+
+        <!-- when -->
+        <div id="endBand" class="abs" style="left:70px;top:900px;width:940px;height:218px;background:var(--blue)"></div>
+        <div id="endBandY" class="abs" style="left:92px;top:926px;width:8px;height:166px;background:var(--yellow)"></div>
+        <div id="eD1" class="t used" style="left:124px;top:912px;font-size:66px;color:var(--cream)">Sunday 25 Oct</div>
+        <div id="eD2" class="t used" style="left:704px;top:912px;font-size:66px;color:var(--yellow)">4pm</div>
+        <div id="eK1" class="t new type" style="left:126px;top:1000px;font-size:34px;color:var(--cream)">Tickets on Quicket @ R200</div>
+        <div id="eK2" class="t new type" style="left:126px;top:1044px;font-size:27px;color:var(--cream)">includes a copy of Promenader &amp; a Seepunt hat</div>
+        <div id="endStrip" class="abs" style="left:56px;top:1110px;width:520px;height:22px;background:var(--magenta)"></div>
+
+        <div id="endLoveClip" class="clipbox" style="left:60px;top:1168px;width:640px;height:100px">
+          <div id="endLove" class="t bask" style="left:10px;top:8px;font-size:62px">for the love of print</div>
+        </div>
+        <div id="endTb" class="abs" style="left:858px;top:1150px;width:152px;height:152px;background:var(--magenta)">
+          <img src="assets/tb.png" style="position:absolute;left:14px;top:14px;width:124px;height:124px" />
+        </div>
+      </div>
+
       <!-- ══════════ INTRO (kinetic cold open) ══════════ -->
       <div id="intro">
         <div id="c1" class="card" style="background:var(--cyan)"><span class="museo" style="color:var(--ink)">for</span></div>
@@ -176,7 +262,10 @@
         </div>
       </div>
 
-      <audio id="track" class="clip" src="assets/audio/track.mp3" data-start="0" data-duration="24" data-track-index="9" data-volume="1"></audio>
+
+      <div id="wipeM" class="wipe" style="background:var(--magenta)"></div>
+      <div id="wipeY" class="wipe" style="background:var(--yellow)"></div>
+      <audio id="track" class="clip" src="assets/audio/track.mp3" data-start="0" data-duration="31" data-track-index="9" data-volume="1"></audio>
     </div>
 
     <script>
@@ -319,15 +408,153 @@
         tl.fromTo("#love", { clipPath: "inset(0% 100% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 0.75, ease: "power2.inOut" }, 19.5);
 
         // ── HOLD: the poster breathes on the beat ──
-        for (var b = 20.5; b < 23.5; b += B) {
+        for (var b = 20.5; b < 22.5; b += B) {
           var k = Math.round((b - 20.5) / B);
           tl.fromTo("#women", { scale: 1.018 }, { scale: 1, duration: 0.4, ease: "power2.out", immediateRender: false }, b);
           tl.fromTo(".mark", { scale: 1.25 }, { scale: 1, duration: 0.3, ease: "power2.out", immediateRender: false }, b);
           if (k % 2 === 0) tl.fromTo("#tb", { rotation: 0 }, { rotation: 12, duration: 0.2, yoyo: true, repeat: 1, ease: "sine.inOut", immediateRender: false }, b);
         }
-        tl.fromTo("#sheetWrap", { scale: 1 }, { scale: 1.018, duration: 3.5, ease: "sine.inOut", transformOrigin: "50% 50%", immediateRender: false }, 20.5);
+        tl.fromTo("#sheetWrap", { scale: 1 }, { scale: 1.012, duration: 2.0, ease: "sine.inOut", transformOrigin: "50% 50%", immediateRender: false }, 20.5);
 
-        tl.to({}, { duration: 24 }, 0); // full-span anchor
+
+        // ── END CARD: when & where ──
+        var E = 22.5;
+        // map geometry (card coords). P = 61 Loop St. Streets run coast→mountain (d), cross streets along n.
+        var P = { x: 560, y: 285 }, d = { x: -0.5, y: 0.866 }, n = { x: 0.866, y: 0.5 };
+        var coastD = "M0,205 C90,200 160,150 260,126 S470,104 600,100 S860,86 940,78";
+        document.getElementById("sea").setAttribute("d", coastD + " L940,0 L0,0 Z");
+        document.getElementById("coast").setAttribute("d", coastD);
+        document.getElementById("landPath").setAttribute("d", coastD + " L940,420 L0,420 Z");
+        function seg(cx, cy, v, len) {
+          return "M" + (cx - v.x * len).toFixed(1) + "," + (cy - v.y * len).toFixed(1) +
+                 " L" + (cx + v.x * len).toFixed(1) + "," + (cy + v.y * len).toFixed(1);
+        }
+        var NS = "http://www.w3.org/2000/svg";
+        function svgEl(tag, attrs, parent) {
+          var e = document.createElementNS(NS, tag);
+          for (var k in attrs) e.setAttribute(k, attrs[k]);
+          parent.appendChild(e);
+          return e;
+        }
+        var streetsG = document.getElementById("streets");
+        var streetEls = [];
+        for (var k = -7; k <= 7; k++) {
+          if (k === 0) continue;
+          streetEls.push(svgEl("path", { class: "street", d: seg(P.x + n.x * 78 * k, P.y + n.y * 78 * k, d, 700) }, streetsG));
+        }
+        for (var j = -6; j <= 6; j++) {
+          streetEls.push(svgEl("path", { class: "street", d: seg(P.x + d.x * 96 * j, P.y + d.y * 96 * j, n, 900), style: "opacity:0.35" }, streetsG));
+        }
+        var loopD = seg(P.x, P.y, d, 700);
+        document.getElementById("loopHi").setAttribute("d", loopD);
+        document.getElementById("loopLine").setAttribute("d", loopD);
+        // waves in the bay
+        var wavesG = document.getElementById("waves");
+        [[120, 60], [300, 40], [520, 56], [760, 34], [230, 100], [660, 20], [880, 50]].forEach(function (w) {
+          svgEl("path", { d: "M" + w[0] + "," + w[1] + " q12,-10 24,0 t24,0" }, wavesG);
+        });
+        // labels
+        var labelsG = document.getElementById("labels");
+        var ang = Math.atan2(-d.y, -d.x) * 180 / Math.PI; // reads bottom-left → top-right
+        function streetLabel(txt, off, t, size, op) {
+          var x = P.x + n.x * off + d.x * t, y = P.y + n.y * off + d.y * t;
+          var g = svgEl("g", { transform: "translate(" + x.toFixed(1) + "," + y.toFixed(1) + ") rotate(" + ang.toFixed(1) + ")", opacity: op }, labelsG);
+          var tx = svgEl("text", { class: "slabel", "text-anchor": "middle", y: size * 0.35, "font-size": size }, g);
+          tx.textContent = txt;
+          return g;
+        }
+        var lLoop = streetLabel("Loop St", 0, 72, 28, 1);
+        var lBree = streetLabel("Bree St", -78, 70, 20, 0.6);
+        var lLong = streetLabel("Long St", 78, -150, 20, 0.6);
+        var spX = 72, spY = 222;
+        var sp = document.getElementById("spDot"); sp.setAttribute("cx", spX); sp.setAttribute("cy", spY);
+        var spLabel = svgEl("text", { class: "slabel", x: spX + 22, y: spY + 36, "font-size": 30 }, labelsG);
+        spLabel.textContent = "Sea Point";
+        // route: Sea Point → along the coast → down Loop St
+        // (route d is authored statically in the SVG: Sea Point dot → along the coast → top of Loop St → P)
+        // pin, shadow, tag, ripples
+        gsap.set("#pin", { left: P.x - 60, top: P.y - 156, transformOrigin: "50% 100%" });
+        var sh = document.getElementById("pinShadow"); sh.setAttribute("cx", P.x); sh.setAttribute("cy", P.y);
+        gsap.set("#tag", { left: P.x + 62, top: P.y - 58, transformOrigin: "0% 50%" });
+        var ripG = document.getElementById("ripples"), rips = [];
+        for (var r = 0; r < 7; r++) {
+          rips.push(svgEl("ellipse", { cx: P.x, cy: P.y, rx: 34, ry: 12, fill: "none", stroke: "var(--magenta)", "stroke-width": 4 }, ripG));
+        }
+
+        // hand-over: magenta + yellow panels sweep across, the end card is under them
+        gsap.set("#end", { autoAlpha: 0 });
+        tl.fromTo("#wipeM", { xPercent: -100 }, { xPercent: 0, duration: 0.28, ease: "power3.in" }, E);
+        tl.fromTo("#wipeY", { xPercent: -100 }, { xPercent: 0, duration: 0.28, ease: "power3.in" }, E + 0.06);
+        tl.set("#end", { autoAlpha: 1 }, E + 0.34);
+        tl.to("#wipeM", { xPercent: 100, duration: 0.3, ease: "power3.out" }, E + 0.34);
+        tl.to("#wipeY", { xPercent: 100, duration: 0.3, ease: "power3.out" }, E + 0.4);
+
+        // the circle rolls in like a wheel (distance / circumference), lands on the beat
+        var rollDist = 760, circ = Math.PI * 121.9;
+        tl.fromTo("#oMark", { x: -rollDist, rotation: -360 * rollDist / circ },
+          { x: 0, rotation: 0, duration: 0.8, ease: "power3.out" }, E + 0.5);
+        tl.fromTo("#oMark", { scaleX: 1, scaleY: 1 }, { scaleX: 1.12, scaleY: 0.88, duration: 0.08, yoyo: true, repeat: 1, ease: "power1.out", immediateRender: false, transformOrigin: "50% 100%" }, E + 1.2);
+        // wordmark unfolds out of the circle, both ways
+        tl.fromTo("#wmL", { clipPath: "inset(0% 83.4% 0% 16.6%)" }, { clipPath: "inset(0% 83.4% 0% 0%)", duration: 0.3, ease: "power3.out" }, E + 1.35);
+        tl.fromTo("#wmR", { clipPath: "inset(0% 70.6% 0% 29.4%)" }, { clipPath: "inset(0% 0% 0% 29.4%)", duration: 0.45, ease: "power3.out" }, E + 1.35);
+
+        // print party
+        tl.fromTo("#endTape", { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 0.25, ease: "power4.out" }, E + 1.5);
+        var eppEnd = type("#endPP", E + 1.5, 0.07);
+
+        // map card lands, streets draw, Loop St lights up
+        tl.fromTo("#mapCard", { y: 60, rotation: -5, autoAlpha: 0 }, { y: 0, rotation: -1.2, autoAlpha: 1, duration: 0.4, ease: "back.out(1.6)" }, E + 2.5);
+        streetEls.forEach(function (el, i) {
+          var L = el.getTotalLength();
+          gsap.set(el, { strokeDasharray: L, strokeDashoffset: L });
+          tl.to(el, { strokeDashoffset: 0, duration: 0.5, ease: "power2.out" }, E + 2.7 + i * 0.022);
+        });
+        ["#loopHi", "#loopLine"].forEach(function (id) {
+          var el = document.querySelector(id), L = el.getTotalLength();
+          gsap.set(el, { strokeDasharray: L, strokeDashoffset: L });
+          tl.to(el, { strokeDashoffset: 0, duration: 0.45, ease: "power3.inOut" }, E + 3.2);
+        });
+        tl.fromTo("#sea", { opacity: 0 }, { opacity: 1, duration: 0.3 }, E + 2.6);
+        tl.fromTo("#waves path", { opacity: 0, x: -14 }, { opacity: 1, x: 0, duration: 0.3, stagger: 0.03 }, E + 2.8);
+        tl.fromTo([lBree, lLong], { autoAlpha: 0 }, { autoAlpha: 0.6, duration: 0.25 }, E + 3.4);
+        tl.fromTo(lLoop, { autoAlpha: 0, scale: 0.6, transformOrigin: "50% 50%" }, { autoAlpha: 1, scale: 1, duration: 0.3, ease: "back.out(2)" }, E + 3.5);
+        tl.fromTo("#spDot", { scale: 0, transformOrigin: "50% 50%" }, { scale: 1, duration: 0.3, ease: "back.out(3)" }, E + 3.5);
+        tl.fromTo(spLabel, { autoAlpha: 0, x: -20 }, { autoAlpha: 1, x: 0, duration: 0.25 }, E + 3.55);
+        // the route travels from Sea Point to the venue
+        var rr = document.getElementById("routeReveal"), RL = rr.getTotalLength();
+        gsap.set(rr, { strokeDasharray: RL, strokeDashoffset: RL });
+        tl.to(rr, { strokeDashoffset: 0, duration: 1.0, ease: "power1.inOut" }, E + 3.75);
+
+        // PIN DROP on the beat (E+5.0), squash, then ripples every beat
+        tl.fromTo("#pin", { y: -560, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.4, ease: "power2.in" }, E + 4.6);
+        tl.fromTo("#pinShadow", { scale: 0.2, opacity: 0, svgOrigin: P.x + " " + P.y }, { scale: 1, opacity: 0.28, duration: 0.4, ease: "power2.in" }, E + 4.6);
+        tl.fromTo("#pin", { scaleX: 1.2, scaleY: 0.78 }, { scaleX: 1, scaleY: 1, duration: 0.5, ease: "elastic.out(1.2,0.35)", immediateRender: false }, E + 5.0);
+        rips.forEach(function (el, i) {
+          gsap.set(el, { opacity: 0 });
+          tl.fromTo(el, { scale: 0.6, opacity: 1, svgOrigin: P.x + " " + P.y }, { scale: 3.4, opacity: 0, duration: 0.9, ease: "power2.out", immediateRender: false }, E + 5.0 + i * B);
+        });
+        tl.fromTo("#tag", { scale: 0, rotation: -8, autoAlpha: 0 }, { scale: 1, rotation: -2, autoAlpha: 1, duration: 0.35, ease: "back.out(2.2)" }, E + 5.25);
+
+        // when
+        tl.fromTo("#endBand", { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 0.3, ease: "power4.out" }, E + 5.5);
+        tl.fromTo("#endBandY", { scaleY: 0 }, { scaleY: 1, duration: 0.2, ease: "power3.out" }, E + 5.6);
+        tl.fromTo("#endStrip", { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 0.25, ease: "power4.out" }, E + 5.6);
+        tl.fromTo("#eD1", { scale: 1.5, autoAlpha: 0, transformOrigin: "0% 50%" }, { scale: 1, autoAlpha: 1, duration: 0.22, ease: "power4.in" }, E + 5.6);
+        tl.fromTo("#eD2", { scale: 1.8, autoAlpha: 0, rotation: 8, transformOrigin: "50% 50%" }, { scale: 1, autoAlpha: 1, rotation: 0, duration: 0.22, ease: "power4.in" }, E + 5.85);
+        var ekt = type("#eK1", E + 6.1, 0.018);
+        type("#eK2", ekt, 0.014);
+
+        // sign-off
+        tl.fromTo("#endLove", { clipPath: "inset(0% 100% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 0.6, ease: "power2.inOut" }, E + 6.9);
+        tl.fromTo("#endTb", { scale: 0, rotation: -90 }, { scale: 1, rotation: 0, duration: 0.4, ease: "back.out(2)" }, E + 7.0);
+
+        // hold: the pin bobs and the sun turns on the beat
+        for (var hb = E + 7.5; hb < 30.5; hb += B) {
+          tl.fromTo("#pin", { y: 0 }, { y: -14, duration: B / 2, yoyo: true, repeat: 1, ease: "sine.inOut", immediateRender: false }, hb);
+        }
+        tl.to("#oMark", { rotation: 360, duration: 1.0, ease: "power2.inOut" }, 29.0);
+
+        tl.to({}, { duration: 31 }, 0); // full-span anchor
       })();
     </script>
   </body>

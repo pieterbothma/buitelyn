@@ -22,18 +22,18 @@ if (!key) {
 const prompt = [
   "Upbeat retro disco-funk instrumental, exactly 120 BPM, 4/4, key of A minor, chord loop Am–F–C–G, one chord per bar.",
   "Playful, sunny, a bit cheeky: a Sea Point beach party for a community newspaper's print launch.",
-  "Structure (24 seconds): 0–2s four punchy brass-and-synth stabs, one per beat, like shouted words;",
+  "Structure (31 seconds): 0–2s four punchy brass-and-synth stabs, one per beat, like shouted words;",
   "2–3s near-silent break with just ticking hi-hats (leaves room for typewriter clacks);",
   "3–4s snare roll and noise riser; 4s big drop with a crash into the full groove:",
   "four-on-the-floor kick, handclaps on 2 and 4, open hi-hats on the off-beat, octave disco bassline, Rhodes stabs on the off-beats,",
-  "a light whistle or glockenspiel hook from 20s; final chord hit at 23s ringing out to 24s.",
+  "a light whistle or glockenspiel hook at 20s and again at 28s; groove keeps going to a final chord hit at 30s ringing out to 31s.",
   "No vocals.",
 ].join(" ");
 
 const res = await fetch("https://api.elevenlabs.io/v1/music?output_format=mp3_44100_192", {
   method: "POST",
   headers: { "xi-api-key": key, "Content-Type": "application/json" },
-  body: JSON.stringify({ prompt, music_length_ms: 24000, model_id: "music_v1", force_instrumental: true }),
+  body: JSON.stringify({ prompt, music_length_ms: 31000, model_id: "music_v1", force_instrumental: true }),
 });
 if (!res.ok) {
   console.error(`ElevenLabs ${res.status}: ${await res.text()}`);
