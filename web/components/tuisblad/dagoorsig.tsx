@@ -58,8 +58,11 @@ export function Dagoorsig({ oorsig, kwotasies }: { oorsig: Oorsig | null; kwotas
         </p>
       )}
 
+      {/* Op 'n foon twee rye van vier: agt blokkies in een ry kan nie kleiner as hul
+          teks krimp nie (~350px + die kaart se opvulling) en het die hele tuisblad 402px
+          breed gedruk — op 'n 390-foon het elke kaart regs uitgesteek. */}
       {blokke.length > 0 && (
-        <div className="mt-5 flex gap-1">
+        <div className="mt-5 grid grid-cols-4 gap-1 sm:flex">
           {blokke.map((k) => (
             <div
               key={k.simbool}

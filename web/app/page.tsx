@@ -61,7 +61,9 @@ export default async function Home() {
               Die houers is kaal divs, dus is dit die veilige geval vir
               display:contents — daar is geen semantiek om uit die
               toeganklikheidsboom te verloor nie. */}
-          <div className="grid gap-6 lg:grid-cols-[1.35fr_1fr] lg:items-start lg:gap-12">
+          {/* grid-cols-1 = minmax(0,1fr): sonder dit is die enkel-kolom op 'n foon `auto`
+              en groei dit tot die breedste inhoud se minimum — 402px op 'n 390-foon. */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1.35fr_1fr] lg:items-start lg:gap-12">
             <div className="contents lg:block lg:space-y-6">
               <div className="order-1 space-y-6">
                 <NuutsteVideo />
