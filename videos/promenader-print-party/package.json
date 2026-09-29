@@ -1,0 +1,12 @@
+{
+  "name": "promenader-print-party",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx --yes hyperframes@0.7.61 preview",
+    "check": "npx --yes hyperframes@0.7.61 check",
+    "render": "npx --yes hyperframes@0.7.61 render",
+    "music": "node scripts/elevenlabs-music.mjs",
+    "audio": "python3 scripts/build_audio.py"
+  }
+}
