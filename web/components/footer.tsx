@@ -5,6 +5,12 @@ export function Footer() {
         <p className="flex items-center gap-2 text-sm text-ink/60">
           © Buitelyn {new Date().getFullYear()}
           <span aria-hidden className="size-1.5 rounded-full bg-red" />
+          <span>
+            Gebou deur{" "}
+            <a href="https://www.aitsa.tech/af" className="underline-offset-4 hover:underline">
+              AITSA
+            </a>
+          </span>
         </p>
         <a href="/aandele" className="text-sm font-semibold underline-offset-4 hover:underline">
           Aandeelpryse
