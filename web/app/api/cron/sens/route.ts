@@ -1,19 +1,18 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { cronGeweier } from "@/lib/cron-hek";
+import { klassifiseer, onttrekDividende } from "@/lib/markets/sens";
 
 export const maxDuration = 300;
 
 /* SENS Vertaal — elke uur (op die halfuur) gedurende beursdae. Bron: Sharenet se vrye
    SENS-blad (lys + volteks in 'n <pre>-blok). Nuwe items met 'n JSE-kode
-   word gehaal, Gemini klassifiseer + skryf een Afrikaanse sin, en
+   word gehaal, Luna (Gemini as vangnet) klassifiseer + skryf een Afrikaanse sin, en
    gekoppelde gebruikers wie se aandele aankondig, kry 'n bot-boodskap. */
 
 const LYS_URL = "https://www.sharenet.co.za/v3/sens.php";
 const UA = { "user-agent": "Mozilla/5.0 (compatible; BuitelynSens/1.0)" };
 const MAKS_PER_LOPIE = 25;
-
-const TIPES = ["resultate", "dividend", "direkteure", "transaksie", "terugkoop", "notering", "agv", "kennisgewing"] as const;
 
 type LysItem = { sensId: string; tyd: string; kode: string | null; maatskappy: string; titel: string; skakel: string };
 
@@ -65,38 +64,6 @@ async function haalVolteks(skakel: string): Promise<string> {
   }
 }
 
-async function klassifiseer(items: { titel: string; maatskappy: string; teks: string }[]): Promise<{ tipe: string; opsomming: string }[]> {
-  const lys = items
-    .map((i, n) => `--- ITEM ${n + 1}: ${i.maatskappy} — ${i.titel}\n${i.teks.slice(0, 3500)}`)
-    .join("\n\n");
-  const prompt = `Hier is ${items.length} JSE SENS-aankondigings. Vir ELKE item, gee:
-1. "tipe": presies een van ${TIPES.join(", ")}. (resultate=finansiële resultate/trading statements; dividend=dividende/uitkerings/rente; direkteure=direkteurshandel/-aanstellings; transaksie=verkrygings/verkope/samesmeltings; terugkoop=aandeleterugkope; notering=noterings/delistings/nuwe effekte; agv=AJV/vergadering-uitslae; kennisgewing=alles anders)
-2. "opsomming": EEN kort Afrikaanse sin (±20 woorde) wat vir 'n gewone belegger sê wat aangekondig is en hoekom dit saak maak. Geen jargon, geen simbole, syfers in mensetaal (R2,4 miljard). NOOIT Nederlandse of Duitse woorde nie.
-
-Antwoord SLEGS met 'n JSON-lys: [{"tipe":"...","opsomming":"..."}] — presies ${items.length} items, in volgorde.
-
-${lys}`;
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-    {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.2, responseMimeType: "application/json" },
-      }),
-    }
-  );
-  if (!res.ok) throw new Error(`Gemini ${res.status}`);
-  const data = await res.json();
-  const rou = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "[]";
-  const uit = JSON.parse(rou) as { tipe: string; opsomming: string }[];
-  return items.map((_, n) => ({
-    tipe: TIPES.includes((uit[n]?.tipe ?? "") as (typeof TIPES)[number]) ? uit[n].tipe : "kennisgewing",
-    opsomming: (uit[n]?.opsomming ?? "").slice(0, 300) || "",
-  }));
-}
-
 export async function GET(request: NextRequest) {
   const geweier = cronGeweier(request);
   if (geweier) return geweier;
@@ -119,7 +86,7 @@ export async function GET(request: NextRequest) {
   const nuwes = metKode.filter((i) => !klaar.has(i.sensId)).slice(0, MAKS_PER_LOPIE);
   if (!nuwes.length) return NextResponse.json({ ok: true, nuut: 0, gesien: alle.length });
 
-  // volteks + klassifikasie (een Gemini-oproep vir die hele bondel)
+  // volteks + klassifikasie (een LLM-oproep vir die hele bondel)
   const tekste = await Promise.all(nuwes.map((i) => haalVolteks(i.skakel)));
   let klas: { tipe: string; opsomming: string }[];
   try {
@@ -147,45 +114,20 @@ export async function GET(request: NextRequest) {
     .filter((x) => x.r.tipe === "dividend" && x.teks);
   if (dividende.length) {
     try {
-      const dPrompt = `Hier is ${dividende.length} JSE-dividend-aankondigings. Onttrek vir ELKE item:
-- "bedrag_sent": die dividend in SENT per aandeel (bv. 190 vir 190 sent; as net rand gegee, skakel om; null as onduidelik)
-- "ldt": laaste dag om te verhandel ("last day to trade", LDT) as YYYY-MM-DD (null as afwesig)
-- "betaaldatum": betaaldatum ("payment date") as YYYY-MM-DD (null as afwesig)
-Antwoord SLEGS met 'n JSON-lys van presies ${dividende.length} objekte in volgorde.
-
-${dividende.map((x, n) => `--- ITEM ${n + 1}: ${x.r.maatskappy}\n${x.teks.slice(0, 3000)}`).join("\n\n")}`;
-      const dRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: dPrompt }] }],
-            generationConfig: { temperature: 0, responseMimeType: "application/json" },
-          }),
-        }
-      );
-      if (dRes.ok) {
-        const dData = await dRes.json();
-        const uit = JSON.parse(dData?.candidates?.[0]?.content?.parts?.[0]?.text ?? "[]") as {
-          bedrag_sent: number | null;
-          ldt: string | null;
-          betaaldatum: string | null;
-        }[];
-        const geldig = /^\d{4}-\d{2}-\d{2}$/;
-        const kalenderRye = dividende
-          .map((x, n) => ({
-            sens_id: x.r.sens_id,
-            kode: x.r.kode!,
-            maatskappy: x.r.maatskappy,
-            bedrag_sent: typeof uit[n]?.bedrag_sent === "number" ? uit[n].bedrag_sent : null,
-            ldt: uit[n]?.ldt && geldig.test(uit[n].ldt!) ? uit[n].ldt : null,
-            betaaldatum: uit[n]?.betaaldatum && geldig.test(uit[n].betaaldatum!) ? uit[n].betaaldatum : null,
-          }))
-          .filter((r) => r.ldt || r.betaaldatum || r.bedrag_sent);
-        if (kalenderRye.length) {
-          await sb.from("dividend_kalender").upsert(kalenderRye, { onConflict: "sens_id" });
-        }
+      const uit = await onttrekDividende(dividende.map((x) => ({ maatskappy: x.r.maatskappy, teks: x.teks })));
+      const geldig = /^\d{4}-\d{2}-\d{2}$/;
+      const kalenderRye = dividende
+        .map((x, n) => ({
+          sens_id: x.r.sens_id,
+          kode: x.r.kode!,
+          maatskappy: x.r.maatskappy,
+          bedrag_sent: typeof uit[n]?.bedrag_sent === "number" ? uit[n].bedrag_sent : null,
+          ldt: uit[n]?.ldt && geldig.test(uit[n].ldt!) ? uit[n].ldt : null,
+          betaaldatum: uit[n]?.betaaldatum && geldig.test(uit[n].betaaldatum!) ? uit[n].betaaldatum : null,
+        }))
+        .filter((r) => r.ldt || r.betaaldatum || r.bedrag_sent);
+      if (kalenderRye.length) {
+        await sb.from("dividend_kalender").upsert(kalenderRye, { onConflict: "sens_id" });
       }
     } catch {
       /* kalender is opsioneel — SENS-vloei mag nie breek nie */
