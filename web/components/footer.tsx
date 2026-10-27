@@ -1,3 +1,5 @@
+import { WINKEL_OOP } from "@/lib/winkel/oop";
+
 export function Footer() {
   return (
     <footer className="mt-auto border-t border-ink/15">
@@ -15,9 +17,11 @@ export function Footer() {
         <a href="/aandele" className="text-sm font-semibold underline-offset-4 hover:underline">
           Aandeelpryse
         </a>
-        <a href="/winkel" className="text-sm font-semibold underline-offset-4 hover:underline">
-          Winkel
-        </a>
+        {WINKEL_OOP ? (
+          <a href="/winkel" className="text-sm font-semibold underline-offset-4 hover:underline">
+            Winkel
+          </a>
+        ) : null}
         {/* Die wetlike bladsye moet vanaf ELKE blad bereikbaar wees sonder om
             aan te meld — dit is wat 'n betalingsverskaffer se nasienspan soek,
             en 'n beleid wat bestaan maar nêrens geskakel is nie, tel nie. */}

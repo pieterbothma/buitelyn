@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { Hamburger } from "@/components/hamburger";
 import { ProfielKenteken } from "@/components/profiel-kenteken";
+import { WINKEL_OOP } from "@/lib/winkel/oop";
 
 export function TopBar() {
   return (
@@ -17,9 +18,11 @@ export function TopBar() {
           <a href="/markte" className="hidden text-[15px] font-semibold underline-offset-4 hover:underline md:block">
             Markte
           </a>
-          <a href="/winkel" className="hidden text-[15px] font-semibold underline-offset-4 hover:underline md:block">
-            Winkel
-          </a>
+          {WINKEL_OOP ? (
+            <a href="/winkel" className="hidden text-[15px] font-semibold underline-offset-4 hover:underline md:block">
+              Winkel
+            </a>
+          ) : null}
           <a
             href="https://buitelyn.substack.com/subscribe"
             target="_blank"

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ProfielKenteken } from "@/components/profiel-kenteken";
 import { Hamburger } from "@/components/hamburger";
+import { WINKEL_OOP } from "@/lib/winkel/oop";
 
 /* Die tuisblad se koerantkop.
    Die gedeelde TopBar is 'n publikasie-kop: 'n groot logo links en skakels
@@ -18,7 +19,7 @@ import { Hamburger } from "@/components/hamburger";
 const AFDELINGS = [
   { naam: "MARKTE", href: "/markte" },
   { naam: "AANDELE", href: "/aandele" },
-  { naam: "WINKEL", href: "/winkel" },
+  ...(WINKEL_OOP ? [{ naam: "WINKEL", href: "/winkel" }] : []),
 ];
 
 export function Koerantkop() {

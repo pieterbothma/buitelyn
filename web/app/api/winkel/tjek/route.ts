@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { valideerBestelling, VERSENDING_SENT } from "@/lib/winkel/valideer";
 import type { BestelLyn } from "@/lib/winkel/epos";
 import { beginTransaksie, toetsModus } from "@/lib/winkel/paystack";
+import { WINKEL_OOP } from "@/lib/winkel/oop";
 
 export const runtime = "nodejs";
 
@@ -15,6 +16,8 @@ type VarianteRy = {
    Voorraad word HIER gekontroleer (eerlike "uitverkoop") maar eers by
    BETALING afgetrek — 'n verlate vorm mag nooit 'n mandjie vashou nie. */
 export async function POST(request: NextRequest) {
+  /* 'n Toe winkel neem niks aan nie, ook nie van 'n ou oop oortjie nie. */
+  if (!WINKEL_OOP) return NextResponse.json({ fout: "Die winkel is tans toe." }, { status: 503 });
   let liggaam: Record<string, unknown>;
   try { liggaam = await request.json(); } catch {
     return NextResponse.json({ fout: "Ongeldige versoek." }, { status: 400 });
